@@ -86,8 +86,8 @@ flowchart LR
 ## Installation
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/vulcan-solidworks-ai-agent.git
-cd vulcan-solidworks-ai-agent
+git clone https://github.com/your-username/Vulcan.git
+cd Vulcan
 ```
 
 ### Server Setup
@@ -221,7 +221,7 @@ AGENT_SERVER_URL="http://127.0.0.1:8000"
 
 ## Project Structure
 ```text
-vulcan-solidworks-ai-agent/
+Vulcan/
 ├── .gitignore                # Ignore .env files, venv, and cache
 ├── README.md                 # This file
 ├── server/                   # FastAPI Backend
