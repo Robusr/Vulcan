@@ -11,6 +11,7 @@ load_dotenv(dotenv_path=env_path)
 class CloudAgentClient:
     def __init__(self):
         self.base_url = os.getenv("AGENT_SERVER_URL", "http://127.0.0.1:8000")
+        # self.base_url = os.getenv("AGENT_SERVER_URL", "http://127.168.110.30:8000")
 
     def generate_sw_code(self, user_prompt: str) -> dict:
         """请求云端生成代码"""
