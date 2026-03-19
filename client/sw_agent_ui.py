@@ -81,11 +81,6 @@ class SWAgentWindow(QWidget):
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("color: #007ACC; padding: 10px;")
 
-        subtitle_label = QLabel("SolidWorks Intelligent Modeling")
-        subtitle_label.setFont(QFont("Arial", 12))
-        subtitle_label.setAlignment(Qt.AlignCenter)
-        subtitle_label.setStyleSheet("color: #888;")
-
         subtitle_label = QLabel("Powered By Robusr")
         subtitle_label.setFont(QFont("Arial", 12))
         subtitle_label.setAlignment(Qt.AlignCenter)
