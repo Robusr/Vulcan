@@ -35,7 +35,7 @@ class AgentWorker(QThread):
 
     def run(self):
         try:
-            self.log.emit("🤖 正在请求 AI 生成代码...")
+            self.log.emit("🤖 正在请求 Vulcan 生成代码...")
             result = self.cloud_client.generate_sw_code(self.user_prompt)
 
             if not result.get('success'):
@@ -82,6 +82,11 @@ class SWAgentWindow(QWidget):
         title_label.setStyleSheet("color: #007ACC; padding: 10px;")
 
         subtitle_label = QLabel("SolidWorks Intelligent Modeling")
+        subtitle_label.setFont(QFont("Arial", 12))
+        subtitle_label.setAlignment(Qt.AlignCenter)
+        subtitle_label.setStyleSheet("color: #888;")
+
+        subtitle_label = QLabel("Powered By Robusr")
         subtitle_label.setFont(QFont("Arial", 12))
         subtitle_label.setAlignment(Qt.AlignCenter)
         subtitle_label.setStyleSheet("color: #888;")
