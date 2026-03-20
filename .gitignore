@@ -1,4 +1,4 @@
-**/.env
+client-python-beta/.env
 **/__pycache__/
 **/venv/
 *.pyc
