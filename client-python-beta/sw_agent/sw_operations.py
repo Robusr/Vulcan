@@ -1,3 +1,6 @@
+# Robusr Mar. 19th
+# SolidWorks操作封装
+
 import win32com.client
 import logging
 
@@ -25,9 +28,7 @@ class SWModeler:
             except:
                 return False
 
-    # ==========================================================================
     # 基准面与草图控制
-    # ==========================================================================
     def create_front_sketch(self):
         self._clear_selection()
         if self._select_entity("前视基准面", "PLANE") or self._select_entity("Front Plane", "PLANE"):
@@ -50,9 +51,7 @@ class SWModeler:
         self.sw_model.SketchManager.InsertSketch(True)
         logger.info("✅ 退出草图")
 
-    # ==========================================================================
     # 草图绘制 (增强版)
-    # ==========================================================================
     def draw_rectangle(self, x1, y1, x2, y2):
         """画矩形: (x1,y1)左下角, (x2,y2)右上角 (mm)"""
         sk = self.sw_model.SketchManager
@@ -96,9 +95,7 @@ class SWModeler:
         sk.CreateArc(xc, yc, 0, x1, y1, 0, x2, y2, 0, 1)  # 1=逆时针
         logger.info(f"✅ 画圆弧")
 
-    # ==========================================================================
     # 特征功能 (增强版)
-    # ==========================================================================
     def exit_sketch_and_extrude(self, depth):
         """退出草图并拉伸凸台 (mm)"""
         self.exit_sketch()

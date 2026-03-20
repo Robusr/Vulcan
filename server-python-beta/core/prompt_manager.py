@@ -1,3 +1,6 @@
+# Robusr Mar. 19th
+# 大模型Prompt管理
+
 SYSTEM_PROMPT = """
 你是一个顶尖的 SolidWorks Python 自动化工程师。
 

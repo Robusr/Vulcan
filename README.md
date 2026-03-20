@@ -224,7 +224,7 @@ AGENT_SERVER_URL="http://127.0.0.1:8000"
 Vulcan/
 ├── .gitignore                # Ignore .env files, venv, and cache
 ├── README.md                 # This file
-├── server/                   # FastAPI Backend
+├── server-python-beta/                   # FastAPI Backend
 │   ├── main.py               # Server entry point
 │   ├── requirements.txt      # Server dependencies
 │   ├── .env                  # Server configuration (gitignored)
@@ -236,7 +236,7 @@ Vulcan/
 │   │   └── prompt_manager.py # System prompt engineering
 │   └── models/
 │       └── schemas.py        # Pydantic request/response models
-└── client/                   # Windows SolidWorks Client
+└── client-python-beta/                   # Windows SolidWorks Client
     ├── main.py               # UI entry point
     ├── sw_agent_ui.py        # PyQt5 main interface
     ├── requirements.txt      # Client dependencies
