@@ -1,3 +1,0 @@
-pywin32>=306                # 核心：与 SolidWorks COM 通信
-requests>=2.31.0            # 用于请求云端
-python-dotenv>=1.0.0        # 读取本地配置
