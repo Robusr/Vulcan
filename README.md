@@ -119,7 +119,7 @@ The client is a Windows-only PyQt5 application that connects to your local Solid
 
 1. Open a new PowerShell/CMD terminal and navigate to the client directory
 ```bash
-cd client
+cd client-python-beta
 ```
 
 2. Create and activate a virtual environment
@@ -204,7 +204,7 @@ AGENT_SERVER_URL="http://127.0.0.1:8000"
 
 3. **Launch the Client UI**
    ```bash
-   # In the client directory, with venv activated
+   # In the client-python-beta directory, with venv activated
    python main.py
    ```
    A modern dark-themed UI will launch and automatically connect to your running SolidWorks instance.
