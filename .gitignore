@@ -2,16 +2,3 @@
 **/__pycache__/
 **/venv/
 *.pyc
-
-# Visual Studio 相关文件
-.vs/
-*.suo
-*.user
-*.userosscache
-*.sln.docstates
-# .NET
-bin/
-obj/
-Debug/
-Release/
-*.pdb
