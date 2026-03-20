@@ -1,4 +1,4 @@
-# client/main.py
+# client-python-beta/main.py
 import sys
 from pathlib import Path
 
