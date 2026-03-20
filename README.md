@@ -95,7 +95,7 @@ The server hosts the FastAPI backend and LLM integration. It can be run on the s
 
 1. Navigate to the server directory
 ```bash
-cd server
+cd server-python-beta
 ```
 
 2. Create and activate a virtual environment
@@ -119,7 +119,7 @@ The client is a Windows-only PyQt5 application that connects to your local Solid
 
 1. Open a new PowerShell/CMD terminal and navigate to the client directory
 ```bash
-cd client
+cd client-python-beta
 ```
 
 2. Create and activate a virtual environment
@@ -190,7 +190,7 @@ AGENT_SERVER_URL="http://127.0.0.1:8000"
 ## Quick Start
 1. **Start the Server**
    ```bash
-   # In the server directory, with venv activated
+   # In the server-python-beta directory, with venv activated
    python main.py
    ```
    You should see the following output when the server starts successfully:
@@ -204,7 +204,7 @@ AGENT_SERVER_URL="http://127.0.0.1:8000"
 
 3. **Launch the Client UI**
    ```bash
-   # In the client directory, with venv activated
+   # In the client-python-beta directory, with venv activated
    python main.py
    ```
    A modern dark-themed UI will launch and automatically connect to your running SolidWorks instance.
