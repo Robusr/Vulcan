@@ -1,3 +1,6 @@
+# Robusr Mar. 19th
+# 大模型API接口配置
+
 import os
 from openai import AsyncOpenAI
 import json

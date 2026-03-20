@@ -1,3 +1,6 @@
+# Robusr Mar. 19th
+# 客户端UI文件
+
 import sys
 import logging
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QHBoxLayout,

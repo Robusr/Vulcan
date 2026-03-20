@@ -1,3 +1,6 @@
+# Robusr Mar. 19th
+# 大模型输出数据配置
+
 from pydantic import BaseModel
 from typing import Optional
 

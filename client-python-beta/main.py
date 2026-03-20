@@ -1,3 +1,6 @@
+# Robusr Mar. 19th
+# 客户端主程序入口
+
 # client-python-beta/main.py
 import sys
 from pathlib import Path
