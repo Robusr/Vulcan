@@ -12,7 +12,7 @@ using static System.Net.Mime.MediaTypeNames;
 namespace VulcanAddin
 {
     [Guid("5F1FC63D-5094-46AE-A6B2-88ADE9399E9C"), ComVisible(true)]
-    [SwAddin(Description = "SolidWorksAddinStudy description", Title = "SolidWorksAddinStudy", LoadAtStartup = true)]
+    [SwAddin(Description = "Vulcan For SolidWorks", Title = "Vulcan", LoadAtStartup = true)]
     public class VulcanApp : ISwAddin
     {
         private ISldWorks iSwApp = null;
