@@ -11,16 +11,14 @@ using static System.Net.Mime.MediaTypeNames;
 
 namespace VulcanAddin
 {
-    [Guid("5F1FC63D-5094-46AE-A6B2-88ADE9399E9C"), ComVisible(true)]
+    [Guid("E58E25BC-CDEF-4EED-A1AF-5A8EBBDB4AC0"), ComVisible(true)]
     [SwAddin(Description = "Vulcan For SolidWorks", Title = "Vulcan", LoadAtStartup = true)]
     public class VulcanApp : ISwAddin
     {
         private ISldWorks iSwApp = null;
         private ICommandManager iCmdMgr = null;
 
-        /// <summary>
         /// 插件cookie
-        /// </summary>
         private int addinCookieID;
 
         public int mainCmdGroupID = 5001;
@@ -29,17 +27,14 @@ namespace VulcanAddin
         public int flyoutGroupID1 = 6000;
         public int flyoutGroupID2 = 7000;
 
-        //本示例只有3个命名，三个图标。
+        //只有3个命名，三个图标。
         public int[] mainItemIds = new[] { 1002, 1003, 1004, 1005 };
 
-        /// <summary>
         /// 主图标的6种尺寸
-        /// </summary>
         private string[] mainIcons = new string[6];
 
-        /// <summary>
         /// 工具栏图标带6种尺寸文件
-        /// </summary>
+        /// 
         private string[] icons = new string[6];
 
         public ISldWorks SwApp
@@ -51,12 +46,8 @@ namespace VulcanAddin
         {
         }
 
-        /// <summary>
         /// 连接到SolidWorks
-        /// </summary>
-        /// <param name="ThisSW"></param>
-        /// <param name="Cookie"></param>
-        /// <returns></returns>
+
         public bool ConnectToSW(object ThisSW, int Cookie)
         {
             iSwApp = (ISldWorks)ThisSW;
@@ -71,16 +62,15 @@ namespace VulcanAddin
             return true;
         }
 
-        /// <summary>
         /// 增加命令
-        /// </summary>
+        /// 
         public void AddCommandMgr()
         {
             try
             {
                 ICommandGroup cmdGroup;
 
-                //如果要支持多语言，就在这里下功夫
+                //多语言todo
                 string Title = "Vulcan";
                 string ToolTip = "Vulcan ToolTip";
 
@@ -342,11 +332,7 @@ namespace VulcanAddin
         }
 
 
-        /// <summary>
         /// 决定此命令在该环境下是否可用
-        /// </summary>
-        /// <param name="data"></param>
-        /// <returns></returns>
         public int EnableFunction(string data)
         {
             int commandType = int.Parse(data);
@@ -436,10 +422,9 @@ namespace VulcanAddin
         #endregion
 
 
-        /// <summary>
+
         /// 通过用户点击的菜单id来执行不同的动作
-        /// </summary>
-        /// <param name="data"></param>
+
         public void FunctionProxy(string data)
         {
             int commandId = int.Parse(data);
@@ -494,10 +479,9 @@ namespace VulcanAddin
             return true;
         }
 
-        /// <summary>
+
         /// 断开连接，卸载插件时执行
-        /// </summary>
-        /// <returns></returns>
+
         public bool DisconnectFromSW()
         {
             Marshal.ReleaseComObject(iCmdMgr);
@@ -512,10 +496,8 @@ namespace VulcanAddin
             return true;
         }
 
-        /// <summary>
         /// 当前dll路径, 最后路径无\
-        /// </summary>
-        /// <returns></returns>
+
         public string RegDllPath()
         {
             try
