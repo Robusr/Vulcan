@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>bfca20b9-3f95-4ee3-bec1-47aca848bbf4</ProjectGuid>
+    <ProjectGuid>{BFCA20B9-3F95-4EE3-BEC1-47ACA848BBF4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>VulcanAddin</RootNamespace>
@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,24 +32,54 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System"/>
-    
-    <Reference Include="System.Core"/>
-    <Reference Include="System.Xml.Linq"/>
-    <Reference Include="System.Data.DataSetExtensions"/>
-    
-    
-    <Reference Include="Microsoft.CSharp"/>
-    
-    <Reference Include="System.Data"/>
-    
-    <Reference Include="System.Net.Http"/>
-    
-    <Reference Include="System.Xml"/>
+    <Reference Include="SolidWorks.Interop.sldworks">
+      <HintPath>ReferenceDLL\SolidWorks.Interop.sldworks.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="SolidWorks.Interop.swconst">
+      <HintPath>ReferenceDLL\SolidWorks.Interop.swconst.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="SolidWorks.Interop.swpublished">
+      <HintPath>ReferenceDLL\SolidWorks.Interop.swpublished.dll</HintPath>
+      <EmbedInteropTypes>False</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="solidworkstools">
+      <HintPath>ReferenceDLL\solidworkstools.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Class1.cs" />
+    <Compile Include="VulcanApp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="icons\mainicon_128.png" />
+    <Content Include="icons\mainicon_20.png" />
+    <Content Include="icons\mainicon_32.png" />
+    <Content Include="icons\mainicon_40.png" />
+    <Content Include="icons\mainicon_64.png" />
+    <Content Include="icons\mainicon_96.png" />
+    <Content Include="icons\Pic1 %281%29.png" />
+    <Content Include="icons\Pic1 %282%29.png" />
+    <Content Include="icons\Pic1 %283%29.png" />
+    <Content Include="icons\Pic1 %284%29.png" />
+    <Content Include="icons\Pic1 %285%29.png" />
+    <Content Include="icons\Pic1 %286%29.png" />
+    <Content Include="icons\toolbar128x.png" />
+    <Content Include="icons\toolbar20x.png" />
+    <Content Include="icons\toolbar32x.png" />
+    <Content Include="icons\toolbar40x.png" />
+    <Content Include="icons\toolbar64x.png" />
+    <Content Include="icons\toolbar96x.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
- </Project>
+</Project>
