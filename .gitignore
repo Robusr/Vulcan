@@ -1,7 +1,10 @@
-#IDE配置文件
+# PyCharm cache/options directory
 .idea/
 
 client-python-beta/.env
 **/__pycache__/
 **/venv/
 *.pyc
+
+# Visual Studio cache/options directory
+.vs/
