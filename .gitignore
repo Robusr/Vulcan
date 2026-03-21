@@ -1,3 +1,6 @@
+#IDE配置文件
+.idea/
+
 client-python-beta/.env
 **/__pycache__/
 **/venv/
