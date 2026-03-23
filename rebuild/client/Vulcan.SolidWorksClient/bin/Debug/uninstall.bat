@@ -2,6 +2,6 @@ set path=%~d0
 cd %path%
 cd /d %~dp0
 
-RegAsm.exe VulcanAddin.dll /codebase
+RegAsm.exe Vulcan.SolidWorksClient.dll /u
 pause
 

@@ -1,0 +1,17 @@
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\bin\Debug\Vulcan.SolidWorksClient.dll
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\bin\Debug\Vulcan.SolidWorksClient.pdb
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\bin\Debug\Vulcan.SolidWorksClient.tlb
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\bin\Debug\Newtonsoft.Json.dll
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\bin\Debug\Newtonsoft.Json.xml
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient.csproj.AssemblyReference.cache
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Interop.SldWorks.dll
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Interop.SwConst.dll
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient.csproj.ResolveComReference.cache
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\UI\MainWindow.baml
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\UI\MainWindow.g.cs
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient_MarkupCompile.cache
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient.g.resources
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient.csproj.CoreCompileInputs.cache
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.S.281FB6C4.Up2Date
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient.dll
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\Debug\Vulcan.SolidWorksClient.pdb

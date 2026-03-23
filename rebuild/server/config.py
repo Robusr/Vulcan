@@ -8,7 +8,7 @@ load_dotenv()
 class Config:
     # Flask 基础配置
     DEBUG = os.getenv('FLASK_ENV') == 'development'
-    PORT = int(os.getenv('FLASK_RUN_PORT', 8000))
+    PORT = int(os.getenv('FLASK_RUN_PORT', 5000))
 
     # LLM 配置
     QINIU_API_KEY = os.getenv('QINIU_API_KEY')
