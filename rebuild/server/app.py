@@ -1,45 +1,64 @@
 from flask import Flask, request, jsonify
 from config import Config
-from services import AIService
-from utils import validate_json, APIError
+from utils.logger import setup_logger
+from utils.exceptions import VulcanBaseError
+from services.llm_client import LLMClient
+from services.param_parser import validate_and_enhance
 
 app = Flask(__name__)
+logger = setup_logger()
+
+# 初始化服务
+llm_client = LLMClient()
 
 
-# 全局错误处理
-@app.errorhandler(APIError)
-def handle_api_error(error):
-    return jsonify({"success": False, "error": error.message}), error.status_code
+# --- API 路由 ---
 
-
-@app.errorhandler(Exception)
-def handle_generic_error(error):
-    return jsonify({"success": False, "error": "服务器内部错误"}), 500
-
-
-# API路由
-@app.route('/api/health', methods=['GET'])
+@app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "service": "Vulcan AI Backend"})
+    """健康检查接口"""
+    return jsonify({"status": "ok", "service": "Vulcan AI Core"})
 
 
-@app.route('/api/generate-params', methods=['POST'])
-@validate_json
-def generate_params():
-    data = request.get_json()
-    user_prompt = data.get("prompt", "")
+@app.route('/api/v1/generate', methods=['POST'])
+def generate_model():
+    """
+    核心生成接口
+    请求体: { "prompt": "画一个立方体" }
+    响应体: { "status": "success", "data": {...} }
+    """
+    try:
+        # 1. 获取请求数据
+        data = request.get_json()
+        if not data or 'prompt' not in data:
+            return jsonify({"status": "error", "message": "缺少 'prompt' 字段"}), 400
 
-    if not user_prompt:
-        raise APIError("缺少prompt参数", 400)
+        user_prompt = data['prompt']
 
-    # 调用AI服务
-    model_params = AIService.natural_language_to_params(user_prompt)
+        # 2. 调用 LLM
+        raw_json = llm_client.call_model(user_prompt)
 
-    return jsonify({
-        "success": True,
-        "data": model_params
-    })
+        # 3. 验证与优化
+        final_params = validate_and_enhance(raw_json)
+
+        # 4. 返回成功响应
+        logger.info("参数生成成功")
+        return jsonify({
+            "status": "success",
+            "data": final_params
+        })
+
+    except VulcanBaseError as e:
+        # 处理已知的业务异常
+        logger.error(f"业务错误: {e.message}")
+        return jsonify({"status": "error", "message": e.message}), e.status_code
+    except Exception as e:
+        # 处理未知异常
+        logger.critical(f"系统未捕获异常: {str(e)}", exc_info=True)
+        return jsonify({"status": "error", "message": "服务器内部未知错误"}), 500
 
 
+# --- 启动入口 ---
 if __name__ == '__main__':
-    app.run(host=Config.HOST, port=Config.PORT, debug=Config.DEBUG)
+    logger.info(f"Starting Vulcan Server on port {Config.PORT}...")
+    app.run(host='0.0.0.0', port=Config.PORT, debug=Config.DEBUG)
