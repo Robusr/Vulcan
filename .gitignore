@@ -1,7 +1,7 @@
 # PyCharm cache/options directory
 .idea/
 
-client-python-beta/.env
+beta/client-python-beta/.env
 **/__pycache__/
 **/venv/
 *.pyc
