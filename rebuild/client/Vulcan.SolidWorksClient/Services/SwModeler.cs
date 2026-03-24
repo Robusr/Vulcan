@@ -45,10 +45,10 @@ namespace Vulcan.SolidWorksClient.Services
                 // 12 = 默认零件模板路径，跳过枚举引用
                 string partTemplatePath = _swApp.GetUserPreferenceStringValue(12);
                 _activeModel = _swApp.NewDocument(partTemplatePath, 0, 0, 0) as SW.ModelDoc2;
-                if (_activeModel == null)
-                {
-                    throw new Exception("无法创建新零件，请检查SolidWorks模板路径");
-                }
+                //if (_activeModel == null)
+                //{
+                //    throw new Exception("无法创建新零件，请检查SolidWorks模板路径");
+                //}
                 Logger.Info("已创建新的零件文档");
             }
         }

@@ -30,7 +30,7 @@ namespace VulcanAddin
 
         public int MainCmdGroupID = 5001;
 
-        public int[] MainItemIds = new[] { 1002 }; 
+        public int[] MainItemIds = new[] { 1002 };
         #endregion
 
         #region 属性封装
@@ -229,7 +229,7 @@ namespace VulcanAddin
                 }
                 catch
                 {
- 
+
                 }
                 new WindowInteropHelper(mainWindow).Owner = ownerHwnd;
                 mainWindow.ShowDialog();
