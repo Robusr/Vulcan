@@ -8,4 +8,7 @@
     <StartProgram>D:\Program Files\SOLIDWORKS Corp\SOLIDWORKS\SLDWORKS.exe</StartProgram>
     <StartAction>Program</StartAction>
   </PropertyGroup>
+  <PropertyGroup>
+    <ProjectView>ProjectFiles</ProjectView>
+  </PropertyGroup>
 </Project>

@@ -1,152 +1,226 @@
-﻿using System;
+﻿using Microsoft.Win32;
+using SldWorks;
+//using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.swconst;
+using SolidWorks.Interop.swpublished;
+using SolidWorksTools;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Interop;
-// 明确指定接口来源，消除所有歧义
-using SW = SldWorks;
-using SWAddin = SolidWorks.Interop.swpublished.ISwAddin;
 using Vulcan.SolidWorksClient.Services;
 using Vulcan.SolidWorksClient.UI;
 
-namespace Vulcan.SolidWorksClient.Core
+namespace VulcanAddin
 {
-    // 你的唯一GUID，不要修改
-    [Guid("B0929746-3430-4CC6-9B71-6650F6B6BB68")]
-    [ComVisible(true)]
-    [ProgId("Vulcan.SolidWorksClient.AddIn")]
-    [ClassInterface(ClassInterfaceType.None)]
-    // 明确指定实现的是SolidWorks官方的插件接口
-    public class SwAddIn : SWAddin
+    [Guid("03D4BCE0-7A21-4660-82A1-4CEEF0FBD651"), ComVisible(true)]
+    [SwAddin(Description = "Vulcan AI For SolidWorks", Title = "Vulcan", LoadAtStartup = true)]
+    public class SwAddIn : ISwAddin
     {
-        private SW.SldWorks _swApp;
-        private int _addinCookie;
-        // 改用强类型，彻底避免dynamic的兼容问题
-        private SW.CommandManager _cmdManager;
-        private SW.CommandGroup _cmdGroup;
+        #region 核心成员变量
+        private ISldWorks _swApp = null;
+        private ICommandManager _cmdMgr = null;
+        private int _addinCookieID;
 
-        #region 核心：SolidWorks插件接口实现（必须严格匹配，不能改签名）
+        private Window _aiMainWindow = null;
+
+
+        public int MainCmdGroupID = 5001;
+
+        public int[] MainItemIds = new[] { 1002 }; 
+        #endregion
+
+        #region 属性封装
+        public ISldWorks SwApp
+        {
+            get { return _swApp; }
+        }
+        #endregion
+
+        #region ISwAddin 核心接口实现
         /// <summary>
-        /// SolidWorks加载插件时会调用这个方法，必须返回true，否则插件会被拒绝加载
+        /// 插件加载时触发
         /// </summary>
         public bool ConnectToSW(object ThisSW, int Cookie)
         {
             try
             {
-                // 第一步：先记录日志，确认SolidWorks调用了这个方法
-                Logger.Info("=== SolidWorks正在加载Vulcan插件 ===");
+                _swApp = (ISldWorks)ThisSW;
+                _addinCookieID = Cookie;
 
-                // 初始化SolidWorks应用对象
-                _swApp = (SW.SldWorks)ThisSW;
-                _addinCookie = Cookie;
-                Logger.Info($"SolidWorks版本：{_swApp.RevisionNumber()}，插件Cookie：{_addinCookie}");
+                // 设置回调信息（必选）
+                _swApp.SetAddinCallbackInfo(0, this, _addinCookieID);
+                _cmdMgr = _swApp.GetCommandManager(_addinCookieID);
 
-                // 第二步：创建菜单和工具栏（即使这里出错，也不会打断插件加载）
-                try
-                {
-                    CreateToolbarAndMenu();
-                    Logger.Info("工具栏和菜单创建成功");
-                }
-                catch (Exception menuEx)
-                {
-                    Logger.Error("菜单创建失败，不影响插件加载", menuEx);
-                }
+                // 创建基础工具栏（仅保留打开AI窗口的按钮）
+                CreateBasicCommandManager();
 
-                // 必须返回true，告诉SolidWorks插件加载成功
-                Logger.Info("=== Vulcan插件加载完成 ===");
                 return true;
             }
             catch (Exception ex)
             {
-                // 全局异常捕获，绝对不能让这个方法异常退出
-                Logger.Error("插件加载过程发生致命错误", ex);
-                // 即使出错，也返回true，确保插件能出现在列表里
-                return true;
+                System.Windows.Forms.MessageBox.Show($"插件加载失败：{ex.Message}\n{ex.StackTrace}");
+                return false;
             }
         }
 
         /// <summary>
-        /// SolidWorks卸载插件时调用
+        /// 插件卸载时触发
         /// </summary>
         public bool DisconnectFromSW()
         {
             try
             {
-                Logger.Info("=== 开始卸载Vulcan插件 ===");
-                // 清理资源
-                if (_cmdGroup != null)
+                // 关闭AI窗口（避免插件卸载后窗口残留）
+                if (_aiMainWindow != null)
                 {
-                    _cmdGroup.HasToolbar = false;
-                    _cmdGroup.HasMenu = false;
-                    _cmdGroup.Activate(); // 反激活命令组
-                    Marshal.ReleaseComObject(_cmdGroup);
-                    _cmdGroup = null;
+                    _aiMainWindow.Close();
+                    _aiMainWindow = null;
                 }
-                Marshal.ReleaseComObject(_cmdManager);
-                Marshal.ReleaseComObject(_swApp);
-                Logger.Info("=== Vulcan插件卸载完成 ===");
+
+                // 释放COM对象
+                if (_cmdMgr != null)
+                {
+                    Marshal.ReleaseComObject(_cmdMgr);
+                    _cmdMgr = null;
+                }
+
+                if (_swApp != null)
+                {
+                    Marshal.ReleaseComObject(_swApp);
+                    _swApp = null;
+                }
+
+                // 强制GC回收
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+
+                return true;
             }
             catch (Exception ex)
             {
-                Logger.Error("插件卸载出错", ex);
+                System.Windows.Forms.MessageBox.Show($"插件卸载失败：{ex.Message}");
+                return false;
             }
-            return true;
         }
         #endregion
 
-        #region 工具栏/菜单创建
-        private void CreateToolbarAndMenu()
-        {
-            _cmdManager = _swApp.GetCommandManager(_addinCookie);
-            int cmdGroupId = 0;
-            int createError = 0;
-
-            // 创建命令组，强类型调用，无兼容问题
-            _cmdGroup = _cmdManager.CreateCommandGroup2(
-                cmdGroupId,
-                "Vulcan AI",
-                "Vulcan AI 建模助手",
-                "AI驱动的SolidWorks建模工具",
-                -1,
-                true,
-                ref createError);
-
-            // 校验创建结果
-            if (createError != 0)
-            {
-                Logger.Error($"命令组创建失败，错误码：{createError}");
-                return;
-            }
-
-            // 添加工具栏按钮
-            _cmdGroup.AddCommandItem2(
-                "打开Vulcan",
-                0,
-                "打开Vulcan AI建模助手",
-                "打开Vulcan",
-                0,
-                nameof(OpenMainWindow),
-                nameof(IsButtonEnable),
-                -1,
-                3); // 3 = 同时显示在菜单+工具栏
-
-            // 激活工具栏和菜单
-            _cmdGroup.HasToolbar = true;
-            _cmdGroup.HasMenu = true;
-            _cmdGroup.Activate();
-        }
-        #endregion
-
-        #region 按钮回调方法
-        public void OpenMainWindow()
+        #region 核心逻辑：创建仅含AI窗口按钮的工具栏
+        private void CreateBasicCommandManager()
         {
             try
             {
-                var modeler = new SwModeler(_swApp);
+                // 支持的文档类型：零件/装配/工程图
+                int[] docTypes = new[]
+                {
+                    (int)swDocumentTypes_e.swDocASSEMBLY,
+                    (int)swDocumentTypes_e.swDocDRAWING,
+                    (int)swDocumentTypes_e.swDocPART
+                };
+
+                #region 1. 创建命令组（仅打开AI窗口的按钮）
+                ICommandGroup mainCmdGroup;
+                int cmdGroupErr = 0;
+                bool ignorePrevious = false;
+                object registryIDs;
+
+                // 读取注册表历史ID
+                bool hasRegistryData = _cmdMgr.GetGroupDataFromRegistry(MainCmdGroupID, out registryIDs);
+                ignorePrevious = hasRegistryData ? !CompareIDs((int[])registryIDs, MainItemIds) : true;
+
+                // 创建命令组
+                mainCmdGroup = _cmdMgr.CreateCommandGroup2(
+                    MainCmdGroupID,
+                    "Vulcan AI",             // 命令组名称
+                    "AI建模助手",            // 提示信息
+                    "",                      // 帮助文档路径
+                    -1,                      // 菜单优先级
+                    ignorePrevious,          // 忽略历史配置
+                    ref cmdGroupErr          // 错误码
+                );
+
+                // 命令项类型：同时显示在菜单和工具栏
+                int menuToolbarType = (int)(swCommandItemType_e.swMenuItem | swCommandItemType_e.swToolbarItem);
+
+                // 添加「打开AI生成窗口」按钮
+                List<int> cmdIndexes = new List<int>();
+                cmdIndexes.Add(mainCmdGroup.AddCommandItem2(
+                    "打开AI生成窗口",        // 菜单显示名称
+                    -1,                      // 无图标（可自行添加）
+                    "打开Vulcan AI建模窗口", // 鼠标悬停提示
+                    "AI生成",                // 工具栏显示名称
+                    0,                       // 无图标索引
+                    $"FunctionProxy({MainItemIds[0]})", // 点击回调
+                    $"EnableFunction({MainItemIds[0]})", // 启用控制
+                    MainItemIds[0],          // 命令ID
+                    menuToolbarType          // 显示类型
+                ));
+
+                // 启用工具栏和菜单
+                mainCmdGroup.HasToolbar = true;
+                mainCmdGroup.HasMenu = true;
+                mainCmdGroup.Activate();
+                #endregion
+
+                #region 2. 绑定工具栏到SolidWorks标签页
+                foreach (int docType in docTypes)
+                {
+                    CommandTab cmdTab = _cmdMgr.GetCommandTab(docType, "Vulcan AI");
+
+                    // 删除旧标签页（ID变更时）
+                    if (cmdTab != null && !hasRegistryData && ignorePrevious)
+                    {
+                        _cmdMgr.RemoveCommandTab(cmdTab);
+                        cmdTab = null;
+                    }
+
+                    // 新建标签页
+                    if (cmdTab == null)
+                    {
+                        cmdTab = _cmdMgr.AddCommandTab(docType, "Vulcan AI");
+                        CommandTabBox cmdBox = cmdTab.AddCommandTabBox();
+
+                        // 收集命令ID
+                        List<int> cmdIDs = new List<int>();
+                        List<int> textDisplayTypes = new List<int>();
+                        foreach (int idx in cmdIndexes)
+                        {
+                            cmdIDs.Add(mainCmdGroup.get_CommandID(idx));
+                            textDisplayTypes.Add((int)swCommandTabButtonTextDisplay_e.swCommandTabButton_TextBelow);
+                        }
+
+                        // 绑定命令到工具栏
+                        cmdBox.AddCommands(cmdIDs.ToArray(), textDisplayTypes.ToArray());
+                    }
+                }
+                #endregion
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"创建工具栏失败：{ex.Message}\n{ex.StackTrace}");
+            }
+        }
+        #endregion
+
+        #region 核心功能：打开AI生成窗口
+        /// <summary>
+        /// 打开AI生成窗口（WPF窗口）
+        /// </summary>
+        private void OpenMainWindow()
+        {
+            try
+            {
+
+                var modeler = new SwModeler((SldWorks.SldWorks)_swApp);
                 var mainWindow = new MainWindow(modeler);
-                // 获取SolidWorks主窗口句柄，作为WPF窗口的Owner
                 IntPtr ownerHwnd = IntPtr.Zero;
                 try
                 {
-                    // 尝试通过Frame()方法获取主窗口句柄
                     dynamic frame = _swApp.Frame();
                     if (frame != null)
                     {
@@ -155,7 +229,7 @@ namespace Vulcan.SolidWorksClient.Core
                 }
                 catch
                 {
-                    // 忽略异常，ownerHwnd 保持为 IntPtr.Zero
+ 
                 }
                 new WindowInteropHelper(mainWindow).Owner = ownerHwnd;
                 mainWindow.ShowDialog();
@@ -166,10 +240,116 @@ namespace Vulcan.SolidWorksClient.Core
                 System.Windows.MessageBox.Show($"打开窗口失败：{ex.Message}", "错误");
             }
         }
+        #endregion
 
-        public int IsButtonEnable()
+        #region 命令回调与控制
+        /// <summary>
+        /// 工具栏按钮点击回调（核心业务入口）
+        /// </summary>
+        public void FunctionProxy(string data)
         {
-            return 1; // 始终启用按钮
+            if (!int.TryParse(data, out int commandId)) return;
+
+            switch (commandId)
+            {
+                case 1002:
+                    OpenMainWindow();
+                    break;
+                default:
+                    _swApp.SendMsgToUser($"未知命令ID：{commandId}");
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// 命令启用控制（始终启用）
+        /// </summary>
+        public int EnableFunction(string data)
+        {
+            return 1;
+        }
+        #endregion
+
+        #region 工具方法
+        /// <summary>
+        /// 对比命令ID是否一致
+        /// </summary>
+        private bool CompareIDs(int[] storedIDs, int[] addinIDs)
+        {
+            if (storedIDs == null || addinIDs == null || storedIDs.Length != addinIDs.Length)
+                return false;
+
+            List<int> storedList = new List<int>(storedIDs);
+            List<int> addinList = new List<int>(addinIDs);
+            storedList.Sort();
+            addinList.Sort();
+
+            for (int i = 0; i < addinList.Count; i++)
+            {
+                if (addinList[i] != storedList[i])
+                    return false;
+            }
+            return true;
+        }
+        #endregion
+
+        #region COM注册/反注册（必选）
+        [ComRegisterFunctionAttribute]
+        public static void RegisterFunction(Type t)
+        {
+            try
+            {
+                // 获取SwAddin特性
+                SwAddinAttribute swAttr = null;
+                foreach (System.Attribute attr in t.GetCustomAttributes(false))
+                {
+                    if (attr is SwAddinAttribute)
+                    {
+                        swAttr = (SwAddinAttribute)attr;
+                        break;
+                    }
+                }
+                if (swAttr == null)
+                {
+                    System.Windows.Forms.MessageBox.Show("未找到SwAddin特性，注册失败！");
+                    return;
+                }
+
+                // 写入HKLM
+                using (RegistryKey hklmKey = Registry.LocalMachine.CreateSubKey(
+                    $"SOFTWARE\\SolidWorks\\Addins\\{{{t.GUID}}}"))
+                {
+                    hklmKey.SetValue(null, 0);
+                    hklmKey.SetValue("Description", swAttr.Description);
+                    hklmKey.SetValue("Title", swAttr.Title);
+                }
+
+                // 写入HKCU
+                using (RegistryKey hkcuKey = Registry.CurrentUser.CreateSubKey(
+                    $"Software\\SolidWorks\\AddInsStartup\\{{{t.GUID}}}"))
+                {
+                    hkcuKey.SetValue(null, Convert.ToInt32(swAttr.LoadAtStartup), RegistryValueKind.DWord);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"插件注册失败：{ex.Message}");
+            }
+        }
+
+        [ComUnregisterFunctionAttribute]
+        public static void UnregisterFunction(Type t)
+        {
+            try
+            {
+                // 删除注册表项
+                Registry.LocalMachine.DeleteSubKey($"SOFTWARE\\SolidWorks\\Addins\\{{{t.GUID}}}", false);
+                Registry.CurrentUser.DeleteSubKey($"Software\\SolidWorks\\AddInsStartup\\{{{t.GUID}}}", false);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.Forms.MessageBox.Show($"插件反注册失败：{ex.Message}");
+            }
         }
         #endregion
     }
