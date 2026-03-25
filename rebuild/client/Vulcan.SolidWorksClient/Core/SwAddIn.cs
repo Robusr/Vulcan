@@ -51,11 +51,11 @@ namespace VulcanAddin
                 _swApp = (ISldWorks)ThisSW;
                 _addinCookieID = Cookie;
 
-                // 设置回调信息（必选）
+                // 设置回调信息
                 _swApp.SetAddinCallbackInfo(0, this, _addinCookieID);
                 _cmdMgr = _swApp.GetCommandManager(_addinCookieID);
 
-                // 创建基础工具栏（仅保留打开AI窗口的按钮）
+                // 创建基础工具栏
                 CreateBasicCommandManager();
 
                 return true;
@@ -74,7 +74,7 @@ namespace VulcanAddin
         {
             try
             {
-                // 关闭AI窗口（避免插件卸载后窗口残留）
+                // 关闭AI窗口
                 if (_aiMainWindow != null)
                 {
                     _aiMainWindow.Close();
@@ -123,7 +123,7 @@ namespace VulcanAddin
                     (int)swDocumentTypes_e.swDocPART
                 };
 
-                #region 1. 创建命令组（仅打开AI窗口的按钮）
+                #region 1. 创建命令组
                 ICommandGroup mainCmdGroup;
                 int cmdGroupErr = 0;
                 bool ignorePrevious = false;
@@ -216,7 +216,7 @@ namespace VulcanAddin
             try
             {
                 Logger.Info("正在打开Vulcan AI窗口...");
-                // 修复：直接传ISldWorks接口，不再强制转换，和SwModeler完全匹配
+                // 传ISldWorks接口。完全匹配SwModeler
                 var modeler = new SwModeler(_swApp);
                 var mainWindow = new MainWindow(modeler);
                 IntPtr ownerHwnd = IntPtr.Zero;
@@ -246,7 +246,8 @@ namespace VulcanAddin
 
         #region 命令回调与控制
         /// <summary>
-        /// 工具栏按钮点击回调（核心业务入口）
+        /// 工具栏按钮点击回调
+        /// 核心业务入口
         /// </summary>
         public void FunctionProxy(string data)
         {
@@ -264,7 +265,8 @@ namespace VulcanAddin
         }
 
         /// <summary>
-        /// 命令启用控制（始终启用）
+        /// 命令启用控制
+        /// （备用）
         /// </summary>
         public int EnableFunction(string data)
         {
@@ -295,7 +297,7 @@ namespace VulcanAddin
         }
         #endregion
 
-        #region COM注册/反注册（必选）
+        #region COM注册/反注册
         [ComRegisterFunctionAttribute]
         public static void RegisterFunction(Type t)
         {

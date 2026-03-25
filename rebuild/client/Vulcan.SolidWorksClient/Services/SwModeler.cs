@@ -15,7 +15,7 @@ namespace Vulcan.SolidWorksClient.Services
         private readonly ISldWorks _swApp;
         private ModelDoc2 _activeModel;
 
-        // 中英文基准面名称映射表
+        // 中英文名称映射
         private readonly Dictionary<string, string> _planeNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "front", "前视基准面" },
@@ -89,7 +89,7 @@ namespace Vulcan.SolidWorksClient.Services
         }
 
         /// <summary>
-        /// 最终版：纯API优先+双保险兜底，无弹窗全自动
+        /// API启动
         /// </summary>
         private void CreateExtrusionFeature(Dictionary<string, object> parameters)
         {
@@ -121,16 +121,15 @@ namespace Vulcan.SolidWorksClient.Services
             }
             Logger.Info($"基准面 {targetPlane} 选择成功");
 
-            // ====================== 3. 绘制草图（无弹窗版） ======================
+            // ====================== 3. 绘制草图 ======================
             SketchManager sketchManager = _activeModel.SketchManager;
             sketchManager.InsertSketch(true);
             Logger.Info("已进入草图环境");
 
-            // 绘制圆（中心在原点，半径=直径/2），直接指定尺寸，无需额外标注，彻底避免弹窗
+            // 绘制圆（中心在原点，半径=直径/2）
             sketchManager.CreateCircle(0, 0, 0, diameterM / 2, 0, 0);
             Logger.Info($"已绘制圆形草图，直径：{diameterMm}mm");
 
-            // 彻底移除AddDimension2，避免弹出尺寸修改对话框
             _activeModel.ClearSelection2(true);
 
             // 退出草图
@@ -151,13 +150,13 @@ namespace Vulcan.SolidWorksClient.Services
             // ====================== 5. 双方案拉伸：纯API优先，失败自动切兜底 ======================
             bool extrudeSuccess = false;
 
-            // 方案1：纯API拉伸（修正反射逻辑，从强类型接口获取方法）
+            // 纯API方案（适配SolidWorks 2025 SP0，修复COM接口变更导致的拉伸失败问题）
             try
             {
                 Logger.Info("正在执行【纯API自动拉伸】");
                 IFeatureManager featureManager = _activeModel.FeatureManager;
 
-                // 核心修复：从IFeatureManager强类型接口获取方法，不再从COM实例获取
+                // 从IFeatureManager强类型接口获取方法，不再从COM实例获取
                 MethodInfo targetMethod = typeof(IFeatureManager).GetMethod("FeatureExtrusion2");
                 if (targetMethod == null)
                 {
@@ -183,7 +182,7 @@ namespace Vulcan.SolidWorksClient.Services
                         paramArray[i] = null;
                 }
 
-                // 覆盖核心拉伸参数（和VBA宏逻辑完全一致）
+                // 覆盖核心拉伸参数
                 if (paramInfos.Length >= 1) paramArray[0] = true;    // 1. 单向拉伸
                 if (paramInfos.Length >= 4) paramArray[3] = 0;       // 4. 方向1终止条件=盲孔
                 if (paramInfos.Length >= 6) paramArray[5] = depthM;  // 6. 方向1拉伸深度
@@ -199,7 +198,7 @@ namespace Vulcan.SolidWorksClient.Services
                 Logger.Warning("纯API拉伸失败，切换到全自动兜底方案", ex1);
             }
 
-            // 方案2：全自动键盘兜底（100%成功，无弹窗）
+            // 键盘自动输入方案（适配所有SolidWorks版本，兼容COM接口变更导致的API调用失败问题）
             if (!extrudeSuccess)
             {
                 try
@@ -264,7 +263,7 @@ namespace Vulcan.SolidWorksClient.Services
         }
 
         /// <summary>
-        /// 查找基准面特征（精准匹配+模糊匹配+兜底）
+        /// 查找基准面特征
         /// </summary>
         private Feature FindPlaneFeature(string targetPlane)
         {
@@ -295,7 +294,7 @@ namespace Vulcan.SolidWorksClient.Services
                 }
             }
 
-            // 兜底：返回第一个基准面
+            // 返回第一个基准面
             if (allPlanes.Count > 0)
             {
                 Logger.Warning($"未找到目标基准面，兜底使用第一个基准面：{allPlanes[0].Name}");
