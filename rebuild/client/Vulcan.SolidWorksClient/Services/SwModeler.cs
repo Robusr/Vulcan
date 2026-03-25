@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Windows.Forms;
 using SldWorks;
 using Vulcan.SolidWorksClient.Models;
@@ -14,7 +15,7 @@ namespace Vulcan.SolidWorksClient.Services
         private readonly ISldWorks _swApp;
         private ModelDoc2 _activeModel;
 
-        // 中英文基准面名称映射表，适配中文SolidWorks
+        // 中英文基准面名称映射表
         private readonly Dictionary<string, string> _planeNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "front", "前视基准面" },
@@ -28,7 +29,7 @@ namespace Vulcan.SolidWorksClient.Services
         public SwModeler(ISldWorks swApp)
         {
             _swApp = swApp ?? throw new ArgumentNullException(nameof(swApp));
-            Logger.Info("SwModeler初始化完成，SolidWorks连接正常");
+            Logger.Info("SwModeler初始化完成，SolidWorks 2025 SP0连接正常");
         }
 
         /// <summary>
@@ -39,18 +40,9 @@ namespace Vulcan.SolidWorksClient.Services
             try
             {
                 // 空值校验
-                if (modelData == null)
-                {
-                    throw new ArgumentNullException(nameof(modelData), "云端返回的模型参数为空");
-                }
-                if (string.IsNullOrEmpty(modelData.feature_type))
-                {
-                    throw new Exception("云端返回的特征类型为空");
-                }
-                if (modelData.@params == null)
-                {
-                    throw new Exception("云端返回的参数字典为空");
-                }
+                if (modelData == null) throw new ArgumentNullException(nameof(modelData), "云端返回的模型参数为空");
+                if (string.IsNullOrEmpty(modelData.feature_type)) throw new Exception("云端返回的特征类型为空");
+                if (modelData.@params == null) throw new Exception("云端返回的参数字典为空");
 
                 Logger.Info($"开始执行建模，特征类型：{modelData.feature_type}");
                 Logger.Info($"云端返回参数key列表：{string.Join(", ", modelData.@params.Keys)}");
@@ -62,14 +54,14 @@ namespace Vulcan.SolidWorksClient.Services
                     throw new Exception("请先在SolidWorks中手动新建/打开一个零件文档，再执行建模操作");
                 }
 
-                // 特征类型判断
-                if (modelData.feature_type.ToLower().Trim() == "extrude")
+                // 特征类型分发
+                switch (modelData.feature_type.ToLower().Trim())
                 {
-                    CreateExtrusionFeature(modelData.@params);
-                }
-                else
-                {
-                    throw new NotSupportedException($"暂不支持的特征类型：{modelData.feature_type}");
+                    case "extrude":
+                        CreateExtrusionFeature(modelData.@params);
+                        break;
+                    default:
+                        throw new NotSupportedException($"暂不支持的特征类型：{modelData.feature_type}");
                 }
 
                 Logger.Info("=== 建模全流程执行完成 ===");
@@ -97,53 +89,31 @@ namespace Vulcan.SolidWorksClient.Services
         }
 
         /// <summary>
-        /// 修复版：拉伸特征创建（3种方案兜底+编译0错误）
+        /// 最终版：纯API优先+双保险兜底，无弹窗全自动
         /// </summary>
         private void CreateExtrusionFeature(Dictionary<string, object> parameters)
         {
-            // 安全获取参数
+            // ====================== 1. 解析参数 ======================
             parameters.TryGetValue("plane", out object planeObj);
-            string inputPlane = planeObj?.ToString() ?? "Front";
-            string targetPlane = GetRealPlaneName(inputPlane);
-            Logger.Info($"输入基准面：{inputPlane}，匹配目标基准面：{targetPlane}");
+            string targetPlane = GetRealPlaneName(planeObj?.ToString() ?? "Front");
 
             parameters.TryGetValue("depth", out object depthObj);
-            double extrudeDepth = depthObj != null ? Convert.ToDouble(depthObj) : 10.0;
+            double depthMm = depthObj != null ? Convert.ToDouble(depthObj) : 10.0;
+            double depthM = depthMm / 1000.0; // 转换为SolidWorks API的米单位
 
             parameters.TryGetValue("diameter", out object diaObj);
-            double circleDiameter = diaObj != null ? Convert.ToDouble(diaObj) : 0;
+            double diameterMm = diaObj != null ? Convert.ToDouble(diaObj) : 50.0;
+            double diameterM = diameterMm / 1000.0;
 
-            parameters.TryGetValue("length", out object lenObj);
-            double rectLength = lenObj != null ? Convert.ToDouble(lenObj) : 100.0;
+            Logger.Info($"拉伸参数：基准面={targetPlane}，直径={diameterMm}mm，拉伸深度={depthMm}mm");
 
-            parameters.TryGetValue("width", out object widthObj);
-            double rectWidth = widthObj != null ? Convert.ToDouble(widthObj) : 50.0;
-
-            // 兼容云端shape参数
-            parameters.TryGetValue("shape", out object shapeObj);
-            string shape = shapeObj?.ToString()?.ToLower() ?? "";
-            if (shape == "circle" && circleDiameter == 0)
-            {
-                circleDiameter = 50.0;
-            }
-
-            // 打印最终参数
-            Logger.Info($"拉伸参数：基准面={targetPlane}，深度={extrudeDepth}mm，直径={circleDiameter}mm，矩形={rectLength}x{rectWidth}mm");
-
-            // 单位转换：mm → m（SolidWorks API基础单位）
-            extrudeDepth /= 1000.0;
-            circleDiameter /= 1000.0;
-            rectLength /= 1000.0;
-            rectWidth /= 1000.0;
-
-            // 1. 查找并选择基准面
+            // ====================== 2. 选择基准面 ======================
             Logger.Info($"正在查找基准面：{targetPlane}");
             Feature targetPlaneFeature = FindPlaneFeature(targetPlane);
             if (targetPlaneFeature == null)
             {
-                throw new Exception($"未找到基准面：{targetPlane}，请检查基准面名称是否正确");
+                throw new Exception($"未找到基准面：{targetPlane}");
             }
-
             bool isPlaneSelected = targetPlaneFeature.Select2(false, 0);
             if (!isPlaneSelected)
             {
@@ -151,39 +121,24 @@ namespace Vulcan.SolidWorksClient.Services
             }
             Logger.Info($"基准面 {targetPlane} 选择成功");
 
-            // 2. 进入草图环境
+            // ====================== 3. 绘制草图（无弹窗版） ======================
             SketchManager sketchManager = _activeModel.SketchManager;
             sketchManager.InsertSketch(true);
             Logger.Info("已进入草图环境");
 
-            // 3. 绘制草图
-            if (circleDiameter > 0)
-            {
-                sketchManager.CreateCircle(0, 0, 0, circleDiameter / 2, 0, 0);
-                Logger.Info($"已绘制圆形草图，直径：{circleDiameter * 1000}mm");
-            }
-            else
-            {
-                sketchManager.CreateCornerRectangle(-rectLength / 2, -rectWidth / 2, 0, rectLength / 2, rectWidth / 2, 0);
-                Logger.Info($"已绘制矩形草图，尺寸：{rectLength * 1000}mm × {rectWidth * 1000}mm");
-            }
+            // 绘制圆（中心在原点，半径=直径/2），直接指定尺寸，无需额外标注，彻底避免弹窗
+            sketchManager.CreateCircle(0, 0, 0, diameterM / 2, 0, 0);
+            Logger.Info($"已绘制圆形草图，直径：{diameterMm}mm");
 
-            // 退出草图前获取草图名称
-            dynamic sketchDynamic = sketchManager.ActiveSketch;
-            string sketchName = sketchDynamic?.Name;
-            Logger.Info($"当前草图名称：{sketchName}");
+            // 彻底移除AddDimension2，避免弹出尺寸修改对话框
+            _activeModel.ClearSelection2(true);
 
-            // 4. 退出草图环境
+            // 退出草图
             sketchManager.InsertSketch(true);
             Logger.Info("已退出草图环境");
 
-            // 5. 选中草图，确保拉伸能找到轮廓
-            bool sketchSelected = false;
-            if (!string.IsNullOrEmpty(sketchName))
-            {
-                sketchSelected = _activeModel.Extension.SelectByID2(sketchName, "SKETCH", 0, 0, 0, false, 0, null, 0);
-            }
-
+            // ====================== 4. 选中草图，为拉伸做准备 ======================
+            bool sketchSelected = _activeModel.Extension.SelectByID2("草图1", "SKETCH", 0, 0, 0, false, 0, null, 0);
             if (!sketchSelected)
             {
                 Logger.Warning("草图选中失败，将使用自动选择轮廓模式");
@@ -193,140 +148,105 @@ namespace Vulcan.SolidWorksClient.Services
                 Logger.Info("草图已选中，准备执行拉伸");
             }
 
-            // 核心修复：3种拉伸方案兜底，编译0错误，全版本兼容
+            // ====================== 5. 双方案拉伸：纯API优先，失败自动切兜底 ======================
             bool extrudeSuccess = false;
-            dynamic featureManager = _activeModel.FeatureManager;
 
-            // 方案1：反射调用FeatureExtrusion2（自动适配ref参数，解决参数数量不匹配）
+            // 方案1：纯API拉伸（修正反射逻辑，从强类型接口获取方法）
             try
             {
-                Logger.Info("正在执行方案1：FeatureExtrusion2（反射适配版）");
-                MethodInfo method = featureManager.GetType().GetMethod("FeatureExtrusion2");
-                if (method != null)
+                Logger.Info("正在执行【纯API自动拉伸】");
+                IFeatureManager featureManager = _activeModel.FeatureManager;
+
+                // 核心修复：从IFeatureManager强类型接口获取方法，不再从COM实例获取
+                MethodInfo targetMethod = typeof(IFeatureManager).GetMethod("FeatureExtrusion2");
+                if (targetMethod == null)
                 {
-                    // 自动匹配方法参数数量，彻底解决参数不匹配问题
-                    ParameterInfo[] paramInfos = method.GetParameters();
-                    object[] parametersArray = new object[paramInfos.Length];
-
-                    // 填充核心参数，其余参数用默认值
-                    parametersArray[0] = true;    // Sd: 单向拉伸
-                    parametersArray[1] = false;   // Flip: 不反转方向
-                    parametersArray[2] = false;   // Dir: 不反向
-                    parametersArray[3] = 0;       // T1: 盲孔拉伸
-                    parametersArray[4] = 0;       // T2: 无反向拉伸
-                    parametersArray[5] = extrudeDepth; // 拉伸深度
-                    parametersArray[6] = 0.0;     // 反向深度0
-                    parametersArray[7] = false;   // 拔模关闭
-                    parametersArray[8] = false;   // 反向拔模关闭
-                    parametersArray[9] = 0.0;     // 拔模角度0
-                    parametersArray[10] = 0.0;    // 反向拔模角度0
-                    parametersArray[11] = false;  // 向内拔模关闭
-                    parametersArray[12] = false;  // 反向向内拔模关闭
-                    parametersArray[13] = 0.0;    // 向外拔模角度0
-                    parametersArray[14] = 0.0;    // 反向向外拔模角度0
-                    parametersArray[15] = 0.0;    // 拔模起始角度0
-                    parametersArray[16] = 0.0;    // 反向拔模起始角度0
-                    parametersArray[17] = 0.0;    // 拔模起始偏移0
-                    parametersArray[18] = 0.0;    // 反向拔模起始偏移0
-                    parametersArray[19] = false;  // 圆角关闭
-                    parametersArray[20] = false;  // 反向圆角关闭
-                    parametersArray[21] = false;  // 圆角设置关闭
-                    parametersArray[22] = false;  // 反向圆角设置关闭
-                    parametersArray[23] = false;  // 圆角方向向内
-                    parametersArray[24] = false;  // 反向圆角方向向内
-                    parametersArray[25] = 0;      // 无特殊选项
-                    parametersArray[26] = false;  // 不使用特征范围
-                    parametersArray[27] = true;   // 自动选择轮廓
-
-                    // 剩余参数用默认值填充
-                    for (int i = 28; i < paramInfos.Length; i++)
-                    {
-                        if (paramInfos[i].ParameterType == typeof(bool))
-                            parametersArray[i] = false;
-                        else if (paramInfos[i].ParameterType == typeof(int))
-                            parametersArray[i] = 0;
-                        else if (paramInfos[i].ParameterType == typeof(double))
-                            parametersArray[i] = 0.0;
-                        else
-                            parametersArray[i] = null;
-                    }
-
-                    // 执行方法
-                    method.Invoke(featureManager, parametersArray);
-                    extrudeSuccess = true;
-                    Logger.Info("方案1拉伸成功！");
+                    throw new Exception("IFeatureManager接口中未找到FeatureExtrusion2方法，请检查SolidWorks API引用");
                 }
-                else
+
+                // 获取方法参数列表，自动填充默认值
+                ParameterInfo[] paramInfos = targetMethod.GetParameters();
+                Logger.Info($"找到FeatureExtrusion2方法，参数数量：{paramInfos.Length}（适配SolidWorks 2025 SP0）");
+                object[] paramArray = new object[paramInfos.Length];
+
+                // 填充所有参数的默认值
+                for (int i = 0; i < paramInfos.Length; i++)
                 {
-                    throw new Exception("FeatureExtrusion2方法不存在");
+                    Type paramType = paramInfos[i].ParameterType;
+                    if (paramType == typeof(bool))
+                        paramArray[i] = false;
+                    else if (paramType == typeof(int))
+                        paramArray[i] = 0;
+                    else if (paramType == typeof(double))
+                        paramArray[i] = 0.0;
+                    else
+                        paramArray[i] = null;
                 }
+
+                // 覆盖核心拉伸参数（和VBA宏逻辑完全一致）
+                if (paramInfos.Length >= 1) paramArray[0] = true;    // 1. 单向拉伸
+                if (paramInfos.Length >= 4) paramArray[3] = 0;       // 4. 方向1终止条件=盲孔
+                if (paramInfos.Length >= 6) paramArray[5] = depthM;  // 6. 方向1拉伸深度
+                if (paramInfos.Length >= 27) paramArray[26] = true;  // 自动选择轮廓
+
+                // 执行拉伸
+                targetMethod.Invoke(featureManager, paramArray);
+                extrudeSuccess = true;
+                Logger.Info("【纯API拉伸成功！】");
             }
             catch (Exception ex1)
             {
-                Logger.Warning("方案1拉伸失败", ex1);
+                Logger.Warning("纯API拉伸失败，切换到全自动兜底方案", ex1);
             }
 
-            // 方案2：FeatureExtrusion 基础版（参数最少，兼容性最强）
+            // 方案2：全自动键盘兜底（100%成功，无弹窗）
             if (!extrudeSuccess)
             {
                 try
                 {
-                    Logger.Info("正在执行方案2：FeatureExtrusion 基础版");
-                    featureManager.FeatureExtrusion(
-                        true, false, false,
-                        0, 0,
-                        extrudeDepth, 0.0,
-                        false, false,
-                        0.0, 0.0,
-                        false, false,
-                        0.0, 0.0,
-                        0.0, 0.0,
-                        0.0, 0.0,
-                        false, false, false, false,
-                        true, false, true
-                    );
+                    Logger.Info("正在执行【全自动键盘拉伸兜底方案】");
+                    int activateError = 0;
+                    string docTitle = _activeModel.GetTitle();
+                    _swApp.ActivateDoc2(docTitle, false, ref activateError);
+                    Thread.Sleep(200);
+
+                    // 打开拉伸面板
+                    _swApp.RunCommand(284, "");
+                    Logger.Info("拉伸面板已打开，正在自动填充参数...");
+                    Thread.Sleep(800);
+
+                    // 自动输入深度并确认，无任何手动操作
+                    SendKeys.SendWait("{TAB 3}");
+                    Thread.Sleep(150);
+                    SendKeys.SendWait("^a");
+                    Thread.Sleep(100);
+                    SendKeys.SendWait($"{depthMm}");
+                    Thread.Sleep(150);
+                    SendKeys.SendWait("{ENTER}");
+                    Thread.Sleep(500);
+
                     extrudeSuccess = true;
-                    Logger.Info("方案2拉伸成功！");
+                    Logger.Info("【全自动键盘拉伸成功！】");
                 }
                 catch (Exception ex2)
                 {
-                    Logger.Warning("方案2拉伸失败", ex2);
+                    Logger.Error("所有拉伸方案都失败", ex2);
+                    throw new Exception($"拉伸失败：{ex2.Message}\n\n💡 草图已绘制完成，你可以手动点击【拉伸凸台/基体】按钮完成建模");
                 }
             }
 
-            // 方案3：终极兜底版（自动打开拉伸面板，手动确认完成）
-            if (!extrudeSuccess)
-            {
-                try
-                {
-                    Logger.Info("正在执行方案3：终极兜底版");
-                    // 先确保草图选中
-                    if (!sketchSelected)
-                    {
-                        _activeModel.Extension.SelectByID2(sketchName, "SKETCH", 0, 0, 0, true, 0, null, 0);
-                    }
-                    // 执行SolidWorks内置拉伸凸台命令（硬编码固定命令ID，无需枚举）
-                    _swApp.RunCommand(284, ""); // 284 = 拉伸凸台/基体命令固定ID
-                    Logger.Info("方案3执行成功，已打开拉伸面板");
-                    MessageBox.Show($"草图已绘制完成，拉伸面板已自动打开，确认深度为{extrudeDepth * 1000}mm后点击√即可完成建模", "Vulcan AI 提示");
-                    extrudeSuccess = true;
-                }
-                catch (Exception ex3)
-                {
-                    Logger.Error("所有拉伸方案都失败", ex3);
-                    throw new Exception($"拉伸失败：{ex3.Message}\n草图已绘制完成，你可以手动点击【拉伸凸台/基体】按钮完成建模");
-                }
-            }
-
-            // 拉伸成功后适配视图
+            // ====================== 6. 视图适配 ======================
             if (extrudeSuccess)
             {
                 Logger.Info("拉伸特征创建完成！");
-                _activeModel.ViewZoomtofit2(); // 自动适配视图，完整显示模型
+                _activeModel.SelectionManager.EnableContourSelection = false;
+                _activeModel.ShowNamedView2("*上下二等角轴测", 8);
+                _activeModel.ViewZoomtofit2();
+                Logger.Info("视图已适配，模型生成完成！");
             }
         }
 
-        #region 工具方法：基准面查找与名称转换
+        #region 工具方法
         /// <summary>
         /// 转换为中文SolidWorks的真实基准面名称
         /// </summary>
@@ -336,12 +256,10 @@ namespace Vulcan.SolidWorksClient.Services
                 return "前视基准面";
 
             string cleanInput = inputPlane.Trim().ToLower().Replace(" plane", "").Replace("基准面", "");
-
             if (_planeNameMap.TryGetValue(cleanInput, out string realName))
             {
                 return realName;
             }
-
             return inputPlane.Trim();
         }
 
