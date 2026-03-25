@@ -1,3 +1,6 @@
+# Robusr Mar.24th
+# LLM大模型调用管理
+
 import requests
 import json
 from config import Config
@@ -17,7 +20,8 @@ class LLMClient:
             "Content-Type": "application/json"
         }
 
-        # System Prompt: 定义 AI 的行为，强制输出 JSON
+        # 系统级Prompt
+        # 强制输出 JSON
         self.system_prompt = """
         你是一个专业的SolidWorks CAD建模助手。请根据用户的自然语言描述，生成结构化的JSON建模指令，严格匹配SolidWorks API的参数要求。
 
@@ -97,9 +101,11 @@ class LLMClient:
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
-                # 有时候 LLM 可能会多输出废话，尝试提取 JSON 部分
+                # 解决 LLM 过量输出情况，
+                # 尝试提取 JSON 部分
                 logger.warning(f"LLM 返回非纯 JSON，尝试提取: {content}")
-                # 简单的提取逻辑：找第一个 { 和最后一个 }
+                # 提取过滤
+                # 首位优先提取
                 start = content.find('{')
                 end = content.rfind('}')
                 if start != -1 and end != -1:

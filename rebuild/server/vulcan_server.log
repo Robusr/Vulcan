@@ -70,3 +70,4 @@
 2026-03-26 02:59:11,143 - vulcan_server - INFO - 参数生成成功
 2026-03-26 03:06:35,255 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
 2026-03-26 03:06:36,785 - vulcan_server - INFO - 参数生成成功
+2026-03-26 05:52:21,619 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
