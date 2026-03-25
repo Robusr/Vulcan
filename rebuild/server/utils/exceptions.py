@@ -1,3 +1,6 @@
+# Robusr Mar.24th
+# 定义服务器调用LLM业务异常
+
 class VulcanBaseError(Exception):
     """基础异常类"""
     status_code = 500

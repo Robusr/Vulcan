@@ -1,3 +1,6 @@
+# Robusr Mar.24th
+# 服务器日志生成器
+
 import logging
 import sys
 
