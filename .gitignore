@@ -8,3 +8,5 @@ beta/client-python-beta/.env
 
 # Visual Studio cache/options directory
 .vs/
+
+.env
