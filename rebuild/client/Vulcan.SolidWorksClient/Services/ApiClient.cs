@@ -10,7 +10,7 @@ namespace Vulcan.SolidWorksClient.Services
 {
     public class VulcanApiClient
     {
-        // 请确保此地址与你的Python云端服务器地址一致
+        // LLM调用接口地址
         private const string ServerApiUrl = "http://127.0.0.1:5000/api/v1/generate";
         private readonly HttpClient _httpClient;
 
