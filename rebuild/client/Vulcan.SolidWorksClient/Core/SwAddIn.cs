@@ -215,8 +215,9 @@ namespace VulcanAddin
         {
             try
             {
-
-                var modeler = new SwModeler((SldWorks.SldWorks)_swApp);
+                Logger.Info("正在打开Vulcan AI窗口...");
+                // 修复：直接传ISldWorks接口，不再强制转换，和SwModeler完全匹配
+                var modeler = new SwModeler(_swApp);
                 var mainWindow = new MainWindow(modeler);
                 IntPtr ownerHwnd = IntPtr.Zero;
                 try
@@ -227,11 +228,12 @@ namespace VulcanAddin
                         ownerHwnd = new IntPtr((int)frame.GetHWnd());
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
- 
+                    Logger.Warning("获取SolidWorks窗口句柄失败", ex);
                 }
                 new WindowInteropHelper(mainWindow).Owner = ownerHwnd;
+                Logger.Info("Vulcan AI窗口已打开");
                 mainWindow.ShowDialog();
             }
             catch (Exception ex)

@@ -36,3 +36,37 @@
 2026-03-24 08:27:07,539 - vulcan_server - INFO - 参数生成成功
 2026-03-24 08:27:20,802 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
 2026-03-24 08:27:22,983 - vulcan_server - INFO - 参数生成成功
+2026-03-26 01:59:26,854 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-26 01:59:27,288 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-26 02:01:37,052 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:01:38,716 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:01:52,177 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:01:53,816 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:02:06,084 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:02:07,830 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:02:37,487 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:02:38,691 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:11:09,943 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:11:12,402 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:16:30,490 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:16:32,895 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:16:53,286 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:16:55,387 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:22:09,019 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:22:19,411 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:25:23,073 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:25:25,488 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:33:13,572 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:33:15,809 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:37:25,248 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:37:32,048 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:42:33,082 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:42:35,147 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:44:18,797 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:44:20,654 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:49:18,203 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:49:20,775 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:59:03,215 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:59:11,143 - vulcan_server - INFO - 参数生成成功
+2026-03-26 03:06:35,255 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 03:06:36,785 - vulcan_server - INFO - 参数生成成功
