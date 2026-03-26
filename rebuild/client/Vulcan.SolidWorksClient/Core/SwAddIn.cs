@@ -41,7 +41,7 @@ namespace VulcanAddin
         {
             try
             {
-                // 统一转换为官方SDK的ISldWorks，和SwModeler完全匹配
+                // 类型转换获取SolidWorks应用对象
                 _swApp = (ISldWorks)ThisSW;
                 _addinCookieID = Cookie;
 
@@ -126,7 +126,7 @@ namespace VulcanAddin
                 mainCmdGroup = _cmdMgr.CreateCommandGroup2(
                     MainCmdGroupID,
                     "Vulcan AI",
-                    "AI建模助手",
+                    "AI Assistant For SolidWorks",
                     string.Empty,
                     -1,
                     ignorePrevious,
@@ -139,10 +139,10 @@ namespace VulcanAddin
                 // 添加「打开AI生成窗口」按钮
                 List<int> cmdIndexes = new List<int>();
                 cmdIndexes.Add(mainCmdGroup.AddCommandItem2(
-                    "打开AI生成窗口",
+                    "Active Vulcan AI",
                     -1,
-                    "打开Vulcan AI建模窗口",
-                    "AI生成",
+                    "Connect To Vulcan AI",
+                    "Hello Vulcan",
                     0,
                     $"FunctionProxy({MainItemIds[0]})",
                     $"EnableFunction({MainItemIds[0]})",
@@ -198,14 +198,14 @@ namespace VulcanAddin
 
         #region 核心功能：打开AI生成窗口
         /// <summary>
-        /// 打开AI生成窗口，传递和SwModeler完全兼容的ISldWorks实例
+        /// 打开AI生成窗口，传递和ISldWorks实例
         /// </summary>
         private void OpenMainWindow()
         {
             try
             {
                 Logger.Info("正在打开Vulcan AI窗口...");
-                // 传递官方SDK的ISldWorks，和SwModeler完全匹配，无类型冲突
+                // 传递ISldWorks
                 var modeler = new SwModeler(_swApp);
                 var mainWindow = new MainWindow(modeler);
 
