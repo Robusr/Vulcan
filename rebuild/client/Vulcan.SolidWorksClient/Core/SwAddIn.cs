@@ -1,6 +1,5 @@
 ﻿using Microsoft.Win32;
-using SldWorks;
-//using SolidWorks.Interop.sldworks;
+using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
 using SolidWorks.Interop.swpublished;
 using SolidWorksTools;
@@ -9,7 +8,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Forms;
 using System.Windows.Interop;
 using Vulcan.SolidWorksClient.Services;
 using Vulcan.SolidWorksClient.UI;
@@ -27,17 +25,12 @@ namespace VulcanAddin
 
         private Window _aiMainWindow = null;
 
-
         public int MainCmdGroupID = 5001;
-
-        public int[] MainItemIds = new[] { 1002 }; 
+        public int[] MainItemIds = new[] { 1002 };
         #endregion
 
         #region 属性封装
-        public ISldWorks SwApp
-        {
-            get { return _swApp; }
-        }
+        public ISldWorks SwApp => _swApp;
         #endregion
 
         #region ISwAddin 核心接口实现
@@ -48,6 +41,7 @@ namespace VulcanAddin
         {
             try
             {
+                // 统一转换为官方SDK的ISldWorks，和SwModeler完全匹配
                 _swApp = (ISldWorks)ThisSW;
                 _addinCookieID = Cookie;
 
@@ -55,7 +49,7 @@ namespace VulcanAddin
                 _swApp.SetAddinCallbackInfo(0, this, _addinCookieID);
                 _cmdMgr = _swApp.GetCommandManager(_addinCookieID);
 
-                // 创建基础工具栏
+                // 创建工具栏
                 CreateBasicCommandManager();
 
                 return true;
@@ -75,11 +69,8 @@ namespace VulcanAddin
             try
             {
                 // 关闭AI窗口
-                if (_aiMainWindow != null)
-                {
-                    _aiMainWindow.Close();
-                    _aiMainWindow = null;
-                }
+                _aiMainWindow?.Close();
+                _aiMainWindow = null;
 
                 // 释放COM对象
                 if (_cmdMgr != null)
@@ -87,14 +78,13 @@ namespace VulcanAddin
                     Marshal.ReleaseComObject(_cmdMgr);
                     _cmdMgr = null;
                 }
-
                 if (_swApp != null)
                 {
                     Marshal.ReleaseComObject(_swApp);
                     _swApp = null;
                 }
 
-                // 强制GC回收
+                // 强制GC回收COM资源
                 GC.Collect();
                 GC.WaitForPendingFinalizers();
                 GC.Collect();
@@ -110,7 +100,7 @@ namespace VulcanAddin
         }
         #endregion
 
-        #region 核心逻辑：创建仅含AI窗口按钮的工具栏
+        #region 核心逻辑：创建AI窗口工具栏
         private void CreateBasicCommandManager()
         {
             try
@@ -127,21 +117,20 @@ namespace VulcanAddin
                 ICommandGroup mainCmdGroup;
                 int cmdGroupErr = 0;
                 bool ignorePrevious = false;
-                object registryIDs;
 
-                // 读取注册表历史ID
-                bool hasRegistryData = _cmdMgr.GetGroupDataFromRegistry(MainCmdGroupID, out registryIDs);
+                // 读取注册表历史ID，判断是否需要重置
+                bool hasRegistryData = _cmdMgr.GetGroupDataFromRegistry(MainCmdGroupID, out object registryIDs);
                 ignorePrevious = hasRegistryData ? !CompareIDs((int[])registryIDs, MainItemIds) : true;
 
                 // 创建命令组
                 mainCmdGroup = _cmdMgr.CreateCommandGroup2(
                     MainCmdGroupID,
-                    "Vulcan AI",             // 命令组名称
-                    "AI建模助手",            // 提示信息
-                    "",                      // 帮助文档路径
-                    -1,                      // 菜单优先级
-                    ignorePrevious,          // 忽略历史配置
-                    ref cmdGroupErr          // 错误码
+                    "Vulcan AI",
+                    "AI建模助手",
+                    string.Empty,
+                    -1,
+                    ignorePrevious,
+                    ref cmdGroupErr
                 );
 
                 // 命令项类型：同时显示在菜单和工具栏
@@ -150,15 +139,15 @@ namespace VulcanAddin
                 // 添加「打开AI生成窗口」按钮
                 List<int> cmdIndexes = new List<int>();
                 cmdIndexes.Add(mainCmdGroup.AddCommandItem2(
-                    "打开AI生成窗口",        // 菜单显示名称
-                    -1,                      // 无图标（可自行添加）
-                    "打开Vulcan AI建模窗口", // 鼠标悬停提示
-                    "AI生成",                // 工具栏显示名称
-                    0,                       // 无图标索引
-                    $"FunctionProxy({MainItemIds[0]})", // 点击回调
-                    $"EnableFunction({MainItemIds[0]})", // 启用控制
-                    MainItemIds[0],          // 命令ID
-                    menuToolbarType          // 显示类型
+                    "打开AI生成窗口",
+                    -1,
+                    "打开Vulcan AI建模窗口",
+                    "AI生成",
+                    0,
+                    $"FunctionProxy({MainItemIds[0]})",
+                    $"EnableFunction({MainItemIds[0]})",
+                    MainItemIds[0],
+                    menuToolbarType
                 ));
 
                 // 启用工具栏和菜单
@@ -167,25 +156,25 @@ namespace VulcanAddin
                 mainCmdGroup.Activate();
                 #endregion
 
-                #region 2. 绑定工具栏到SolidWorks标签页
+                #region 2. 绑定命令到Ribbon标签页
                 foreach (int docType in docTypes)
                 {
                     CommandTab cmdTab = _cmdMgr.GetCommandTab(docType, "Vulcan AI");
 
-                    // 删除旧标签页（ID变更时）
+                    // ID变更时删除旧标签页
                     if (cmdTab != null && !hasRegistryData && ignorePrevious)
                     {
                         _cmdMgr.RemoveCommandTab(cmdTab);
                         cmdTab = null;
                     }
 
-                    // 新建标签页
+                    // 新建Ribbon标签页
                     if (cmdTab == null)
                     {
                         cmdTab = _cmdMgr.AddCommandTab(docType, "Vulcan AI");
                         CommandTabBox cmdBox = cmdTab.AddCommandTabBox();
 
-                        // 收集命令ID
+                        // 收集命令ID与显示样式
                         List<int> cmdIDs = new List<int>();
                         List<int> textDisplayTypes = new List<int>();
                         foreach (int idx in cmdIndexes)
@@ -209,29 +198,32 @@ namespace VulcanAddin
 
         #region 核心功能：打开AI生成窗口
         /// <summary>
-        /// 打开AI生成窗口（WPF窗口）
+        /// 打开AI生成窗口，传递和SwModeler完全兼容的ISldWorks实例
         /// </summary>
         private void OpenMainWindow()
         {
             try
             {
                 Logger.Info("正在打开Vulcan AI窗口...");
-                // 传ISldWorks接口。完全匹配SwModeler
+                // 传递官方SDK的ISldWorks，和SwModeler完全匹配，无类型冲突
                 var modeler = new SwModeler(_swApp);
                 var mainWindow = new MainWindow(modeler);
+
+                // 绑定SolidWorks主窗口为父窗口
                 IntPtr ownerHwnd = IntPtr.Zero;
                 try
                 {
-                    dynamic frame = _swApp.Frame();
+                    var frame = _swApp.Frame();
                     if (frame != null)
                     {
-                        ownerHwnd = new IntPtr((int)frame.GetHWnd());
+                        ownerHwnd = new IntPtr(frame.GetHWnd());
                     }
                 }
                 catch (Exception ex)
                 {
                     Logger.Warning("获取SolidWorks窗口句柄失败", ex);
                 }
+
                 new WindowInteropHelper(mainWindow).Owner = ownerHwnd;
                 Logger.Info("Vulcan AI窗口已打开");
                 mainWindow.ShowDialog();
@@ -244,10 +236,9 @@ namespace VulcanAddin
         }
         #endregion
 
-        #region 命令回调与控制
+        #region 命令回调与启用控制
         /// <summary>
-        /// 工具栏按钮点击回调
-        /// 核心业务入口
+        /// 工具栏按钮点击回调入口
         /// </summary>
         public void FunctionProxy(string data)
         {
@@ -259,38 +250,36 @@ namespace VulcanAddin
                     OpenMainWindow();
                     break;
                 default:
-                    _swApp.SendMsgToUser($"未知命令ID：{commandId}");
+                    _swApp.SendMsgToUser2($"未知命令ID：{commandId}", (int)swMessageBoxIcon_e.swMbInformation, (int)swMessageBoxBtn_e.swMbOk);
                     break;
             }
         }
 
         /// <summary>
-        /// 命令启用控制
-        /// （备用）
+        /// 命令启用状态控制
         /// </summary>
         public int EnableFunction(string data)
         {
+            // 1=启用，0=禁用
             return 1;
         }
         #endregion
 
         #region 工具方法
         /// <summary>
-        /// 对比命令ID是否一致
+        /// 对比注册表命令ID是否一致
         /// </summary>
         private bool CompareIDs(int[] storedIDs, int[] addinIDs)
         {
             if (storedIDs == null || addinIDs == null || storedIDs.Length != addinIDs.Length)
                 return false;
 
-            List<int> storedList = new List<int>(storedIDs);
-            List<int> addinList = new List<int>(addinIDs);
-            storedList.Sort();
-            addinList.Sort();
+            Array.Sort(storedIDs);
+            Array.Sort(addinIDs);
 
-            for (int i = 0; i < addinList.Count; i++)
+            for (int i = 0; i < addinIDs.Length; i++)
             {
-                if (addinList[i] != storedList[i])
+                if (addinIDs[i] != storedIDs[i])
                     return false;
             }
             return true;
@@ -298,39 +287,29 @@ namespace VulcanAddin
         #endregion
 
         #region COM注册/反注册
-        [ComRegisterFunctionAttribute]
+        [ComRegisterFunction]
         public static void RegisterFunction(Type t)
         {
             try
             {
-                // 获取SwAddin特性
-                SwAddinAttribute swAttr = null;
-                foreach (System.Attribute attr in t.GetCustomAttributes(false))
-                {
-                    if (attr is SwAddinAttribute)
-                    {
-                        swAttr = (SwAddinAttribute)attr;
-                        break;
-                    }
-                }
+                // 获取插件特性
+                var swAttr = t.GetCustomAttribute<SwAddinAttribute>();
                 if (swAttr == null)
                 {
                     System.Windows.Forms.MessageBox.Show("未找到SwAddin特性，注册失败！");
                     return;
                 }
 
-                // 写入HKLM
-                using (RegistryKey hklmKey = Registry.LocalMachine.CreateSubKey(
-                    $"SOFTWARE\\SolidWorks\\Addins\\{{{t.GUID}}}"))
+                // 写入HKLM注册表（SolidWorks插件注册）
+                using (var hklmKey = Registry.LocalMachine.CreateSubKey($"SOFTWARE\\SolidWorks\\Addins\\{{{t.GUID}}}"))
                 {
                     hklmKey.SetValue(null, 0);
                     hklmKey.SetValue("Description", swAttr.Description);
                     hklmKey.SetValue("Title", swAttr.Title);
                 }
 
-                // 写入HKCU
-                using (RegistryKey hkcuKey = Registry.CurrentUser.CreateSubKey(
-                    $"Software\\SolidWorks\\AddInsStartup\\{{{t.GUID}}}"))
+                // 写入HKCU启动项
+                using (var hkcuKey = Registry.CurrentUser.CreateSubKey($"Software\\SolidWorks\\AddInsStartup\\{{{t.GUID}}}"))
                 {
                     hkcuKey.SetValue(null, Convert.ToInt32(swAttr.LoadAtStartup), RegistryValueKind.DWord);
                 }
@@ -341,7 +320,7 @@ namespace VulcanAddin
             }
         }
 
-        [ComUnregisterFunctionAttribute]
+        [ComUnregisterFunction]
         public static void UnregisterFunction(Type t)
         {
             try
