@@ -128,7 +128,7 @@ namespace Vulcan.SolidWorksClient.Services
         }
         #endregion
 
-        #region 核心特征：拉伸凸台（修复版）
+        #region 核心特征：拉伸凸台
         private void CreateExtrusionFeature(Dictionary<string, object> parameters)
         {
             string targetPlane = "前视基准面";
@@ -199,7 +199,7 @@ namespace Vulcan.SolidWorksClient.Services
         }
         #endregion
 
-        #region 核心特征：拉伸切除（100%生效最终版）
+        #region 核心特征：拉伸切除
         private void CreateCutFeature(Dictionary<string, object> parameters)
         {
             string targetPlane = "前视基准面";
@@ -219,9 +219,9 @@ namespace Vulcan.SolidWorksClient.Services
             parameters.TryGetValue("through_all", out object throughAllObj);
             bool throughAll = throughAllObj != null && Convert.ToBoolean(throughAllObj);
 
-            // 核心修复：终止条件设置
+            // 终止条件设置
             int endCondition = throughAll ? (int)swEndConditions_e.swEndCondThroughAll : (int)swEndConditions_e.swEndCondBlind;
-            // 完全贯穿时，强制双向切除，确保100%切穿
+            // 完全贯穿时，强制双向切除，确保切穿
             bool isBidirectional = throughAll;
 
             (double centerXM, double centerYM) = GetSketchCoordinate(parameters, _isFourHoleRequest);
@@ -230,7 +230,7 @@ namespace Vulcan.SolidWorksClient.Services
             string sketchName = DrawSketch(targetPlane, shape, parameters, centerXM, centerYM);
             if (string.IsNullOrEmpty(sketchName)) throw new Exception("草图绘制失败");
 
-            // 核心修复1：强制选中草图+实体，确保切除有目标
+            //强制选中草图+实体，确保切除有目标
             _activeModel.ClearSelection2(true);
             // 1. 选中草图
             bool sketchSelected = _activeModel.Extension.SelectByID2(sketchName, "SKETCH", 0, 0, 0, true, 0, null, 0);
@@ -245,7 +245,7 @@ namespace Vulcan.SolidWorksClient.Services
                 Logger.Info("正在执行【纯API拉伸切除】");
                 IFeatureManager featureManager = _activeModel.FeatureManager;
 
-                // 核心修复2：FeatureCut4参数100%对齐SolidWorks规范
+                // FeatureCut4参数对齐SolidWorks规范
                 featureManager.FeatureCut4(
                     Sd: !isBidirectional, // 完全贯穿时用双向
                     Flip: false, // 方向1不反转，朝向实体内部
@@ -310,7 +310,7 @@ namespace Vulcan.SolidWorksClient.Services
                 }
             }
 
-            // 其他情况：100%使用LLM返回的坐标
+            // 其他情况：使用LLM返回的坐标
             parameters.TryGetValue("center_x", out object cxObj);
             parameters.TryGetValue("center_y", out object cyObj);
             double centerXMmFinal = cxObj != null ? Convert.ToDouble(cxObj) : 0.0;
@@ -456,7 +456,7 @@ namespace Vulcan.SolidWorksClient.Services
         }
         #endregion
 
-        #region 兜底方案（键盘模拟，100%生效）
+        #region 兜底方案
         private void ExecuteExtrusionFallback(double depthMm, bool isCut)
         {
             try
