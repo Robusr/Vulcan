@@ -2,43 +2,60 @@
     x:Class="Vulcan.SolidWorksClient.UI.MainWindow"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="Vulcan AI For SolidWorks"
     Width="500"
     Height="300"
     ResizeMode="NoResize"
-    WindowStartupLocation="CenterOwner">
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
     <Grid Margin="15">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!--  标题  -->
         <TextBlock
             Grid.Row="0"
-            Margin="0,0,0,10"
+            Margin="0,0,0,8"
             FontSize="14"
             FontWeight="Bold"
             Text="输入建模需求" />
 
+        <!--  输入框：移除不兼容的PlaceholderText，用焦点事件实现占位符效果  -->
         <TextBox
-            x:Name="TxtPrompt"
+            x:Name="PromptTextBox"
             Grid.Row="1"
-            Padding="5"
-            BorderBrush="#CCCCCC"
-            BorderThickness="1"
+            Margin="0,0,0,10"
+            AcceptsReturn="True"
             FontSize="12"
+            GotFocus="PromptTextBox_GotFocus"
+            LostFocus="PromptTextBox_LostFocus"
+            Text="例如：在前视基准面拉伸一个直径50，高度100圆柱体"
             TextWrapping="Wrap"
+            ToolTip="例如：在前视基准面拉伸一个直径50，高度100圆柱体"
             VerticalScrollBarVisibility="Auto" />
 
+        <!--  生成按钮  -->
         <Button
-            x:Name="BtnGenerate"
+            x:Name="GenerateBtn"
             Grid.Row="2"
-            Margin="0,15,0,0"
-            Padding="30,8"
-            HorizontalAlignment="Center"
-            Click="BtnGenerate_Click"
-            Content="生成模型"
+            Height="35"
+            Margin="0,0,0,8"
+            Click="GenerateBtn_Click"
+            Content="开始生成"
             FontSize="14" />
+
+        <!--  状态文本  -->
+        <TextBlock
+            x:Name="StatusText"
+            Grid.Row="3"
+            FontSize="12"
+            Foreground="Gray"
+            Text="就绪" />
     </Grid>
 </Window>

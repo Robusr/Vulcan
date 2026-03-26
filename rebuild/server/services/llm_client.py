@@ -1,8 +1,8 @@
-# Robusr Mar.24th
+# Robusr Mar.27th
 # LLM大模型调用管理
-
 import requests
 import json
+import re
 from config import Config
 from utils.logger import setup_logger
 from utils.exceptions import APIConnectionError, LLMResponseError
@@ -20,57 +20,145 @@ class LLMClient:
             "Content-Type": "application/json"
         }
 
-        # 系统级Prompt
-        # 强制输出 JSON
+        # 系统级Prompt，强制格式+多特征支持
         self.system_prompt = """
-        你是一个专业的SolidWorks CAD建模助手。请根据用户的自然语言描述，生成结构化的JSON建模指令，严格匹配SolidWorks API的参数要求。
+        你是专业的SolidWorks AI建模助手Vulcan AI，用户输入自然语言建模需求，你必须严格按照以下规则输出，违反规则的输出视为无效：
 
-            ## 输出格式要求
-            严格输出JSON格式，不要包含任何其他文字说明。
-            
-            ## JSON结构
-            {
-              "feature_type": "extrude", // 特征类型：extrude(拉伸), revolve(旋转), cut(切除), fillet(圆角)等
-              "params": {
-                // 通用参数
-                "plane": "Front", // 基准面：Front/Top/Right 或 前视基准面/上视基准面/右视基准面
-                "shape": "circle", // 草图形状：circle(圆), rectangle(矩形)
-                
-                // 圆参数
-                "diameter": 50, // 圆形直径（mm），shape为circle时必填
-                
-                // 矩形参数
-                "length": 100, // 矩形长度（mm），shape为rectangle时必填
-                "width": 50, // 矩形宽度（mm），shape为rectangle时必填
-                
-                // 拉伸参数
-                "depth": 100, // 拉伸深度（mm），必填
-                "draft_angle": 0, // 拔模角度（度），默认0
-                "draft_outward": false, // 是否向外拔模，默认false
-                
-                // 后续可扩展：旋转特征的axis, angle等
-              }
-            }
-            
-            ## 示例
-            用户输入：在前视基准面拉伸一个直径50，高度100圆柱体
-            输出：
+        1.  输出铁则：
+            - 仅输出纯JSON，无任何额外文本、解释、markdown、代码块、注释
+            - 禁止输出```json、```等任何包裹符号
+            - 所有尺寸单位均为毫米(mm)，JSON中仅写数字，不写单位
+            - 中文基准面名称必须严格使用：前视基准面、上视基准面、右视基准面
+            - 多个相同特征（如多个孔、多个凸台）必须设置不同的center_x、center_y，绝对禁止全部在(0,0)原点重叠
+
+        2.  核心坐标规则（必须严格遵守）：
+            - 前视基准面：草图平面为X-Y平面，center_x对应X轴，center_y对应Y轴
+            - 上视基准面：草图平面为X-Z平面，center_x对应X轴，center_y对应Z轴（必须在基体厚度范围内）
+            - 右视基准面：草图平面为Y-Z平面，center_x对应Y轴，center_y对应Z轴
+            - 多特征建模时，必须先读取前面基体特征的length、width、depth尺寸，再计算后续特征的坐标
+            - 例如：先画200x100x20的底座（前视基准面），再在上视基准面打4个安装孔时，孔位center_x为±90，center_y为10（Z轴中间，确保在基体厚度范围内）
+
+        3.  支持的特征类型与参数规范：
+        ---
+        【特征1：extrude - 拉伸凸台（基体）】
+        必填参数：
+        - plane: string 基准面
+        - shape: string 草图形状，可选值：circle(圆形)、rectangle(矩形)、polygon(正多边形)、ellipse(椭圆)、slot(直槽口)
+        - depth: number 拉伸深度
+        形状对应必填参数：
+        - circle/polygon: diameter(直径)
+        - polygon: sides(边数，3-100)
+        - rectangle/slot: length(长度)、width(宽度)
+        - ellipse: major_axis(长轴)、minor_axis(短轴)
+        可选参数：
+        - name: string 特征名称
+        - center_x: number 草图中心X坐标，默认0
+        - center_y: number 草图中心Y坐标，默认0
+        ---
+        【特征2：cut - 拉伸切除（孔/槽）】
+        必填参数：
+        - plane: string 基准面
+        - shape: string 草图形状，可选值同拉伸凸台
+        - depth: number 切除深度
+        形状对应必填参数：同拉伸凸台
+        **强制必填（多孔场景）**：
+        - center_x: number 孔中心X坐标
+        - center_y: number 孔中心Y坐标
+        可选参数：
+        - name: string 特征名称
+        - through_all: bool 是否完全贯穿，默认false
+        ---
+
+        4.  输出结构规范：
+        - 简单单特征需求：直接输出单特征JSON结构
+        - 复杂多步骤需求：输出多特征数组，按建模先后顺序排列
+        - 禁止输出任何规则外的参数
+
+        输出示例1（单特征）：
+        {
+          "feature_type": "extrude",
+          "name": "圆柱凸台",
+          "params": {
+            "plane": "前视基准面",
+            "shape": "circle",
+            "diameter": 50,
+            "depth": 100
+          }
+        }
+
+        输出示例2（多特征带孔位，必须严格按此格式）：
+        {
+          "model_name": "底座零件",
+          "features": [
             {
               "feature_type": "extrude",
+              "name": "底座主体",
               "params": {
-                "plane": "Front",
+                "plane": "前视基准面",
+                "shape": "rectangle",
+                "length": 200,
+                "width": 100,
+                "depth": 20
+              }
+            },
+            {
+              "feature_type": "cut",
+              "name": "安装孔1",
+              "params": {
+                "plane": "上视基准面",
                 "shape": "circle",
-                "diameter": 50,
-                "depth": 100,
-                "draft_angle": 0,
-                "draft_outward": false
+                "diameter": 10,
+                "depth": 20,
+                "through_all": true,
+                "center_x": 90,
+                "center_y": 10
+              }
+            },
+            {
+              "feature_type": "cut",
+              "name": "安装孔2",
+              "params": {
+                "plane": "上视基准面",
+                "shape": "circle",
+                "diameter": 10,
+                "depth": 20,
+                "through_all": true,
+                "center_x": 90,
+                "center_y": 10
+              }
+            },
+            {
+              "feature_type": "cut",
+              "name": "安装孔3",
+              "params": {
+                "plane": "上视基准面",
+                "shape": "circle",
+                "diameter": 10,
+                "depth": 20,
+                "through_all": true,
+                "center_x": -90,
+                "center_y": 10
+              }
+            },
+            {
+              "feature_type": "cut",
+              "name": "安装孔4",
+              "params": {
+                "plane": "上视基准面",
+                "shape": "circle",
+                "diameter": 10,
+                "depth": 20,
+                "through_all": true,
+                "center_x": -90,
+                "center_y": 10
               }
             }
+          ]
+        }
         """
-
     def call_model(self, user_input: str) -> dict:
         """
-        调用七牛云 API 并返回解析后的 JSON
+        调用七牛云 API 并返回解析后的标准JSON
         """
         url = f"{self.base_url}/chat/completions"
 
@@ -80,38 +168,47 @@ class LLMClient:
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": user_input}
             ],
-            "temperature": 0.1,  # 降低随机性，确保输出格式稳定
-            "max_tokens": 1024
+            "temperature": 0.05,  # 极低随机性，确保格式100%稳定
+            "max_tokens": 2048,  # 支持多特征长输出
+            "top_p": 0.95,
+            "frequency_penalty": 0,
+            "presence_penalty": 0
         }
 
         try:
-            logger.info(f"正在请求 LLM，Input: {user_input}")
+            logger.info(f"正在请求 LLM，用户输入: {user_input}")
             response = requests.post(
                 url,
                 headers=self.headers,
                 json=payload,
                 timeout=Config.LLM_TIMEOUT
             )
-            response.raise_for_status()  # 检查 HTTP 错误
+            response.raise_for_status()  # 捕获HTTP错误
 
             result = response.json()
-            content = result['choices'][0]['message']['content'].strip()
+            # 校验返回结构
+            if not result.get("choices") or len(result["choices"]) == 0:
+                raise LLMResponseError("云端模型返回空内容")
 
-            # 尝试解析 JSON
+            content = result['choices'][0]['message']['content'].strip()
+            logger.info(f"LLM返回原始内容: {content}")
+
+            # 多层容错JSON解析
             try:
+                # 1. 直接解析
                 return json.loads(content)
             except json.JSONDecodeError:
-                # 解决 LLM 过量输出情况，
-                # 尝试提取 JSON 部分
-                logger.warning(f"LLM 返回非纯 JSON，尝试提取: {content}")
-                # 提取过滤
-                # 首位优先提取
+                # 2. 去除markdown代码块包裹
+                logger.warning("LLM返回带代码块，尝试清理")
+                content = re.sub(r'^```json\s*', '', content, flags=re.MULTILINE)
+                content = re.sub(r'\s*```$', '', content, flags=re.MULTILINE)
+                # 3. 提取首尾{}之间的内容
                 start = content.find('{')
                 end = content.rfind('}')
                 if start != -1 and end != -1:
-                    json_str = content[start:end + 1]
+                    json_str = content[start:end + 1].strip()
                     return json.loads(json_str)
-                raise LLMResponseError("无法解析模型返回的参数格式")
+                raise LLMResponseError("无法解析模型返回的JSON格式")
 
         except requests.exceptions.Timeout:
             logger.error("LLM 请求超时")
@@ -119,6 +216,9 @@ class LLMClient:
         except requests.exceptions.ConnectionError:
             logger.error("网络连接失败")
             raise APIConnectionError("无法连接到云端服务器")
+        except json.JSONDecodeError as e:
+            logger.error(f"JSON解析失败: {str(e)}，原始内容: {content}")
+            raise LLMResponseError("云端返回格式错误，无法解析建模参数")
         except Exception as e:
             logger.error(f"LLM 调用未知错误: {str(e)}")
             raise LLMResponseError(f"云端处理错误: {str(e)}")
