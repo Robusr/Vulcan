@@ -168,7 +168,7 @@ class LLMClient:
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": user_input}
             ],
-            "temperature": 0.05,  # 极低随机性，确保格式100%稳定
+            "temperature": 0.05,  # 极低随机性
             "max_tokens": 2048,  # 支持多特征长输出
             "top_p": 0.95,
             "frequency_penalty": 0,
