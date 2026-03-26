@@ -6,49 +6,85 @@ namespace Vulcan.SolidWorksClient.UI
 {
     public partial class MainWindow : Window
     {
-        private readonly SwModeler _modeler;
-        private readonly VulcanApiClient _apiClient;
+        private readonly SwModeler _swModeler;
+        private readonly ApiClient _apiClient;
+        private readonly string _defaultPromptText = "例如：在前视基准面拉伸一个直径50，高度100圆柱体";
 
-        public MainWindow(SwModeler modeler)
+        public MainWindow(SwModeler swModeler)
         {
             InitializeComponent();
-            _modeler = modeler;
-            _apiClient = new VulcanApiClient();
+            _swModeler = swModeler ?? throw new ArgumentNullException(nameof(swModeler));
+            _apiClient = new ApiClient();
         }
 
-        private async void BtnGenerate_Click(object sender, RoutedEventArgs e)
+        #region 占位符焦点事件
+        /// <summary>
+        /// 输入框获得焦点，清空默认提示文本
+        /// </summary>
+        private void PromptTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
-            string userPrompt = TxtPrompt.Text.Trim();
-            if (string.IsNullOrEmpty(userPrompt))
+            if (PromptTextBox.Text.Trim() == _defaultPromptText)
             {
-                MessageBox.Show("请输入建模需求", "提示", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+                PromptTextBox.Text = string.Empty;
             }
+        }
 
-            BtnGenerate.IsEnabled = false;
-            BtnGenerate.Content = "正在连接云端...";
+        /// <summary>
+        /// 输入框失去焦点，无内容时恢复默认提示文本
+        /// </summary>
+        private void PromptTextBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(PromptTextBox.Text))
+            {
+                PromptTextBox.Text = _defaultPromptText;
+            }
+        }
+        #endregion
 
+        #region 生成按钮点击事件
+        /// <summary>
+        /// 生成按钮点击事件
+        /// </summary>
+        private async void GenerateBtn_Click(object sender, RoutedEventArgs e)
+        {
             try
             {
-                // 1. 从云端获取建模参数
-                var modelParams = await _apiClient.GenerateModelParamsAsync(userPrompt);
+                // 1. 获取用户输入，过滤默认提示文本
+                string userPrompt = PromptTextBox.Text.Trim();
+                if (string.IsNullOrEmpty(userPrompt) || userPrompt == _defaultPromptText)
+                {
+                    MessageBox.Show("请输入建模需求", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
 
-                // 2. 执行SolidWorks建模
-                BtnGenerate.Content = "正在生成模型...";
-                _modeler.ExecuteModeling(modelParams);
+                // 2. 禁用按钮，防止重复点击
+                GenerateBtn.IsEnabled = false;
+                GenerateBtn.Content = "正在生成模型...";
+                StatusText.Text = "正在请求云端生成参数...";
 
+                // 3. 调用后端接口
+                var modelData = await _apiClient.GenerateModelAsync(userPrompt);
+
+                // 4. 执行建模
+                StatusText.Text = "正在执行建模...";
+                _swModeler.ExecuteModeling(modelData);
+
+                // 5. 完成
+                StatusText.Text = "模型生成完成！";
                 MessageBox.Show("模型生成完成！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
-                this.Close();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"生成失败：{ex.Message}\n详情请查看桌面日志", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                StatusText.Text = "生成失败";
+                MessageBox.Show($"生成失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
-                BtnGenerate.IsEnabled = true;
-                BtnGenerate.Content = "一键生成模型";
+                // 恢复按钮状态
+                GenerateBtn.IsEnabled = true;
+                GenerateBtn.Content = "开始生成";
             }
         }
+        #endregion
     }
 }
