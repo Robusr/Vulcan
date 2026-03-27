@@ -22,7 +22,7 @@ namespace Vulcan.SolidWorksClient.Services
             WriteLog("INFO", message);
         }
 
-
+        // 补全缺失的Warning方法
         public static void Warning(string message, Exception ex = null)
         {
             WriteLog("WARN", message + (ex != null ? $"\n{ex}" : ""));
