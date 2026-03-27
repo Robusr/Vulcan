@@ -163,7 +163,7 @@ Refactored architecture with C# client and optimized Python server (actively dev
 #### Server Setup (Rebuilt)
 ```bash
 # Navigate to rebuilt server directory
-cd rebuild/server
+cd release/server
 
 # Create and activate virtual environment
 # Windows
@@ -175,7 +175,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # Install dependencies
-# Note: Create a requirements.txt in rebuild/server/ if not exists
+# Note: Create a requirements.txt in release/server/ if not exists
 pip install -r requirements.txt
 ```
 
@@ -266,7 +266,7 @@ python main.py
 
 #### Rebuilt Version
 ```bash
-# In rebuild/server directory (venv activated)
+# In release/server directory (venv activated)
 python main.py
 ```
 
@@ -564,7 +564,7 @@ pip install -r requirements.txt
 #### 服务端配置 (Rebuild)
 ```bash
 # 进入 Rebuild 服务端目录
-cd rebuild/server
+cd release/server
 
 # 创建并激活虚拟环境
 # Windows
@@ -576,7 +576,7 @@ python3 -m venv venv
 source venv/bin/activate
 
 # 安装依赖
-# 注意：如果 rebuild/server/ 目录下没有 requirements.txt，请先创建
+# 注意：如果 release/server/ 目录下没有 requirements.txt，请先创建
 pip install -r requirements.txt
 ```
 
@@ -667,7 +667,7 @@ python main.py
 
 #### Rebuild 版本
 ```bash
-# 在 rebuild/server 目录下（已激活 venv）
+# 在 release/server 目录下（已激活 venv）
 python main.py
 ```
 
