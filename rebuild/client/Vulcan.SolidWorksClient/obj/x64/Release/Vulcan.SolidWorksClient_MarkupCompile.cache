@@ -4,15 +4,15 @@
 library
 C#
 .cs
-F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\x64\Debug\
+F:\Desktop\Vulcan\rebuild\client\Vulcan.SolidWorksClient\obj\x64\Release\
 Vulcan.SolidWorksClient
 none
 false
-DEBUG;TRACE
+TRACE
 
 11533086365
 
-8-983115534
+71586408275
 19754004746
 UI\MainWindow.xaml;
 
