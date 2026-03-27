@@ -11,7 +11,7 @@ namespace Vulcan.SolidWorksClient.Services
     public class ApiClient
     {
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://127.0.0.1:5000"; // 你的后端地址
+        private readonly string _baseUrl = "http://38.99.243.36:5000"; // 你的后端地址
 
         public ApiClient()
         {
