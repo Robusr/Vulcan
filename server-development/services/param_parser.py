@@ -43,5 +43,5 @@ def validate_and_enhance(raw_params: dict) -> dict:
     return {
         "feature_type": feature_type,
         "params": params,
-        "version": "1.0"
+        "version": "1.0"  # 协议版本，方便后续兼容
     }

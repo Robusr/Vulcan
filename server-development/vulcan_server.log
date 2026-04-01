@@ -1,0 +1,1701 @@
+2026-03-24 03:38:58,458 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 03:38:58,754 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 03:49:00,482 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 03:49:00,805 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 03:51:25,512 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100的圆柱体
+2026-03-24 03:51:26,997 - vulcan_server - INFO - 参数生成成功
+2026-03-24 04:14:30,147 - vulcan_server - INFO - Starting Vulcan Server on port 8000...
+2026-03-24 04:14:30,481 - vulcan_server - INFO - Starting Vulcan Server on port 8000...
+2026-03-24 04:14:40,773 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100的圆柱体
+2026-03-24 04:14:43,022 - vulcan_server - INFO - 参数生成成功
+2026-03-24 05:23:24,368 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 05:23:24,724 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 05:24:15,033 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 05:24:15,359 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 08:13:58,808 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 08:13:59,382 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-24 08:14:20,017 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:14:21,939 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:14:51,075 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:14:52,579 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:15:04,809 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:15:07,888 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:16:04,811 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:16:06,445 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:16:46,787 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:16:48,111 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:17:07,937 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:17:10,217 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:17:37,492 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:17:39,083 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:19:42,356 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:19:43,849 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:24:56,136 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:25:00,631 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:27:05,879 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:27:07,539 - vulcan_server - INFO - 参数生成成功
+2026-03-24 08:27:20,802 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-24 08:27:22,983 - vulcan_server - INFO - 参数生成成功
+2026-03-26 01:59:26,854 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-26 01:59:27,288 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-26 02:01:37,052 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:01:38,716 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:01:52,177 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:01:53,816 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:02:06,084 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:02:07,830 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:02:37,487 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:02:38,691 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:11:09,943 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:11:12,402 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:16:30,490 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:16:32,895 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:16:53,286 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:16:55,387 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:22:09,019 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:22:19,411 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:25:23,073 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:25:25,488 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:33:13,572 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:33:15,809 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:37:25,248 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:37:32,048 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:42:33,082 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:42:35,147 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:44:18,797 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:44:20,654 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:49:18,203 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:49:20,775 - vulcan_server - INFO - 参数生成成功
+2026-03-26 02:59:03,215 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 02:59:11,143 - vulcan_server - INFO - 参数生成成功
+2026-03-26 03:06:35,255 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-26 03:06:36,785 - vulcan_server - INFO - 参数生成成功
+2026-03-26 05:52:21,619 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 02:19:14,195 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 02:19:14,668 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 02:19:18,750 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体       
+2026-03-27 02:19:20,127 - vulcan_server - INFO - 参数生成成功
+2026-03-27 02:19:42,126 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 02:19:55,807 - vulcan_server - INFO - 参数生成成功
+2026-03-27 02:26:58,667 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 02:27:01,143 - vulcan_server - INFO - 参数生成成功
+2026-03-27 02:31:58,464 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 02:32:00,631 - vulcan_server - INFO - 参数生成成功
+2026-03-27 04:21:37,837 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 04:21:38,312 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 04:21:42,559 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 04:21:45,638 - vulcan_server - INFO - 参数生成成功
+2026-03-27 04:22:17,135 - services.llm_client - INFO - 正在请求 LLM，Input: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 04:22:28,436 - vulcan_server - INFO - 参数生成成功
+2026-03-27 04:29:15,379 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 04:29:26,356 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 04:29:26,590 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 04:30:00,514 - services.llm_client - INFO - 正在请求 LLM，Input: 先在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔      
+2026-03-27 04:30:14,325 - vulcan_server - ERROR - 业务错误: 缺少必要字段: feature_type
+2026-03-27 04:45:06,985 - vulcan_server - INFO - Starting Vulcan Server on port 5000...
+2026-03-27 04:45:50,851 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 04:45:58,270 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 04:45:58,271 - vulcan_server - ERROR - 业务错误: 缺少必要字段: feature_type
+2026-03-27 04:46:06,277 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 04:46:13,035 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 04:46:13,037 - vulcan_server - ERROR - 业务错误: 缺少必要字段: feature_type
+2026-03-27 04:46:20,827 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 04:46:30,918 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 04:46:30,920 - vulcan_server - ERROR - 业务错误: 缺少必要字段: feature_type
+2026-03-27 04:56:54,348 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 04:56:57,665 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 05:01:12,579 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:01:35,597 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 50
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "左眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 10
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "右眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 10
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "slot",
+        "length": 80,
+        "width": 20,
+        "depth": 10,
+        "through_all": false
+      }
+    }
+  ]
+}
+2026-03-27 05:04:54,420 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个小猪佩奇样式的模型，高度不超过500
+2026-03-27 05:04:57,420 - services.llm_client - INFO - LLM返回原始内容: {}
+2026-03-27 05:05:03,614 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:05:16,197 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 300,
+        "depth": 100
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "左眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 100,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "右眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 100,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 120,
+        "width": 30,
+        "depth": 100,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 05:09:47,264 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 05:10:00,549 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 05:12:00,957 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:12:15,863 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 150,
+        "width": 100,
+        "depth": 200
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "左眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 200,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "右眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 200,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "slot",
+        "length": 80,
+        "width": 20,
+        "depth": 200,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 05:16:12,259 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 05:16:17,514 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 05:16:59,675 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面四角位置打4个直径10的通孔
+2026-03-27 05:17:17,487 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true
+      }
+    }
+  ]
+}
+2026-03-27 05:21:55,765 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔
+2026-03-27 05:22:16,361 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": -40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": -40
+      }
+    }
+  ]
+}
+2026-03-27 05:24:23,384 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 05:24:26,286 - services.llm_client - INFO - LLM返回原始内容: {
+  "feature_type": "extrude",
+  "name": "圆柱体",
+  "params": {
+    "plane": "前视基准面",
+    "shape": "circle",
+    "diameter": 50,
+    "depth": 100
+  }
+}
+2026-03-27 05:24:59,083 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面四角位置打4个直径10的通孔
+2026-03-27 05:25:23,487 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "安装孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "安装孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": -40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "安装孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "安装孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": -40
+      }
+    }
+  ]
+}
+2026-03-27 05:26:15,900 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸150x150x30的方块，再在上视基准面打6个直径8的通孔，3行2列均匀分布
+2026-03-27 05:26:22,658 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "方块零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体方块",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 150,
+        "width": 150,
+        "depth": 30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 8,
+        "depth": 30,
+        "through_all": true,
+        "center_x": -37.5,
+        "center_y": -50
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 8,
+        "depth": 30,
+        "through_all": true,
+        "center_x": 37.5,
+        "center_y": -50
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 8,
+        "depth": 30,
+        "through_all": true,
+        "center_x": -37.5,
+        "center_y": 0
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 8,
+        "depth": 30,
+        "through_all": true,
+        "center_x": 37.5,
+        "center_y": 0
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔5",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 8,
+        "depth": 30,
+        "through_all": true,
+        "center_x": -37.5,
+        "center_y": 50
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔6",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 8,
+        "depth": 30,
+        "through_all": true,
+        "center_x": 37.5,
+        "center_y": 50
+      }
+    }
+  ]
+}
+2026-03-27 05:33:54,452 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面四角位置打4个直径10的通孔
+2026-03-27 05:34:05,447 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 5
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 15
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 5
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 15
+      }
+    }
+  ]
+}
+2026-03-27 05:34:14,018 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面四角位置打4个直径10的通孔
+2026-03-27 05:34:25,836 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 5
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 15
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane":
+2026-03-27 05:34:25,836 - services.llm_client - WARNING - LLM返回带代码块，尝试清理
+2026-03-27 05:34:25,837 - services.llm_client - ERROR - JSON解析失败: Expecting ',' delimiter: line 40 column 6 (char 780)，原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 5
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 15
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane":
+2026-03-27 05:34:25,837 - __main__ - ERROR - LLM响应错误: 云端返回格式错误，无法解析建模参数
+2026-03-27 05:38:31,937 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再打4个直径10的通孔
+2026-03-27 05:38:38,886 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -70,
+        "center_y": 0
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 70,
+        "center_y": 0
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -30,
+        "center_y": 0
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 30,
+        "center_y": 0
+      }
+    }
+  ]
+}
+2026-03-27 05:39:24,065 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再打4个直径10的通孔
+2026-03-27 05:39:30,601 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -70,
+        "center_y": -30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 70,
+        "center_y": -30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -70,
+        "center_y": 30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 70,
+        "center_y": 30
+      }
+    }
+  ]
+}
+2026-03-27 05:44:28,215 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再在上视基准面打4个直径10的通孔，完全贯穿
+2026-03-27 05:44:49,217 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 5
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 5
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 15
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "上视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 15
+      }
+    }
+  ]
+}
+2026-03-27 05:45:44,975 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸一个直径50，高度100圆柱体
+2026-03-27 05:45:59,492 - services.llm_client - INFO - LLM返回原始内容: {
+  "feature_type": "extrude",
+  "name": "圆柱体",
+  "params": {
+    "plane": "前视基准面",
+    "shape": "circle",
+    "diameter": 50,
+    "depth": 100
+  }
+}
+2026-03-27 05:46:37,290 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:46:55,796 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 300,
+        "depth": 100,
+        "center_x": 0,
+        "center_y": 0
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "左眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 20,
+        "center_x": -40,
+        "center_y": 80
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "右眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 20,
+        "center_x": 40,
+        "center_y": 80
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "鼻子",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 15,
+        "depth": 20,
+        "through_all": false,
+        "center_x": 0,
+        "center_y": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "ellipse",
+        "major_axis": 80,
+        "minor_axis": 30,
+        "depth": 20,
+        "through_all": false,
+        "center_x": 0,
+        "center_y": -80
+      }
+    }
+  ]
+}
+2026-03-27 05:47:04,464 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:47:17,982 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 400
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "左眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 30,
+        "center_x": -40,
+        "center_y": 20
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "右眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 30,
+        "center_x": 40,
+        "center_y": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "slot",
+        "length": 80,
+        "width": 20,
+        "depth": 20,
+        "center_x": 0,
+        "center_y": -30,
+        "through_all": false
+      }
+    }
+  ]
+}
+2026-03-27 05:50:44,444 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再打4个直径10的通孔，完全贯穿
+2026-03-27 05:50:58,588 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 80,
+        "center_y": 30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 80,
+        "center_y": -30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -80,
+        "center_y": 30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -80,
+        "center_y": -30
+      }
+    }
+  ]
+}
+2026-03-27 05:51:43,030 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:51:49,841 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 300,
+        "depth": 100
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "左眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 100,
+        "through_all": true,
+        "center_x": -50,
+        "center_y": 80
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "右眼",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 100,
+        "through_all": true,
+        "center_x": 50,
+        "center_y": 80
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "slot",
+        "length": 120,
+        "width": 20,
+        "depth": 100,
+        "through_all": true,
+        "center_x": 0,
+        "center_y": -60
+      }
+    }
+  ]
+}
+2026-03-27 05:57:05,160 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面拉伸200x100x20的底座，再打4个直径10的通孔，完全贯穿
+2026-03-27 05:57:10,536 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "底座零件",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "底座主体",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 20
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔1",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": -40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔2",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": -90,
+        "center_y": 40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔3",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": -40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "通孔4",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 10,
+        "depth": 20,
+        "through_all": true,
+        "center_x": 90,
+        "center_y": 40
+      }
+    }
+  ]
+}
+2026-03-27 05:58:21,043 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个海绵宝宝样式的模型，高度不超过500
+2026-03-27 05:58:35,862 - services.llm_client - INFO - LLM返回原始内容: {
+  "model_name": "海绵宝宝模型",
+  "features": [
+    {
+      "feature_type": "extrude",
+      "name": "主体底座",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 200,
+        "width": 100,
+        "depth": 300
+      }
+    },
+    {
+      "feature_type": "extrude",
+      "name": "领带凸台",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "rectangle",
+        "length": 60,
+        "width": 20,
+        "depth": 30,
+        "center_x": 0,
+        "center_y": 40
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "左眼孔",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 20,
+        "center_x": -40,
+        "center_y": 30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "右眼孔",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "circle",
+        "diameter": 30,
+        "depth": 20,
+        "center_x": 40,
+        "center_y": 30
+      }
+    },
+    {
+      "feature_type": "cut",
+      "name": "嘴巴槽",
+      "params": {
+        "plane": "前视基准面",
+        "shape": "slot",
+        "length": 80,
+        "width": 20,
+        "depth": 10,
+        "center_x": 0,
+        "center_y": -30
+      }
+    }
+  ]
+}
+2026-03-27 06:12:31,604 - services.llm_client - INFO - 正在请求 LLM，用户输入: 在前视基准面生成一个边长为500的正方体
+2026-03-27 06:12:34,556 - services.llm_client - INFO - LLM返回原始内容: {
+  "feature_type": "extrude",
+  "name": "正方体",
+  "params": {
+    "plane": "前视基准面",
+    "shape": "rectangle",
+    "length": 500,
+    "width": 500,
+    "depth": 500
+  }
+}
