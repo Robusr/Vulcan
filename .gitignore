@@ -10,3 +10,5 @@ beta/client-python-beta/.env
 .vs/
 
 .env
+
+.DS_Store
