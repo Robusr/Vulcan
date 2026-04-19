@@ -1699,14 +1699,3 @@
     "depth": 500
   }
 }
-2026-03-27 07:42:02,834 - services.llm_client - INFO - 正在请求 LLM，用户输入: 生成一个直径为500，高度为500的圆柱体
-2026-03-27 07:42:09,479 - services.llm_client - INFO - LLM返回原始内容: {
-  "feature_type": "extrude",
-  "name": "圆柱体",
-  "params": {
-    "plane": "前视基准面",
-    "shape": "circle",
-    "diameter": 500,
-    "depth": 500
-  }
-}
