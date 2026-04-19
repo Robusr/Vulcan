@@ -10,3 +10,4 @@ beta/client-python-beta/.env
 .vs/
 
 .env
+.iss
