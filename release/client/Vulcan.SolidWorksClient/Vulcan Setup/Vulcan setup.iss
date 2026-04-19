@@ -1,6 +1,6 @@
 [Setup]
 AppName=Vulcan
-AppVersion=v1.0.0
+AppVersion=v1.1.0
 AppPublisher=Robusr
 AppPublisherURL=https://github.com/Robusr/Vulcan
 AppSupportURL=https://github.com/Robusr/Vulcan
