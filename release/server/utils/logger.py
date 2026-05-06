@@ -4,6 +4,7 @@
 import logging
 import sys
 
+
 def setup_logger(name='vulcan_server'):
     logger = logging.getLogger(name)
     if logger.handlers:
