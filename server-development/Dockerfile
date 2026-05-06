@@ -7,7 +7,7 @@ WORKDIR /app
 # 复制依赖文件
 COPY requirements.txt .
 
-# 安装依赖
+# 安装项目依赖
 RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制项目代码

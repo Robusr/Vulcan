@@ -156,6 +156,7 @@ class LLMClient:
           ]
         }
         """
+
     def call_model(self, user_input: str) -> dict:
         """
         调用七牛云 API 并返回解析后的标准JSON
