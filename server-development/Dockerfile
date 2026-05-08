@@ -13,7 +13,7 @@ RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua
 # 复制项目代码
 COPY . .
 
-# 暴露端口
+# 暴露端口(特定5000端口)
 EXPOSE 5000
 
 # 启动命令
