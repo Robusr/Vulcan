@@ -1,5 +1,12 @@
-# Robusr Mar.27th
-# LLM大模型调用管理
+# -*- coding: utf-8 -*-
+"""
+@File    : llm_client.py
+@Author  : Robusr
+@Date    : 2026/3/27 04:03
+@Description: LLM大模型调用管理
+@Software: PyCharm
+"""
+
 import requests
 import json
 import re
