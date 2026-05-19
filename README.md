@@ -16,7 +16,7 @@
 
 ---
 
-## 📑 Table of Contents (English)
+## Table of Contents (English)
 
 1.  [Overview](#-overview)
 2.  [Key Features](#-key-features)
@@ -187,7 +187,7 @@ pip install -r requirements.txt
 
 ---
 
-## ⚙Configuration
+## Configuration
 
 ### Server Environment Variables
 Create a `.env` file in the server directory (beta: `beta/server-python-beta/`, rebuild: `rebuild/server/`) with the following configuration. **Never commit this file to GitHub**.
@@ -295,7 +295,7 @@ python main.py
   ```
   Create a 100x100 square on the Front Plane, then extrude it 50mm high
   ```
-- Click **🚀 Send & Execute**
+- Click **Send & Execute**
 - Watch the AI generate and execute code in real time, with the 3D model appearing in SolidWorks
 
 ---
