@@ -18,11 +18,11 @@
 
 ## 📑 Table of Contents (English)
 
-1.  [🚀 Overview](#-overview)
-2.  [✨ Key Features](#-key-features)
-3.  [🏗️ System Architecture](#️-system-architecture)
-4.  [📋 Prerequisites](#-prerequisites)
-5.  [💾 Installation](#-installation)
+1.  [Overview](#-overview)
+2.  [Key Features](#-key-features)
+3.  [System Architecture](#️-system-architecture)
+4.  [Prerequisites](#-prerequisites)
+5.  [Installation](#-installation)
     1.  [1. Clone the Repository](#1-clone-the-repository)
     2.  [Beta Version (Legacy)](#beta-version-legacy)
         1.  [Server Setup (Beta)](#server-setup-beta)
@@ -30,26 +30,26 @@
     3.  [Rebuilt Version (Latest)](#rebuilt-version-latest)
         1.  [Server Setup (Rebuilt)](#server-setup-rebuilt)
         2.  [Client Setup (C#)](#client-setup-c)
-6.  [⚙️ Configuration](#️-configuration)
+6.  [Configuration](#️-configuration)
     1.  [Server Environment Variables](#server-environment-variables)
     2.  [Client Environment Variables](#client-environment-variables)
         1.  [Beta Python Client](#beta-python-client)
         2.  [Rebuilt C# Client](#rebuilt-c-client)
-7.  [🏁 Quick Start](#-quick-start)
+7.  [Quick Start](#-quick-start)
     1.  [1. Prepare SolidWorks](#1-prepare-solidworks)
     2.  [2. Start the Server](#2-start-the-server)
     3.  [3. Launch the Client](#3-launch-the-client)
     4.  [4. Generate Your First Model](#4-generate-your-first-model)
-8.  [📁 Project Structure](#-project-structure)
-9.  [🔧 Troubleshooting](#-troubleshooting)
+8.  [Project Structure](#-project-structure)
+9.  [Troubleshooting](#-troubleshooting)
     1.  [Common Issues & Fixes](#common-issues--fixes)
-10. [🤝 Contributing](#-contributing)
+10. [Contributing](#-contributing)
     1.  [Development Guidelines](#development-guidelines)
-11. [📄 License](#-license)
+11. [License](#-license)
 
 ---
 
-## 🚀 Overview
+## Overview
 
 **Vulcan** is a client-server AI assistant for SolidWorks, designed to bridge natural language commands and SolidWorks' COM API. It enables engineers and designers to generate 3D models directly from text prompts, eliminating repetitive manual operations and accelerating the design workflow.
 
@@ -61,24 +61,24 @@ The server hosts LLM logic for code generation, while the lightweight Windows cl
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-- 🤖 **Natural Language Modeling**: Generate complete 3D features with plain text prompts (no coding required)
-- 🔌 **Client-Server Decoupling**: Server can be deployed locally or on remote cloud instances (Linux/macOS/Windows)
-- 🎨 **Dual Client Support**:
+- **Natural Language Modeling**: Generate complete 3D features with plain text prompts (no coding required)
+- **Client-Server Decoupling**: Server can be deployed locally or on remote cloud instances (Linux/macOS/Windows)
+- **Dual Client Support**:
   - Legacy PyQt5 UI (beta) with dark theme & always-on-top mode
   - Refactored C# client (rebuild) with native SolidWorks integration
-- 🛠️ **Comprehensive Modeling Toolset**:
+- **Comprehensive Modeling Toolset**:
   - Sketch: Rectangles, Circles, Lines, Arcs (Front/Top/Right reference planes)
   - Features: Boss Extrude, Cut Extrude
   - Utilities: Fillet, Chamfer (with manual selection assist)
-- 🔗 **LLM Compatibility**: Works with OpenAI API and OpenAI-compatible endpoints (DeepSeek, Qwen, Claude, etc.)
-- 📝 **Full Transparency**: Real-time execution logs and AI thought process display
-- 🔄 **Version Flexibility**: Support for SolidWorks 2020-2025 (tested on 2025)
+- **LLM Compatibility**: Works with OpenAI API and OpenAI-compatible endpoints (DeepSeek, Qwen, Claude, etc.)
+- **Full Transparency**: Real-time execution logs and AI thought process display
+- **Version Flexibility**: Support for SolidWorks 2020-2025 (tested on 2025)
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart LR
@@ -93,7 +93,7 @@ flowchart LR
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 ### General
 - Python 3.8 ~ 3.11 (optimal compatibility with SolidWorks COM API)
@@ -111,7 +111,7 @@ flowchart LR
 
 ---
 
-## 💾 Installation
+## Installation
 
 ### 1. Clone the Repository
 ```bash
@@ -187,7 +187,7 @@ pip install -r requirements.txt
 
 ---
 
-## ⚙️ Configuration
+## ⚙Configuration
 
 ### Server Environment Variables
 Create a `.env` file in the server directory (beta: `beta/server-python-beta/`, rebuild: `rebuild/server/`) with the following configuration. **Never commit this file to GitHub**.
@@ -250,7 +250,7 @@ private readonly string _serverUrl = "http://127.0.0.1:8000"; // Modify for remo
 
 ---
 
-## 🏁 Quick Start
+## Quick Start
 
 ### 1. Prepare SolidWorks
 - Open SolidWorks on your Windows machine
@@ -300,7 +300,7 @@ python main.py
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```text
 Vulcan/
@@ -341,7 +341,7 @@ Vulcan/
 
 ---
 
-## 🔧 Troubleshooting
+## Troubleshooting
 
 ### Common Issues & Fixes
 
@@ -373,7 +373,7 @@ Vulcan/
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
 1. Fork the repository
@@ -391,7 +391,7 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 Distributed under the **GNU General Public License v3.0**. See [LICENSE](https://www.gnu.org/licenses/gpl-3.0) for more information.
 
@@ -417,13 +417,13 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
 
 ---
 
-## 📑 目录 (中文)
+## 目录 (中文)
 
-1.  [🚀 项目简介](#-项目简介-1)
-2.  [✨ 功能特性](#-功能特性-1)
-3.  [🏗️ 系统架构](#️-系统架构-1)
-4.  [📋 环境要求](#-环境要求)
-5.  [💾 安装指南](#-安装指南-1)
+1.  [项目简介](#-项目简介-1)
+2.  [功能特性](#-功能特性-1)
+3.  [系统架构](#️-系统架构-1)
+4.  [环境要求](#-环境要求)
+5.  [安装指南](#-安装指南-1)
     1.  [1. 克隆仓库](#1-克隆仓库)
     2.  [Beta 版本 (旧版)](#beta-版本-旧版)
         1.  [服务端配置 (Beta)](#服务端配置-beta)
@@ -431,26 +431,26 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
     3.  [Rebuild 版本 (最新)](#rebuild-版本-最新)
         1.  [服务端配置 (Rebuild)](#服务端配置-rebuild)
         2.  [客户端配置 (C#)](#客户端配置-c)
-6.  [⚙️ 配置说明](#️-配置说明)
+6.  [配置说明](#️-配置说明)
     1.  [服务端环境变量](#服务端环境变量)
     2.  [客户端环境变量](#客户端环境变量)
         1.  [Beta Python 客户端](#beta-python-客户端)
         2.  [Rebuild C# 客户端](#rebuild-c-客户端)
-7.  [🏁 快速开始](#-快速开始-1)
+7.  [快速开始](#-快速开始-1)
     1.  [1. 准备 SolidWorks](#1-准备-solidworks)
     2.  [2. 启动服务端](#2-启动服务端)
     3.  [3. 启动客户端](#3-启动客户端)
     4.  [4. 生成你的第一个模型](#4-生成你的第一个模型)
-8.  [📁 项目结构](#-项目结构-1)
-9.  [🔧 故障排除](#-故障排除)
+8.  [项目结构](#-项目结构-1)
+9.  [故障排除](#-故障排除)
     1.  [常见问题与解决方案](#常见问题与解决方案)
-10. [🤝 贡献指南](#-贡献指南-1)
+10. [贡献指南](#-贡献指南-1)
     1.  [开发规范](#开发规范)
-11. [📄 许可证](#-许可证-1)
+11. [许可证](#-许可证-1)
 
 ---
 
-## 🚀 项目简介
+## 项目简介
 
 **Vulcan** 是一个用于 SolidWorks 的客户端-服务器架构 AI 助手，旨在连接自然语言指令与 SolidWorks COM API。它使工程师和设计师能够直接通过文本提示生成 3D 模型，消除了重复的手动操作，加速了设计工作流程。
 
@@ -462,24 +462,24 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
 
 ---
 
-## ✨ 功能特性
+## 功能特性
 
-- 🤖 **自然语言建模**：使用纯文本提示生成完整的 3D 特征（无需编码）
-- 🔌 **客户端-服务端解耦**：服务端可以部署在本地或远程云实例（Linux/macOS/Windows）
-- 🎨 **双客户端支持**：
+- **自然语言建模**：使用纯文本提示生成完整的 3D 特征（无需编码）
+- **客户端-服务端解耦**：服务端可以部署在本地或远程云实例（Linux/macOS/Windows）
+- **双客户端支持**：
   - 旧版 PyQt5 UI (Beta)，带有深色主题和置顶模式
   - 重构的 C# 客户端 (Rebuild)，具有原生 SolidWorks 集成
-- 🛠️ **全面的建模工具集**：
+- **全面的建模工具集**：
   - 草图：矩形、圆形、直线、圆弧（前视/上视/右视基准面）
   - 特征：拉伸凸台、拉伸切除
   - 工具：圆角、倒角（带手动选择辅助）
-- 🔗 **LLM 兼容性**：支持 OpenAI API 和兼容 OpenAI 的端点（DeepSeek、Qwen、Claude 等）
-- 📝 **完全透明**：实时执行日志和 AI 思考过程显示
-- 🔄 **版本灵活性**：支持 SolidWorks 2020-2025（在 2025 上测试）
+- **LLM 兼容性**：支持 OpenAI API 和兼容 OpenAI 的端点（DeepSeek、Qwen、Claude 等）
+- **完全透明**：实时执行日志和 AI 思考过程显示
+- **版本灵活性**：支持 SolidWorks 2020-2025（在 2025 上测试）
 
 ---
 
-## 🏗️ 系统架构
+## 🏗系统架构
 
 ```mermaid
 flowchart LR
@@ -494,7 +494,7 @@ flowchart LR
 
 ---
 
-## 📋 环境要求
+## 环境要求
 
 ### 通用要求
 - Python 3.8 ~ 3.11（与 SolidWorks COM API 的最佳兼容性）
@@ -512,7 +512,7 @@ flowchart LR
 
 ---
 
-## 💾 安装指南
+## 安装指南
 
 ### 1. 克隆仓库
 ```bash
@@ -588,7 +588,7 @@ pip install -r requirements.txt
 
 ---
 
-## ⚙️ 配置说明
+## 配置说明
 
 ### 服务端环境变量
 在服务端目录（Beta: `beta/server-python-beta/`，Rebuild: `rebuild/server/`）中创建一个 `.env` 文件，并包含以下配置。**切勿将此文件提交到 GitHub**。
@@ -651,7 +651,7 @@ private readonly string _serverUrl = "http://127.0.0.1:8000"; // 对于远程服
 
 ---
 
-## 🏁 快速开始
+## 快速开始
 
 ### 1. 准备 SolidWorks
 - 在你的 Windows 机器上打开 SolidWorks
@@ -696,12 +696,12 @@ python main.py
   ```
   在前视基准面上创建一个 100x100 的正方形，然后拉伸 50mm 高
   ```
-- 点击 **🚀 发送并执行**
+- 点击 **发送并执行**
 - 观察 AI 实时生成和执行代码，3D 模型将出现在 SolidWorks 中
 
 ---
 
-## 📁 项目结构
+## 项目结构
 
 ```text
 Vulcan/
@@ -742,7 +742,7 @@ Vulcan/
 
 ---
 
-## 🔧 故障排除
+## 故障排除
 
 ### 常见问题与解决方案
 
@@ -774,7 +774,7 @@ Vulcan/
 
 ---
 
-## 🤝 贡献指南
+## 贡献指南
 
 欢迎贡献！请遵循以下步骤：
 1. Fork 本仓库
@@ -792,6 +792,6 @@ Vulcan/
 
 ---
 
-## 📄 许可证
+## 许可证
 
 本项目采用 **GNU 通用公共许可证 v3.0** 分发。有关更多信息，请参阅 [LICENSE](https://www.gnu.org/licenses/gpl-3.0)。
