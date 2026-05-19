@@ -412,7 +412,7 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
 </p>
 
 <p align="center">
-  <b>由 AI 驱动的 SolidWorks 自动化工具，一键将自然语言转化为 3D 模型</b>
+  <b>由AI驱动的SolidWorks自动化工具，一键将自然语言转化为3D模型</b>
 </p>
 
 ---
