@@ -458,7 +458,7 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
 - **Beta 版本**：原始的基于 Python 的客户端/服务端（稳定，旧版）
 - **Rebuild 版本**：重构架构，包含 C# 客户端 (Vulcan.SolidWorksClient) 和优化的 Python 服务端（最新，活跃开发）
 
-服务端承载用于代码生成的 LLM 逻辑，而轻量级的 Windows 客户端连接到本地 SolidWorks 实例以执行生成的代码。
+服务端承载用于代码生成的LLM逻辑，而轻量级的Windows客户端连接到本地SolidWorks实例以执行生成的代码。
 
 ---
 
