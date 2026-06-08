@@ -455,8 +455,8 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
 **Vulcan** 是一个用于 SolidWorks 的客户端-服务器架构 AI 助手，旨在连接自然语言指令与 SolidWorks COM API。它使工程师和设计师能够直接通过文本提示生成 3D 模型，消除了重复的手动操作，加速了设计工作流程。
 
 本项目维护两条开发路线：
-- **Beta 版本**：原始的基于 Python 的客户端/服务端（稳定，旧版）
-- **Rebuild 版本**：重构架构，包含 C# 客户端 (Vulcan.SolidWorksClient) 和优化的 Python 服务端（最新，活跃开发）
+- **Beta 版本**：原始的基于Python的客户端/服务端（稳定，旧版）
+- **Rebuild 版本**：重构架构，包含C#客户端 (Vulcan.SolidWorksClient) 和优化的 Python 服务端（最新，活跃开发）
 
 服务端承载用于代码生成的LLM逻辑，而轻量级的Windows客户端连接到本地SolidWorks实例以执行生成的代码。
 
