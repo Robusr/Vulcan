@@ -527,7 +527,7 @@ cd Vulcan
 
 #### 服务端配置 (Beta)
 ```bash
-# 进入 Beta 服务端目录
+# 进入Beta服务端目录
 cd beta/server-python-beta
 
 # 创建并激活虚拟环境
@@ -545,7 +545,7 @@ pip install -r requirements.txt
 
 #### 客户端配置 (Beta)
 ```bash
-# 打开新终端，进入 Beta 客户端目录
+# 打开新终端，进入Beta客户端目录
 cd beta/client-python-beta
 
 # 创建并激活虚拟环境
@@ -563,7 +563,7 @@ pip install -r requirements.txt
 
 #### 服务端配置 (Rebuild)
 ```bash
-# 进入 Rebuild 服务端目录
+# 进入Rebuild服务端目录
 cd release/server
 
 # 创建并激活虚拟环境
@@ -581,8 +581,8 @@ pip install -r requirements.txt
 ```
 
 #### 客户端配置 (C#)
-1. 使用 Visual Studio 打开 `rebuild/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.csproj`
-2. 还原 NuGet 包（Newtonsoft.Json、SolidWorks.Interop）
+1. 使用Visual Studio打开 `rebuild/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.csproj`
+2. 还原NuGet包（Newtonsoft.Json、SolidWorks.Interop）
 3. 生成项目（x64 架构的 Debug/Release 配置）
 4. 在 SolidWorks 中注册插件（遵循 SolidWorks 插件安装指南）
 
