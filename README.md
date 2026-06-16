@@ -473,7 +473,7 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
   - 草图：矩形、圆形、直线、圆弧（前视/上视/右视基准面）
   - 特征：拉伸凸台、拉伸切除
   - 工具：圆角、倒角（带手动选择辅助）
-- **LLM 兼容性**：支持 OpenAI API 和兼容 OpenAI 的端点（DeepSeek、Qwen、Claude 等）
+- **LLM 兼容性**：支持OpenAI API和兼容 OpenAI 的端点（DeepSeek、Qwen、Claude 等）
 - **完全透明**：实时执行日志和AI思考过程显示
 - **版本灵活性**：支持 SolidWorks 2020-2025（在 2025 上测试）
 
