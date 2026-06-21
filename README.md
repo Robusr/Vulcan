@@ -479,7 +479,7 @@ Distributed under the **GNU General Public License v3.0**. See [LICENSE](https:/
 
 ---
 
-## 🏗系统架构
+## 系统架构
 
 ```mermaid
 flowchart LR
