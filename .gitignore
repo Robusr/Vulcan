@@ -1,14 +1,22 @@
-# PyCharm cache/options directory
+# PyCharm / IDE
 .idea/
 
-beta/client-python-beta/.env
+# Python
 **/__pycache__/
 **/venv/
 *.pyc
 
-# Visual Studio cache/options directory
+# Environment & secrets
+.env
+*.log
+
+# Visual Studio
 .vs/
 
-.env
+# .NET build artifacts
+**/obj/
+**/bin/
+**/packages/
 
+# macOS
 .DS_Store
