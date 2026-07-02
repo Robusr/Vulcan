@@ -1,3 +1,5 @@
+<h1 align="center">Vulcan</h1>
+
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue" alt="Python Version">
   <img src="https://img.shields.io/badge/client-Windows-lightgrey" alt="Client Platform">
@@ -5,8 +7,6 @@
   <img src="https://img.shields.io/badge/SolidWorks-2020--2025-e63946?logo=dassault-systemes&logoColor=white" alt="SolidWorks">
   <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="License: GPL v3"></a>
 </p>
-
-<h1 align="center">Vulcan</h1>
 
 <p align="center">
   <strong>AI-powered SolidWorks automation — turn natural language into 3D models with one click</strong>
