@@ -1,3 +1,5 @@
+<h1 align="center">Vulcan</h1>
+
 <p align="center">
   <img src="https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue" alt="Python 版本">
   <img src="https://img.shields.io/badge/client-Windows-lightgrey" alt="客户端平台">
@@ -5,8 +7,6 @@
   <img src="https://img.shields.io/badge/SolidWorks-2020--2025-e63946?logo=dassault-systemes&logoColor=white" alt="SolidWorks">
   <a href="https://www.gnu.org/licenses/gpl-3.0"><img src="https://img.shields.io/badge/License-GPLv3-blue.svg" alt="许可证: GPL v3"></a>
 </p>
-
-<h1 align="center">Vulcan</h1>
 
 <p align="center">
   <strong>AI 驱动的 SolidWorks 自动化工具——自然语言一键生成 3D 模型</strong>
