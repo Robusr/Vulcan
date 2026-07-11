@@ -276,5 +276,5 @@ Distributed under the **GNU General Public License v3.0**. Derivative works must
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/Robusr">Robusr</a> — because learning SolidWorks shouldn't require a 200-page manual.</sub>
+  <sub>Built by <a href="https://github.com/Robusr">Robusr</a> — because learning SolidWorks shouldn't require a 200-page manual.✋🏻</sub>
 </p>
