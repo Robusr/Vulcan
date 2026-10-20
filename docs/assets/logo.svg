@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-labelledby="logo-title logo-desc">
+  <title id="logo-title">Vulcan</title>
+  <desc id="logo-desc">A stylized forge hammer on a dark rounded tile.</desc>
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#16223A"/>
+      <stop offset="1" stop-color="#0A101D"/>
+    </linearGradient>
+    <linearGradient id="ember" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#C2410C"/>
+      <stop offset="0.55" stop-color="#F97316"/>
+      <stop offset="1" stop-color="#FDBA74"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#CBD5E1"/>
+    </linearGradient>
+  </defs>
+  <rect x="4" y="4" width="120" height="120" rx="30" fill="url(#tile)" stroke="#2A3A55" stroke-width="2"/>
+  <rect x="14" y="14" width="100" height="100" rx="22" fill="none" stroke="#FFFFFF" stroke-opacity="0.06"/>
+  <g transform="rotate(-45 64 64)">
+    <rect x="59.5" y="53" width="9" height="51" rx="4.5" fill="url(#steel)"/>
+    <rect x="61.5" y="57" width="2" height="40" rx="1" fill="#FFFFFF" fill-opacity="0.55"/>
+    <path d="M40 36h48a7 7 0 0 1 7 7v8a7 7 0 0 1-7 7H40a7 7 0 0 1-7-7v-8a7 7 0 0 1 7-7z" fill="url(#ember)"/>
+    <path d="M40 36h48a7 7 0 0 1 7 7v2H33v-2a7 7 0 0 1 7-7z" fill="#FFFFFF" fill-opacity="0.22"/>
+    <path d="M37 58h8v5l-8-1z" fill="#9A3412" fill-opacity="0.55"/>
+  </g>
+  <circle cx="99" cy="29" r="9" fill="#F97316" opacity="0.16"/>
+  <circle cx="99" cy="29" r="3.2" fill="#FDBA74"/>
+  <circle cx="108" cy="41" r="1.8" fill="#F97316"/>
+  <circle cx="88" cy="23" r="1.5" fill="#FDBA74"/>
+</svg>

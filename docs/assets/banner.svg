@@ -1,0 +1,148 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="banner-title banner-desc">
+  <title id="banner-title">Vulcan — natural language to parametric SolidWorks geometry</title>
+  <desc id="banner-desc">A dark forge-themed banner with the Vulcan wordmark and an isometric mounting plate with four through holes.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1120"/>
+      <stop offset="0.55" stop-color="#101A2E"/>
+      <stop offset="1" stop-color="#1A1526"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.4" r="0.55">
+      <stop offset="0" stop-color="#F97316" stop-opacity="0.30"/>
+      <stop offset="0.55" stop-color="#F97316" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#F97316" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ember" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#C2410C"/>
+      <stop offset="0.55" stop-color="#F97316"/>
+      <stop offset="1" stop-color="#FDBA74"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="1" stop-color="#CBD5E1"/>
+    </linearGradient>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F8FAFC"/>
+      <stop offset="0.55" stop-color="#E2E8F0"/>
+      <stop offset="1" stop-color="#B8C4D4"/>
+    </linearGradient>
+    <linearGradient id="sideR" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#94A3B8"/>
+      <stop offset="1" stop-color="#64748B"/>
+    </linearGradient>
+    <linearGradient id="sideL" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#64748B"/>
+      <stop offset="1" stop-color="#475569"/>
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#FFFFFF" stroke-opacity="0.035"/>
+    </pattern>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="18"/>
+    </filter>
+    <style>
+      .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+      .chip { font-size: 13px; fill: #CBD5E1; }
+      .dim { font-size: 12.5px; fill: #FDBA74; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="420" fill="url(#bg)"/>
+  <rect width="1200" height="420" fill="url(#grid)"/>
+  <rect width="1200" height="420" fill="url(#glow)"/>
+  <ellipse cx="880" cy="330" rx="210" ry="60" fill="#F97316" fill-opacity="0.20" filter="url(#soft)"/>
+
+  <!-- logo mark -->
+  <g transform="translate(80 58) scale(0.5)">
+    <rect x="4" y="4" width="120" height="120" rx="30" fill="#16223A" stroke="#2A3A55" stroke-width="3"/>
+    <g transform="rotate(-45 64 64)">
+      <rect x="59.5" y="53" width="9" height="51" rx="4.5" fill="url(#steel)"/>
+      <path d="M40 36h48a7 7 0 0 1 7 7v8a7 7 0 0 1-7 7H40a7 7 0 0 1-7-7v-8a7 7 0 0 1 7-7z" fill="url(#ember)"/>
+      <path d="M40 36h48a7 7 0 0 1 7 7v2H33v-2a7 7 0 0 1 7-7z" fill="#FFFFFF" fill-opacity="0.22"/>
+    </g>
+    <circle cx="99" cy="29" r="3.2" fill="#FDBA74"/>
+  </g>
+
+  <!-- wordmark and copy -->
+  <text class="ui" x="162" y="112" font-size="56" font-weight="700" letter-spacing="9" fill="#F8FAFC">VULCAN</text>
+  <text class="ui" x="80" y="176" font-size="25" font-weight="600" fill="#E2E8F0">Natural language in. Parametric geometry out.</text>
+  <text class="ui" x="80" y="208" font-size="15.5" fill="#94A3B8">An AI add-in that turns plain engineering requests into editable SolidWorks features.</text>
+
+  <!-- chips -->
+  <g>
+    <rect x="80" y="254" width="158" height="34" rx="17" fill="#0F172A" stroke="#334155"/>
+    <text class="ui chip" x="159" y="276" text-anchor="middle">SolidWorks add-in</text>
+    <rect x="250" y="254" width="140" height="34" rx="17" fill="#0F172A" stroke="#334155"/>
+    <text class="ui chip" x="320" y="276" text-anchor="middle">JSON feature tree</text>
+    <rect x="402" y="254" width="222" height="34" rx="17" fill="#0F172A" stroke="#334155"/>
+    <text class="ui chip" x="513" y="276" text-anchor="middle">Any OpenAI-compatible LLM</text>
+  </g>
+
+  <line x1="80" y1="318" x2="150" y2="318" stroke="url(#ember)" stroke-width="2"/>
+  <text class="ui" x="80" y="370" font-size="13" fill="#64748B">C# · .NET Framework 4.8 · Python · Flask · GPLv3</text>
+  <text class="mono" x="1120" y="370" font-size="12.5" fill="#64748B" text-anchor="end">github.com/Robusr/Vulcan</text>
+
+  <!-- isometric plate: 200 x 100 x 20, four Ø10 through holes -->
+  <g>
+    <!-- dimension 200 -->
+    <g stroke="#FDBA74" stroke-width="1.1" fill="none" opacity="0.8">
+      <path d="M810 160 L824 136 M1000.5 270 L1014.5 246"/>
+      <path d="M824 135.8 L1014.5 245.8"/>
+    </g>
+    <text class="dim" x="919" y="188" text-anchor="middle" transform="rotate(30 919 188)">200</text>
+
+    <!-- dimension 100 -->
+    <g stroke="#FDBA74" stroke-width="1.1" fill="none" opacity="0.8">
+      <path d="M1000.5 270 L1024.7 284 M905.2 325 L929.4 339"/>
+      <path d="M1024.7 284 L929.4 339"/>
+    </g>
+    <text class="dim" x="979" y="308" text-anchor="middle" transform="rotate(-30 979 308)">100</text>
+
+    <!-- thickness 20 -->
+    <g stroke="#FDBA74" stroke-width="1.1" fill="none" opacity="0.8">
+      <path d="M714.7 215 L686.7 215 M714.7 237 L686.7 237"/>
+      <path d="M686.7 215 L686.7 237"/>
+    </g>
+    <text class="dim" x="678" y="231" text-anchor="end">20</text>
+
+    <!-- body -->
+    <polygon points="810,160 1000.5,270 905.2,325 714.7,215" fill="url(#top)" stroke="#F8FAFC" stroke-opacity="0.55"/>
+    <polygon points="1000.5,270 905.2,325 905.2,347 1000.5,292" fill="url(#sideR)" stroke="#E2E8F0" stroke-opacity="0.35"/>
+    <polygon points="714.7,215 905.2,325 905.2,347 714.7,237" fill="url(#sideL)" stroke="#E2E8F0" stroke-opacity="0.25"/>
+
+    <!-- top face highlight -->
+    <polygon points="810,160 1000.5,270 905.2,325 714.7,215" fill="none" stroke="#FFFFFF" stroke-opacity="0.6" stroke-width="1.2"/>
+
+    <!-- holes -->
+    <g>
+      <g>
+        <ellipse cx="821.5" cy="179.8" rx="10.5" ry="6.2" fill="#0B1120" stroke="#FDBA74" stroke-width="1.4"/>
+        <ellipse cx="821.5" cy="179.8" rx="7" ry="4.1" fill="#111827"/>
+      </g>
+      <g>
+        <ellipse cx="966.2" cy="263.4" rx="10.5" ry="6.2" fill="#0B1120" stroke="#FDBA74" stroke-width="1.4"/>
+        <ellipse cx="966.2" cy="263.4" rx="7" ry="4.1" fill="#111827"/>
+      </g>
+      <g>
+        <ellipse cx="749" cy="221.6" rx="10.5" ry="6.2" fill="#0B1120" stroke="#FDBA74" stroke-width="1.4"/>
+        <ellipse cx="749" cy="221.6" rx="7" ry="4.1" fill="#111827"/>
+      </g>
+      <g>
+        <ellipse cx="893.7" cy="305.2" rx="10.5" ry="6.2" fill="#0B1120" stroke="#FDBA74" stroke-width="1.4"/>
+        <ellipse cx="893.7" cy="305.2" rx="7" ry="4.1" fill="#111827"/>
+      </g>
+    </g>
+
+    <!-- Ø10 callout -->
+    <path d="M966.2 263.4 L1040 224" stroke="#FDBA74" stroke-width="1.1" fill="none"/>
+    <circle cx="966.2" cy="263.4" r="2" fill="#FDBA74"/>
+    <text class="dim" x="1046" y="220" font-size="12">4 × Ø10 THRU</text>
+
+    <!-- sparks -->
+    <circle cx="1050" cy="300" r="9" fill="#F97316" opacity="0.15"/>
+    <circle cx="1050" cy="300" r="2.4" fill="#FDBA74"/>
+    <circle cx="1072" cy="276" r="1.6" fill="#F97316" opacity="0.8"/>
+    <circle cx="760" cy="150" r="1.6" fill="#FDBA74" opacity="0.7"/>
+  </g>
+</svg>
