@@ -16,8 +16,23 @@ namespace Vulcan.SolidWorksClient.Services
 
         public ApiClient(string baseUrl = null, string apiToken = null)
         {
-            _baseUrl = (baseUrl ?? Environment.GetEnvironmentVariable("VULCAN_SERVER_URL") ?? DefaultBaseUrl).TrimEnd('/');
-            string token = apiToken ?? Environment.GetEnvironmentVariable("VULCAN_API_TOKEN");
+            var settings = SettingsStore.Load();
+            string explicitBaseUrl = string.IsNullOrWhiteSpace(baseUrl) ? null : baseUrl.Trim();
+            _baseUrl = (explicitBaseUrl
+                ?? (string.IsNullOrWhiteSpace(settings.ServerUrl) ? null : settings.ServerUrl.Trim())
+                ?? Environment.GetEnvironmentVariable("VULCAN_SERVER_URL")
+                ?? DefaultBaseUrl).TrimEnd('/');
+
+            string token = apiToken;
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                token = settings.ServerToken;
+            }
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                token = Environment.GetEnvironmentVariable("VULCAN_API_TOKEN");
+            }
+
             bool allowInsecure = string.Equals(
                 Environment.GetEnvironmentVariable("VULCAN_ALLOW_INSECURE"),
                 "true",
@@ -43,13 +58,24 @@ namespace Vulcan.SolidWorksClient.Services
                 _httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue("Bearer", token);
             }
+
+            if (!string.IsNullOrWhiteSpace(settings.LlmApiKey))
+            {
+                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-LLM-API-Key", settings.LlmApiKey);
+            }
+            if (!string.IsNullOrWhiteSpace(settings.LlmBaseUrl))
+            {
+                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-LLM-Base-URL", settings.LlmBaseUrl.Trim());
+            }
+            if (!string.IsNullOrWhiteSpace(settings.LlmModel))
+            {
+                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-LLM-Model", settings.LlmModel.Trim());
+            }
         }
 
         /// <summary>
-        /// 调用后端生成接口，获取建模参数。
+        /// 调用生成接口，获取建模参数。
         /// </summary>
-        /// <param name="userPrompt">用户输入的自然语言建模需求</param>
-        /// <returns>解析后的 ModelData</returns>
         public async Task<ModelData> GenerateModelAsync(string userPrompt)
         {
             try
@@ -102,6 +128,20 @@ namespace Vulcan.SolidWorksClient.Services
                 Logger.Error($"接口调用未知错误：{ex.Message}", ex);
                 throw;
             }
+        }
+
+        /// <summary>
+        /// 测试服务端连通性。
+        /// </summary>
+        public async Task<string> CheckHealthAsync()
+        {
+            var response = await _httpClient.GetAsync($"{_baseUrl}/health");
+            string body = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"健康检查失败：{(int)response.StatusCode} {body}");
+            }
+            return body;
         }
     }
 }
