@@ -1,12 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="720" height="460" viewBox="0 0 720 460" role="img" aria-labelledby="panel-title panel-desc">
-  <title id="panel-title">Vulcan add-in panel</title>
-  <desc id="panel-desc">A layout mockup of the 500 by 300 WPF prompt panel opened from the Vulcan AI ribbon command.</desc>
+  <title id="panel-title">Vulcan add-in panel (1.2.1)</title>
+  <desc id="panel-desc">A layout mockup of the shipped 520 by 320 WPF prompt panel opened from the Vulcan AI ribbon tab, with a ghost settings button, white input card, ember gradient generate button, and green status dot.</desc>
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#EEF3F9"/><stop offset="1" stop-color="#DCE6F2"/>
     </linearGradient>
     <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#EA580C"/><stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+    <linearGradient id="ember" x1="0" y1="1" x2="1" y2="0">
+      <stop offset="0" stop-color="#C2410C"/><stop offset="0.55" stop-color="#F97316"/><stop offset="1" stop-color="#FDBA74"/>
     </linearGradient>
     <pattern id="grid" width="24" height="24" patternUnits="userSpaceOnUse">
       <path d="M24 0H0V24" fill="none" stroke="#94A3B8" stroke-opacity="0.12"/>
@@ -26,46 +29,56 @@
   <!-- ribbon strip -->
   <rect x="0" y="0" width="720" height="56" fill="#F8FAFC"/>
   <line x1="0" y1="56" x2="720" y2="56" stroke="#CBD5E1"/>
-  <rect x="20" y="12" width="32" height="32" rx="6" fill="#C8102E"/>
-  <text class="ui" x="36" y="33" text-anchor="middle" font-size="10.5" font-weight="800" fill="#FFFFFF">SW</text>
-  <text class="ui" x="62" y="32" font-size="12" font-weight="700" letter-spacing="1" fill="#1E293B">SOLIDWORKS</text>
-  <text class="ui" x="196" y="32" font-size="11.5" fill="#64748B">File</text>
-  <text class="ui" x="240" y="32" font-size="11.5" fill="#64748B">Home</text>
+  <rect x="18" y="12" width="32" height="32" rx="6" fill="#C8102E"/>
+  <text class="ui" x="34" y="33" text-anchor="middle" font-size="10.5" font-weight="800" fill="#FFFFFF">SW</text>
+  <text class="ui" x="58" y="32" font-size="12" font-weight="700" letter-spacing="1" fill="#1E293B">SOLIDWORKS</text>
+  <text class="ui" x="180" y="32" font-size="11" fill="#94A3B8">特征</text>
+  <text class="ui" x="218" y="32" font-size="11" fill="#94A3B8">草图</text>
+  <text class="ui" x="256" y="32" font-size="11" fill="#94A3B8">评估</text>
+  <text class="ui" x="294" y="32" font-size="11" fill="#94A3B8">SOLIDWORKS 插件</text>
   <g>
-    <rect x="292" y="10" width="100" height="46" rx="4" fill="#FFF7ED"/>
-    <g transform="translate(304 23) rotate(-45 8 8)">
-      <rect x="7.2" y="6" width="1.6" height="10" rx="0.8" fill="#94A3B8"/>
-      <path d="M3 2h10a2 2 0 0 1 2 2v2H1V4a2 2 0 0 1 2-2z" fill="#F97316"/>
+    <rect x="404" y="9" width="112" height="47" rx="4" fill="#FFF7ED"/>
+    <rect x="414" y="15" width="22" height="22" rx="5" fill="#16223A" stroke="#2A3A55"/>
+    <g transform="translate(417 18) rotate(-45 8 8)">
+      <rect x="7.2" y="5.4" width="1.6" height="11" rx="0.8" fill="#E2E8F0"/>
+      <path d="M3 2h10a2 2 0 0 1 2 2v2H1V4a2 2 0 0 1 2-2z" fill="url(#ember)"/>
     </g>
-    <text class="ui" x="326" y="37" font-size="11.5" font-weight="700" fill="#C2410C">Vulcan AI</text>
-    <rect x="292" y="52" width="100" height="4" rx="2" fill="#F97316"/>
+    <text class="ui" x="444" y="31" font-size="11.5" font-weight="700" fill="#C2410C">Vulcan AI</text>
+    <rect x="404" y="52" width="112" height="4" rx="2" fill="#F97316"/>
   </g>
-  <text class="ui" x="416" y="32" font-size="11.5" fill="#94A3B8">Insert</text>
-  <text class="ui" x="472" y="32" font-size="11.5" fill="#94A3B8">Tools</text>
+  <text class="ui" x="536" y="32" font-size="11" fill="#94A3B8">宏(M)</text>
+  <text class="ui" x="640" y="32" font-size="11" fill="#94A3B8">搜索命令</text>
 
-  <text class="ui" x="110" y="86" font-size="10.5" fill="#64748B">Ribbon command → modal panel</text>
-  <path d="M232 82 L286 50" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3"/>
+  <text class="ui" x="100" y="86" font-size="10.5" fill="#64748B">Ribbon tab → modal panel</text>
+  <path d="M226 82 L286 62" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3"/>
 
   <!-- dialog -->
-  <rect x="110" y="96" width="500" height="300" rx="10" fill="#FFFFFF" filter="url(#shadow)"/>
-  <path d="M110 106a10 10 0 0 1 10-10h480a10 10 0 0 1 10 10v28H110z" fill="#F8FAFC"/>
-  <line x1="110" y1="134" x2="610" y2="134" stroke="#E2E8F0"/>
-  <text class="ui" x="130" y="122" font-size="12.5" font-weight="700" fill="#0F172A">Vulcan AI For SolidWorks</text>
+  <rect x="100" y="96" width="520" height="320" rx="10" fill="#FFFFFF" filter="url(#shadow)"/>
+  <path d="M100 106a10 10 0 0 1 10-10h500a10 10 0 0 1 10 10v24H100z" fill="#F8FAFC"/>
+  <line x1="100" y1="130" x2="620" y2="130" stroke="#E2E8F0"/>
+  <text class="ui" x="120" y="117" font-size="12.5" font-weight="700" fill="#0F172A">Vulcan AI For SolidWorks</text>
   <g stroke="#64748B" stroke-width="1.2">
-    <line x1="552" y1="115" x2="560" y2="115"/>
-    <rect x="572" y="111" width="8" height="8" fill="none"/>
-    <line x1="592" y1="111" x2="600" y2="119"/><line x1="600" y1="111" x2="592" y2="119"/>
+    <line x1="548" y1="110" x2="556" y2="110"/>
+    <rect x="568" y="106" width="8" height="8" fill="none"/>
+    <line x1="588" y1="106" x2="596" y2="114"/><line x1="596" y1="106" x2="588" y2="114"/>
   </g>
 
-  <text class="ui" x="130" y="166" font-size="13" font-weight="700" fill="#0F172A">输入建模需求</text>
-  <rect x="130" y="182" width="460" height="104" rx="6" fill="#FFFFFF" stroke="#CBD5E1"/>
-  <text class="ui" x="144" y="210" font-size="11.5" fill="#94A3B8">例如：在前视基准面拉伸一个直径50，高度100圆柱体</text>
+  <!-- header row: title + ghost settings button -->
+  <text class="ui" x="120" y="164" font-size="15" font-weight="700" fill="#0F172A">输入建模需求</text>
+  <rect x="536" y="146" width="64" height="28" rx="6" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text class="ui" x="568" y="165" text-anchor="middle" font-size="12" fill="#475569">设置</text>
 
-  <rect x="130" y="302" width="460" height="36" rx="6" fill="url(#btn)"/>
-  <text class="ui" x="360" y="325" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">开始生成</text>
+  <!-- input card -->
+  <rect x="120" y="186" width="480" height="126" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text class="ui" x="136" y="216" font-size="12.5" fill="#94A3B8">例如：在前视基准面拉伸一个直径50，高度100圆柱体</text>
 
-  <circle cx="136" cy="366" r="4" fill="#10B981"/>
-  <text class="ui" x="148" y="370" font-size="11.5" fill="#64748B">就绪</text>
+  <!-- primary button -->
+  <rect x="120" y="326" width="480" height="42" rx="8" fill="url(#btn)"/>
+  <text class="ui" x="360" y="353" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">开始生成</text>
 
-  <text class="ui" x="20" y="444" font-size="10" fill="#94A3B8">Layout mockup · MainWindow.xaml · 500 × 300 px</text>
+  <!-- status -->
+  <circle cx="126" cy="392" r="4" fill="#10B981"/>
+  <text class="ui" x="140" y="396" font-size="12" fill="#64748B">就绪</text>
+
+  <text class="ui" x="20" y="444" font-size="10" fill="#94A3B8">Shipped panel · 520 × 320 DIP · Vulcan 1.2.1 · light card, ember gradient primary, ghost settings</text>
 </svg>

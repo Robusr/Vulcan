@@ -84,7 +84,7 @@
 
     <rect x="586" y="356" width="150" height="54" rx="10" fill="#ECFDF5" stroke="#34D399" filter="url(#as)"/>
     <text class="ui node" x="661" y="379" text-anchor="middle">Typed model</text>
-    <text class="ui sub" x="661" y="396" text-anchor="middle">shape check</text>
+    <text class="ui sub" x="661" y="396" text-anchor="middle">shape check · preview</text>
 
     <rect x="760" y="356" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#6EE7B7" filter="url(#as)"/>
     <text class="ui node" x="835" y="379" text-anchor="middle">COM</text>
@@ -99,7 +99,7 @@
   <rect x="934" y="324" width="202" height="88" rx="10" fill="#FFFFFF" stroke="#6EE7B7"/>
   <text class="ui" x="950" y="346" font-size="11.5" font-weight="700" fill="#047857">Deterministic, debuggable</text>
   <text class="ui sub" x="950" y="366">No eval, no exec</text>
-  <text class="ui sub" x="950" y="382">Parameter checks and defaults</text>
+  <text class="ui sub" x="950" y="382">Editable preview before execution</text>
   <text class="ui sub" x="950" y="398">UI fallback on COM failure</text>
 
   <text class="ui" x="48" y="456" font-size="11.5" fill="#94A3B8">Both tracks remain in the repository: beta/ for reference, release/ for the maintained client.</text>

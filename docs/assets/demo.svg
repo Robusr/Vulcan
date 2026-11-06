@@ -1,21 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="demo-title demo-desc">
-  <title id="demo-title">From one sentence to an editable SolidWorks part</title>
-  <desc id="demo-desc">A Chinese prompt on the left becomes a 200 by 100 by 20 millimetre plate with four through holes on the right.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540" role="img" aria-labelledby="demo-title demo-desc">
+  <title id="demo-title">One sentence to an editable part</title>
+  <desc id="demo-desc">Three panels: a Chinese prompt in the Vulcan panel, the editable JSON preview, and the resulting native cylinder feature tree in SolidWorks.</desc>
   <defs>
-    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#EA580C"/><stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#F8FAFC"/><stop offset="0.55" stop-color="#E2E8F0"/><stop offset="1" stop-color="#B8C4D4"/>
     </linearGradient>
-    <linearGradient id="sideR" x1="0" y1="0" x2="0" y2="1">
+    <linearGradient id="steelSide" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0" stop-color="#94A3B8"/><stop offset="1" stop-color="#64748B"/>
     </linearGradient>
-    <linearGradient id="sideL" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#64748B"/><stop offset="1" stop-color="#475569"/>
-    </linearGradient>
-    <linearGradient id="ember" x1="0" y1="1" x2="1" y2="0">
-      <stop offset="0" stop-color="#C2410C"/><stop offset="0.6" stop-color="#F97316"/><stop offset="1" stop-color="#FDBA74"/>
-    </linearGradient>
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="8" stdDeviation="14" flood-color="#0F172A" flood-opacity="0.08"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.10"/>
     </filter>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0L10 5L0 10z" fill="#94A3B8"/>
@@ -23,101 +20,69 @@
     <style>
       .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-      .dim { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11.5px; fill: #C2410C; }
-      .label { font-size: 11px; fill: #64748B; letter-spacing: 1.2px; font-weight: 600; }
+      .step { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; fill: #C2410C; }
+      .title { font-size: 14px; font-weight: 700; fill: #0F172A; }
       .body { font-size: 11.5px; fill: #64748B; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; fill: #334155; }
     </style>
   </defs>
 
-  <rect width="1200" height="520" fill="#FFFFFF"/>
-  <text class="ui" x="48" y="58" font-size="26" font-weight="700" fill="#0F172A">One sentence. One editable part.</text>
-  <text class="ui" x="48" y="86" font-size="14" fill="#64748B">The request becomes a validated feature tree; the add-in builds it through the SolidWorks COM API.</text>
+  <rect width="1200" height="540" fill="#FFFFFF"/>
+  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0F172A">One sentence. One editable part.</text>
+  <text class="ui" x="48" y="82" font-size="14" fill="#64748B">Describe the part, review or edit the JSON, then let the add-in build native features.</text>
 
-  <!-- prompt panel -->
-  <rect x="48" y="124" width="420" height="344" rx="16" fill="#F8FAFC" stroke="#E2E8F0"/>
-  <rect x="72" y="148" width="9" height="9" rx="4.5" fill="url(#ember)"/>
-  <text class="ui label" x="90" y="157">PROMPT</text>
-  <text class="ui" x="444" y="157" text-anchor="end" font-size="10.5" fill="#94A3B8">multilingual input</text>
+  <!-- panel 1: prompt -->
+  <rect x="40" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text class="ui step" x="64" y="146">1 · 输入需求</text>
+  <text class="ui title" x="64" y="182">输入建模需求</text>
+  <rect x="272" y="164" width="64" height="26" rx="6" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text class="ui" x="304" y="182" text-anchor="middle" font-size="11" fill="#475569">设置</text>
+  <rect x="64" y="202" width="304" height="140" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text class="ui" x="80" y="232" font-size="12.5" fill="#0F172A">在前视基准面拉伸一个直径40，</text>
+  <text class="ui" x="80" y="254" font-size="12.5" fill="#0F172A">高度60的圆柱体。</text>
+  <rect x="64" y="362" width="304" height="40" rx="8" fill="url(#btn)"/>
+  <text class="ui" x="216" y="388" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">开始生成</text>
+  <circle cx="70" cy="426" r="4" fill="#10B981"/>
+  <text class="ui" x="84" y="430" font-size="11.5" fill="#64748B">就绪 · 520 × 320 DIP</text>
 
-  <path d="M72 180h372a10 10 0 0 1 10 10v92a10 10 0 0 1-10 10H110l-14 14v-14H72a10 10 0 0 1-10-10v-92a10 10 0 0 1 10-10z" fill="#FFFFFF" stroke="#CBD5E1"/>
-  <text class="ui" x="90" y="216" font-size="14.5" fill="#0F172A">前视基准面拉伸 200×100×20 底座，</text>
-  <text class="ui" x="90" y="240" font-size="14.5" fill="#0F172A">四角各打一个 Ø10 通孔。</text>
-  <text class="ui" x="90" y="270" font-size="11.5" fill="#64748B" font-style="italic">Front plane · 200×100×20 base · four Ø10 through holes.</text>
+  <!-- panel 2: preview -->
+  <rect x="424" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text class="ui step" x="448" y="146">2 · 检查并编辑 JSON</text>
+  <text class="ui title" x="448" y="182">确认后才会写入 SolidWorks</text>
+  <rect x="448" y="200" width="304" height="184" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text class="code" x="464" y="226">{</text>
+  <text class="code" x="480" y="246">"feature_type": "extrude",</text>
+  <text class="code" x="480" y="266">"params": {</text>
+  <text class="code" x="496" y="286">"plane": "前视基准面",</text>
+  <text class="code" x="496" y="306">"shape": "circle",</text>
+  <text class="code" x="496" y="326">"diameter": 40,</text>
+  <text class="code" x="496" y="346">"depth": 60 }</text>
+  <text class="code" x="464" y="366">}</text>
+  <rect x="448" y="402" width="120" height="34" rx="8" fill="url(#btn)"/>
+  <text class="ui" x="508" y="424" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">执行建模</text>
+  <rect x="580" y="402" width="80" height="34" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <text class="ui" x="620" y="424" text-anchor="middle" font-size="12" fill="#475569">取消</text>
 
-  <text class="ui" x="72" y="330" font-size="12" fill="#334155">Sent as one request to</text>
-  <text class="mono" x="72" y="352" font-size="12.5" fill="#0F172A">POST /api/v1/generate</text>
-  <text class="ui body" x="72" y="386">No generated code. The model fills a schema; the client owns execution.</text>
+  <!-- panel 3: result -->
+  <rect x="808" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <text class="ui step" x="832" y="146">3 · 原生特征树</text>
+  <text class="ui title" x="832" y="182">零件1 · 凸台-拉伸1</text>
 
-  <g>
-    <rect x="72" y="412" width="34" height="24" rx="12" fill="#FFFFFF" stroke="#CBD5E1"/>
-    <text class="ui" x="89" y="428" text-anchor="middle" font-size="10.5" fill="#475569">zh</text>
-    <rect x="114" y="412" width="34" height="24" rx="12" fill="#FFFFFF" stroke="#CBD5E1"/>
-    <text class="ui" x="131" y="428" text-anchor="middle" font-size="10.5" fill="#475569">en</text>
-    <rect x="156" y="412" width="34" height="24" rx="12" fill="#FFFFFF" stroke="#CBD5E1"/>
-    <text class="ui" x="173" y="428" text-anchor="middle" font-size="10.5" fill="#475569">fr</text>
+  <!-- cylinder -->
+  <g transform="translate(984 276)">
+    <ellipse cx="0" cy="0" rx="74" ry="34" fill="url(#steel)" stroke="#94A3B8"/>
+    <path d="M-74 0v54a74 34 0 0 0 148 0V0" fill="url(#steelSide)" stroke="#94A3B8"/>
+    <ellipse cx="0" cy="54" rx="74" ry="34" fill="url(#steel)" stroke="#94A3B8"/>
+    <ellipse cx="0" cy="0" rx="46" ry="21" fill="none" stroke="#F97316" stroke-width="1.4"/>
+    <circle cx="0" cy="0" r="2.2" fill="#F97316"/>
+  </g>
+  <text class="ui" x="984" y="404" text-anchor="middle" font-size="11.5" fill="#64748B">Ø40 × 60 mm · 前视基准面</text>
+
+  <!-- flow arrows -->
+  <g stroke="#94A3B8" stroke-width="1.6">
+    <line x1="396" y1="294" x2="420" y2="294" marker-end="url(#arrow)"/>
+    <line x1="780" y1="294" x2="804" y2="294" marker-end="url(#arrow)"/>
   </g>
 
-  <!-- transport arrow -->
-  <g>
-    <line x1="484" y1="296" x2="536" y2="296" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#arrow)"/>
-    <text class="ui" x="510" y="278" text-anchor="middle" font-size="10.5" fill="#64748B">HTTP</text>
-    <text class="ui" x="510" y="322" text-anchor="middle" font-size="10.5" fill="#64748B">JSON</text>
-  </g>
-
-  <!-- result panel -->
-  <rect x="560" y="124" width="592" height="344" rx="16" fill="#F8FAFC" stroke="#E2E8F0"/>
-  <rect x="584" y="148" width="9" height="9" rx="4.5" fill="#059669"/>
-  <text class="ui label" x="602" y="157">RESULT</text>
-  <g>
-    <rect x="1040" y="140" width="88" height="26" rx="13" fill="#ECFDF5" stroke="#A7F3D0"/>
-    <text class="ui" x="1084" y="157" text-anchor="middle" font-size="10.5" font-weight="700" fill="#047857">VALID</text>
-  </g>
-
-  <!-- dimensions -->
-  <g stroke="#FDBA74" stroke-width="1" fill="none" opacity="0.9">
-    <path d="M700 200 L712 179.2 M864.6 295 L876.6 274.2"/>
-    <path d="M712 179.2 L876.6 274.2"/>
-  </g>
-  <text class="dim" x="794" y="223" text-anchor="middle" transform="rotate(30 794 223)">200</text>
-  <g stroke="#FDBA74" stroke-width="1" fill="none" opacity="0.9">
-    <path d="M864.6 295 L885.4 307 M782.3 342.5 L803.1 354.5"/>
-    <path d="M885.4 307 L803.1 354.5"/>
-  </g>
-  <text class="dim" x="847" y="333" text-anchor="middle" transform="rotate(-30 847 333)">100</text>
-  <g stroke="#FDBA74" stroke-width="1" fill="none" opacity="0.9">
-    <path d="M617.7 247.5 L597.7 247.5 M617.7 266.5 L597.7 266.5"/>
-    <path d="M597.7 247.5 L597.7 266.5"/>
-  </g>
-  <text class="dim" x="590" y="261" text-anchor="end">20</text>
-
-  <!-- part body -->
-  <polygon points="700,200 864.6,295 782.3,342.5 617.7,247.5" fill="url(#top)" stroke="#FFFFFF" stroke-opacity="0.7"/>
-  <polygon points="864.6,295 782.3,342.5 782.3,361.5 864.6,314" fill="url(#sideR)" stroke="#E2E8F0" stroke-opacity="0.35"/>
-  <polygon points="617.7,247.5 782.3,342.5 782.3,361.5 617.7,266.5" fill="url(#sideL)" stroke="#E2E8F0" stroke-opacity="0.25"/>
-  <polygon points="700,200 864.6,295 782.3,342.5 617.7,247.5" fill="none" stroke="#FFFFFF" stroke-opacity="0.55"/>
-
-  <!-- holes -->
-  <g>
-    <ellipse cx="709.9" cy="217.1" rx="9" ry="5.3" fill="#0B1120" stroke="#F97316" stroke-width="1.3"/>
-    <ellipse cx="834.9" cy="289.3" rx="9" ry="5.3" fill="#0B1120" stroke="#F97316" stroke-width="1.3"/>
-    <ellipse cx="647.3" cy="253.2" rx="9" ry="5.3" fill="#0B1120" stroke="#F97316" stroke-width="1.3"/>
-    <ellipse cx="772.4" cy="325.4" rx="9" ry="5.3" fill="#0B1120" stroke="#F97316" stroke-width="1.3"/>
-  </g>
-
-  <!-- result annotations -->
-  <g>
-    <circle cx="906" cy="207" r="3" fill="#F97316"/>
-    <text class="ui" x="920" y="212" font-size="14.5" font-weight="700" fill="#0F172A">200 × 100 × 20 mm</text>
-    <text class="ui body" x="920" y="232">One base extrude, front plane.</text>
-
-    <circle cx="906" cy="267" r="3" fill="#F97316"/>
-    <text class="ui" x="920" y="272" font-size="14.5" font-weight="700" fill="#0F172A">4 × Ø10 through</text>
-    <text class="ui body" x="920" y="292">Corner placement from a client heuristic.</text>
-
-    <circle cx="906" cy="327" r="3" fill="#059669"/>
-    <text class="ui" x="920" y="332" font-size="14.5" font-weight="700" fill="#0F172A">Native features</text>
-    <text class="ui body" x="920" y="352">Editable in the SolidWorks feature tree.</text>
-  </g>
-
-  <text class="ui" x="48" y="500" font-size="11.5" fill="#94A3B8">Illustrative response. Corner placement uses the modeler's 10 mm center-inset heuristic.</text>
+  <text class="ui" x="48" y="512" font-size="11.5" fill="#94A3B8">Illustrative. The preview is editable; cancelling leaves the document untouched.</text>
 </svg>
