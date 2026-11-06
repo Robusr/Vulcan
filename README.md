@@ -32,6 +32,7 @@
   <a href="#system-architecture">Architecture</a> ·
   <a href="#the-json-contract">JSON contract</a> ·
   <a href="#quick-start">Quick start</a> ·
+  <a href="#operation-walkthrough">Walkthrough</a> ·
   <a href="#testing">Testing</a> ·
   <a href="#roadmap">Roadmap</a>
 </p>
@@ -56,7 +57,7 @@ This README focuses on `release/`. The Beta track is kept for reference and for 
 ## What it does
 
 <p align="center">
-  <img src="docs/assets/demo.svg" alt="A Chinese prompt becomes a 200 by 100 by 20 millimetre plate with four through holes" width="100%">
+  <img src="docs/assets/demo.svg" alt="Three panels: a Chinese prompt in the Vulcan panel, the editable JSON preview, and the resulting native cylinder feature tree" width="100%">
 </p>
 
 <p align="center">
@@ -76,7 +77,7 @@ This README focuses on `release/`. The Beta track is kept for reference and for 
 </p>
 
 <p align="center">
-  <sub>The shipped 1.2.1 workflow: describe the part, review or edit the generated JSON, then let the add-in build native features. Captured from the installed add-in.</sub>
+  <sub>The shipped 1.2.1 workflow: open the panel, configure the server, describe the part, review the editable JSON, then build native features. Captured from the installed add-in.</sub>
 </p>
 
 
@@ -110,7 +111,7 @@ This README focuses on `release/`. The Beta track is kept for reference and for 
 
 | Layer | Stack | Responsibility |
 |---|---|---|
-| Client | C# / WPF / .NET Framework 4.8 | `Vulcan AI` ribbon tab, prompt panel, JSON envelope handling, COM execution |
+| Client | C# / WPF / .NET Framework 4.8 | `Vulcan AI` ribbon tab, prompt panel, DPAPI settings, editable JSON preview, COM execution |
 | Transport | HTTP REST / JSON | Single endpoint: `POST /api/v1/generate` |
 | Server | Python 3.10+ / Flask 3 | Prompt assembly, LLM call, envelope and parameter validation, error mapping |
 | Model | OpenAI-compatible API | JSON feature tree generation |
@@ -123,13 +124,13 @@ The add-in registers a `Vulcan AI` ribbon tab for parts, assemblies, and drawing
 </p>
 
 <p align="center">
-  <sub>Layout mockup of the 500 × 300 prompt panel. The shipped UI is Chinese; the panel accepts natural-language requests.</sub>
+  <sub>Layout mockup of the 520 × 320 prompt panel. The shipped UI is Chinese; the panel accepts natural-language requests.</sub>
 </p>
 
 ## Request lifecycle
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="Six-stage request lifecycle with latency and failure handling" width="100%">
+  <img src="docs/assets/pipeline.svg" alt="Seven-stage request lifecycle with latency and failure handling" width="100%">
 </p>
 
 1. **Request.** The add-in sends `{ "prompt": "..." }` to the Flask server.
@@ -137,7 +138,8 @@ The add-in registers a `Vulcan AI` ribbon tab for parts, assemblies, and drawing
 3. **Model call.** Any OpenAI-compatible endpoint returns a JSON feature tree. The default request uses `temperature 0.05`, `top_p 0.95`, `max_tokens 2048`, and a 30-second timeout.
 4. **Recovery.** The server strips markdown code fences, then extracts the first `{` through the last `}` before parsing.
 5. **Validation.** Flask checks the envelope and validates feature parameters. The C# client deserializes the envelope into typed model classes, then reads parameters from a dictionary and applies modeler defaults.
-6. **Execution.** `SwModeler` draws the sketch, selects it, and calls the native feature APIs, including `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, and `InsertFeatureChamfer`. Extrusion and cut failures use a keyboard-driven fallback to the native SolidWorks feature panel.
+6. **Preview and edit.** The add-in opens the feature tree in an editable JSON window; nothing is written until you confirm.
+7. **Execution.** `SwModeler` draws the sketch, selects it, and calls the native feature APIs, including `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, and `InsertFeatureChamfer`. Extrusion and cut failures use a keyboard-driven fallback to the native SolidWorks feature panel.
 
 The model call dominates latency. Everything else is local and usually measured in milliseconds.
 
@@ -384,6 +386,62 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 ```
 
 Click **开始生成** (Generate). The add-in fetches a feature tree and opens an editable JSON preview. Review the parameters, adjust anything the model got wrong, and click **执行建模** (Execute). Only then does the modeler build the features, zoom to fit, and leave the model as an editable feature tree. Cancelling the preview leaves SolidWorks untouched.
+
+## Operation walkthrough
+
+This section maps every entity you touch, from the installer to the feature tree.
+
+### 1. Install
+
+1. Run `Vulcan-Setup-1.2.1.exe`. Accept the administrator prompt, read the GPLv3 page, and keep the default `{autopf}\Vulcan` folder.
+2. The installer copies the add-in, its dependencies, the icon set, and `install.bat` / `uninstall.bat`, then runs `install.bat /quiet` to register the x64 add-in with `RegAsm`.
+3. Alternatively, extract `Vulcan-1.2.1-portable.zip` and run `install.bat` as administrator.
+4. Restart SolidWorks.
+
+### 2. Open the panel
+
+| Entity | Where | What it does |
+|---|---|---|
+| `Vulcan AI` ribbon tab | CommandManager, last tab | Hosts the **打开AI生成窗口** command |
+| `AI生成` toolbar button | Left toolbar | Opens the same modal panel |
+| `Vulcan AI For SolidWorks` window | Center of SolidWorks | 520 × 320 prompt panel |
+
+### 3. Configure the server
+
+Click **设置** (top-right of the panel). The dialog contains five fields and four buttons.
+
+| Field | Meaning |
+|---|---|
+| 服务端地址 | Vulcan server URL; default `http://127.0.0.1:5000` |
+| 服务端 Token | Matches `VULCAN_API_TOKEN` when the server requires a bearer token |
+| LLM API Key | Your own provider key (BYOK); leave empty to use the server's key |
+| LLM Base URL | OpenAI-compatible base URL for your provider |
+| 模型名称 | Model name, for example `gpt-4o-mini` |
+
+| Button | Behavior |
+|---|---|
+| 测试连接 | Calls `GET /health` and prints the response in the dialog |
+| 打开日志目录 | Opens `Desktop\Vulcan_Logs` |
+| 取消 | Closes without saving |
+| 保存 | Writes `%APPDATA%\Vulcan\settings.json`; the token and BYOK key are DPAPI-encrypted |
+
+### 4. Describe the part
+
+Type a request into the white input card, for example `在前视基准面拉伸一个直径40，高度60的圆柱体`. The placeholder disappears on focus. **开始生成** sends `POST /api/v1/generate`; the status dot stays green while idle.
+
+### 5. Review and edit the JSON
+
+The **检查并编辑建模参数** window shows the original request, an editable JSON editor, and two buttons.
+
+| Entity | Behavior |
+|---|---|
+| JSON editor | Accepts edits; must keep `feature_type` (or `features[]`) and a `params` object |
+| 执行建模 | Validates the edited JSON, closes the preview, and runs the modeler |
+| 取消 | Closes the preview; the document is untouched |
+
+### 6. Inspect the result
+
+The modeler creates native features (for the example: `凸台-拉伸1` plus its sketch). A **模型生成完成!** dialog confirms success. Client logs are written to `Vulcan_Logs\log_YYYYMMDD.txt`; server logs to `vulcan_server.log`.
 
 ## Testing
 

@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="arch-title arch-desc">
   <title id="arch-title">Vulcan system architecture</title>
-  <desc id="arch-desc">A Windows client containing SolidWorks and the Vulcan add-in talks to a Python Flask server, which calls any OpenAI-compatible LLM provider.</desc>
+  <desc id="arch-desc">A Windows client with SolidWorks, the Vulcan add-in, DPAPI-protected settings, and an editable JSON preview talks to a Python Flask server that validates requests and calls any OpenAI-compatible provider, with optional per-request BYOK headers.</desc>
   <defs>
     <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="150%">
       <feDropShadow dx="0" dy="5" stdDeviation="10" flood-color="#0F172A" flood-opacity="0.07"/>
@@ -17,7 +17,7 @@
       .lane { font-size: 11px; font-weight: 700; letter-spacing: 1.6px; fill: #64748B; }
       .cardTitle { font-size: 14px; font-weight: 700; fill: #0F172A; }
       .cardBody { font-size: 11.5px; fill: #64748B; }
-      .cardMono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; fill: #475569; }
+      .cardMono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.6px; fill: #475569; }
       .step { font-size: 10px; font-weight: 700; fill: #FFFFFF; }
     </style>
   </defs>
@@ -25,7 +25,7 @@
   <rect width="1200" height="560" fill="#F8FAFC"/>
   <rect x="1" y="1" width="1198" height="558" rx="18" fill="#FFFFFF" stroke="#E2E8F0"/>
   <text class="ui" x="48" y="56" font-size="26" font-weight="700" fill="#0F172A">System architecture</text>
-  <text class="ui" x="48" y="84" font-size="14" fill="#64748B">A thin Windows client, a portable Python server, and a provider-agnostic model layer.</text>
+  <text class="ui" x="48" y="84" font-size="14" fill="#64748B">A thin Windows client with local settings and an editable preview; a portable server; a provider-agnostic model layer.</text>
 
   <!-- lanes -->
   <rect x="40" y="116" width="336" height="366" rx="16" fill="#F1F5F9" stroke="#E2E8F0"/>
@@ -35,87 +35,92 @@
   <text class="ui lane" x="456" y="146">SERVER · PYTHON</text>
   <text class="ui lane" x="848" y="146">LLM PROVIDER</text>
 
-  <!-- client cards -->
-  <rect x="64" y="166" width="288" height="92" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#cardShadow)"/>
-  <g transform="translate(82 186)">
+  <!-- SolidWorks card -->
+  <rect x="64" y="160" width="288" height="72" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+  <g transform="translate(82 178)">
     <path d="M4 10L18 2l14 8v18L18 36 4 28z" fill="#E2E8F0" stroke="#94A3B8"/>
     <path d="M4 10l14 8 14-8M18 18v18" fill="none" stroke="#94A3B8"/>
     <path d="M18 2l14 8-14 8-14-8z" fill="#F8FAFC" stroke="#94A3B8"/>
   </g>
-  <text class="ui cardTitle" x="128" y="196">SolidWorks 2025</text>
-  <text class="ui cardBody" x="128" y="216">Part document · COM API</text>
-  <text class="ui cardBody" x="128" y="234">Feature tree and sketches</text>
+  <text class="ui cardTitle" x="128" y="188">SolidWorks 2025</text>
+  <text class="ui cardBody" x="128" y="208">Part · COM API · editable feature tree</text>
 
-  <line x1="208" y1="258" x2="208" y2="278" stroke="#64748B" stroke-width="1.4" marker-end="url(#a)"/>
-  <line x1="220" y1="278" x2="220" y2="258" stroke="#64748B" stroke-width="1.4" marker-end="url(#a)"/>
-  <text class="ui" x="232" y="273" font-size="10.5" fill="#64748B">COM</text>
+  <line x1="208" y1="232" x2="208" y2="248" stroke="#64748B" stroke-width="1.4" marker-end="url(#a)"/>
+  <line x1="220" y1="248" x2="220" y2="232" stroke="#64748B" stroke-width="1.4" marker-end="url(#a)"/>
+  <text class="ui" x="232" y="244" font-size="10.5" fill="#64748B">COM</text>
 
-  <rect x="64" y="282" width="288" height="176" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#cardShadow)"/>
-  <rect x="82" y="302" width="30" height="30" rx="8" fill="#0B1120"/>
-  <g transform="translate(89 309) rotate(-45 8 8)">
-    <rect x="7.2" y="6" width="1.6" height="10" rx="0.8" fill="#E2E8F0"/>
+  <!-- add-in card -->
+  <rect x="64" y="252" width="288" height="128" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+  <rect x="82" y="268" width="28" height="28" rx="7" fill="#0B1120"/>
+  <g transform="translate(88 274) rotate(-45 8 8)">
+    <rect x="7.2" y="5.4" width="1.6" height="11" rx="0.8" fill="#E2E8F0"/>
     <path d="M3 2h10a2 2 0 0 1 2 2v2H1V4a2 2 0 0 1 2-2z" fill="url(#ember)"/>
   </g>
-  <text class="ui cardTitle" x="124" y="322">Vulcan add-in</text>
-  <text class="ui cardMono" x="82" y="352">C# · WPF · .NET Framework 4.8</text>
-  <text class="ui cardBody" x="82" y="378">Ribbon command opens the prompt panel.</text>
-  <text class="ui cardBody" x="82" y="398">Typed JSON is mapped to feature calls.</text>
-  <text class="ui cardBody" x="82" y="418">API-first, with a UI fallback on API drift.</text>
-  <rect x="82" y="432" width="106" height="14" rx="7" fill="#FEF3C7"/>
-  <text class="ui" x="135" y="443" text-anchor="middle" font-size="9.5" font-weight="700" fill="#92400E">WINDOWS ONLY</text>
+  <text class="ui cardTitle" x="122" y="288">Vulcan add-in</text>
+  <text class="ui cardMono" x="82" y="314">C# · WPF · .NET Framework 4.8</text>
+  <text class="ui cardBody" x="82" y="336">Ribbon tab, prompt panel; typed JSON to feature calls.</text>
+  <text class="ui cardBody" x="82" y="356">Editable preview; nothing is written until 执行建模.</text>
+  <rect x="82" y="366" width="106" height="14" rx="7" fill="#FEF3C7"/>
+  <text class="ui" x="135" y="377" text-anchor="middle" font-size="9.5" font-weight="700" fill="#92400E">WINDOWS ONLY</text>
+
+  <!-- settings card -->
+  <rect x="64" y="392" width="288" height="74" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#cardShadow)"/>
+  <text class="ui cardTitle" x="82" y="416">Settings · DPAPI</text>
+  <text class="ui cardMono" x="82" y="436">%APPDATA%\Vulcan\settings.json</text>
+  <text class="ui cardBody" x="82" y="454">server URL · token · BYOK key / base URL / model (encrypted)</text>
 
   <!-- server cards -->
-  <rect x="456" y="166" width="288" height="96" rx="12" fill="#FFFFFF" stroke="#DBEAFE" filter="url(#cardShadow)"/>
-  <text class="ui cardTitle" x="476" y="196">Flask API</text>
-  <text class="ui cardMono" x="476" y="218">POST /api/v1/generate</text>
-  <text class="ui cardBody" x="476" y="240">Envelope check · JSON error responses</text>
+  <rect x="456" y="160" width="288" height="96" rx="12" fill="#FFFFFF" stroke="#DBEAFE" filter="url(#cardShadow)"/>
+  <text class="ui cardTitle" x="476" y="188">Flask API</text>
+  <text class="ui cardMono" x="476" y="210">POST /api/v1/generate</text>
+  <text class="ui cardBody" x="476" y="232">Envelope check · rate limit · optional bearer token</text>
 
-  <line x1="600" y1="262" x2="600" y2="286" stroke="#93C5FD" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#a)"/>
+  <line x1="600" y1="258" x2="600" y2="280" stroke="#93C5FD" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#a)"/>
 
-  <rect x="456" y="290" width="288" height="102" rx="12" fill="#FFFFFF" stroke="#DBEAFE" filter="url(#cardShadow)"/>
-  <text class="ui cardTitle" x="476" y="320">LLM client</text>
-  <text class="ui cardBody" x="476" y="342">Domain prompt assembly · code-fence repair</text>
-  <text class="ui cardBody" x="476" y="362">temperature 0.05 · max 2048 tokens</text>
-  <text class="ui cardBody" x="476" y="382">30 s request timeout</text>
+  <rect x="456" y="284" width="288" height="108" rx="12" fill="#FFFFFF" stroke="#DBEAFE" filter="url(#cardShadow)"/>
+  <text class="ui cardTitle" x="476" y="312">LLM client</text>
+  <text class="ui cardBody" x="476" y="334">Domain prompt · code-fence repair</text>
+  <text class="ui cardBody" x="476" y="354">Per-request BYOK headers: X-LLM-API-Key,</text>
+  <text class="ui cardBody" x="476" y="372">X-LLM-Base-URL, X-LLM-Model</text>
+  <text class="ui cardBody" x="476" y="388">temperature 0.05 · 30 s timeout</text>
 
-  <rect x="456" y="412" width="288" height="46" rx="10" fill="#DBEAFE" fill-opacity="0.45" stroke="#BFDBFE"/>
-  <text class="ui" x="476" y="431" font-size="11.5" font-weight="700" fill="#1E3A8A">.env</text>
-  <text class="ui cardBody" x="476" y="448">base URL · API key · model name</text>
+  <rect x="456" y="406" width="288" height="52" rx="10" fill="#DBEAFE" fill-opacity="0.45" stroke="#BFDBFE"/>
+  <text class="ui" x="476" y="426" font-size="11.5" font-weight="700" fill="#1E3A8A">.env / settings</text>
+  <text class="ui cardBody" x="476" y="444">provider key · base URL · model · custom-URL switch</text>
 
   <!-- provider cards -->
-  <rect x="848" y="166" width="288" height="164" rx="12" fill="#FFFFFF" stroke="#EDE9FE" filter="url(#cardShadow)"/>
-  <text class="ui cardTitle" x="868" y="196">OpenAI-compatible API</text>
-  <text class="ui cardBody" x="868" y="222">GPT · DeepSeek · Qwen · Qiniu Cloud</text>
-  <text class="ui cardBody" x="868" y="242">self-hosted vLLM or Ollama</text>
-  <line x1="868" y1="258" x2="1116" y2="258" stroke="#EDE9FE"/>
-  <text class="ui cardBody" x="868" y="280">Returns a JSON feature tree.</text>
-  <text class="ui cardBody" x="868" y="300">No provider-specific client code.</text>
+  <rect x="848" y="160" width="288" height="164" rx="12" fill="#FFFFFF" stroke="#EDE9FE" filter="url(#cardShadow)"/>
+  <text class="ui cardTitle" x="868" y="188">OpenAI-compatible API</text>
+  <text class="ui cardBody" x="868" y="214">GPT · DeepSeek · Qwen · Qiniu Cloud</text>
+  <text class="ui cardBody" x="868" y="234">self-hosted vLLM or Ollama</text>
+  <line x1="868" y1="250" x2="1116" y2="250" stroke="#EDE9FE"/>
+  <text class="ui cardBody" x="868" y="272">Returns a JSON feature tree.</text>
+  <text class="ui cardBody" x="868" y="292">No provider-specific client code.</text>
 
-  <rect x="848" y="350" width="288" height="108" rx="12" fill="#FFFFFF" stroke="#EDE9FE" filter="url(#cardShadow)"/>
-  <text class="ui cardTitle" x="868" y="380">Swap without a rebuild</text>
-  <text class="ui cardBody" x="868" y="404">Change the base URL and model</text>
-  <text class="ui cardBody" x="868" y="424">in .env; restart the server.</text>
-  <text class="ui cardBody" x="868" y="444">The add-in never sees the key.</text>
+  <rect x="848" y="344" width="288" height="114" rx="12" fill="#FFFFFF" stroke="#EDE9FE" filter="url(#cardShadow)"/>
+  <text class="ui cardTitle" x="868" y="372">Swap without a rebuild</text>
+  <text class="ui cardBody" x="868" y="396">Change the base URL and model in .env,</text>
+  <text class="ui cardBody" x="868" y="416">or let a client send BYOK headers.</text>
+  <text class="ui cardBody" x="868" y="436">Server keys stay server-side; BYOK keys</text>
+  <text class="ui cardBody" x="868" y="452">are forwarded per request; never logged.</text>
 
   <!-- flow arrows -->
-  <line x1="400" y1="212" x2="430" y2="212" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
-  <circle cx="415" cy="212" r="9" fill="#0F172A"/><text class="ui step" x="415" y="215.5" text-anchor="middle">1</text>
-  <text class="ui" x="415" y="196" text-anchor="middle" font-size="10" fill="#475569">prompt</text>
+  <line x1="400" y1="206" x2="430" y2="206" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="415" cy="206" r="9" fill="#0F172A"/><text class="ui step" x="415" y="209.5" text-anchor="middle">1</text>
+  <text class="ui" x="415" y="190" text-anchor="middle" font-size="10" fill="#475569">prompt + headers</text>
 
-  <line x1="768" y1="212" x2="822" y2="212" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
-  <circle cx="795" cy="212" r="9" fill="#0F172A"/><text class="ui step" x="795" y="215.5" text-anchor="middle">2</text>
-  <text class="ui" x="795" y="196" text-anchor="middle" font-size="10" fill="#475569">system + user</text>
+  <line x1="768" y1="206" x2="822" y2="206" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="795" cy="206" r="9" fill="#0F172A"/><text class="ui step" x="795" y="209.5" text-anchor="middle">2</text>
+  <text class="ui" x="795" y="190" text-anchor="middle" font-size="10" fill="#475569">system + user</text>
 
-  <line x1="822" y1="300" x2="768" y2="300" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
-  <circle cx="795" cy="300" r="9" fill="#7C3AED"/><text class="ui step" x="795" y="303.5" text-anchor="middle">3</text>
-  <text class="ui" x="795" y="284" text-anchor="middle" font-size="10" fill="#475569">JSON</text>
+  <line x1="822" y1="292" x2="768" y2="292" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="795" cy="292" r="9" fill="#7C3AED"/><text class="ui step" x="795" y="295.5" text-anchor="middle">3</text>
+  <text class="ui" x="795" y="276" text-anchor="middle" font-size="10" fill="#475569">JSON</text>
 
-  <line x1="430" y1="410" x2="400" y2="410" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
-  <circle cx="415" cy="410" r="9" fill="#059669"/><text class="ui step" x="415" y="413.5" text-anchor="middle">4</text>
-  <text class="ui" x="415" y="394" text-anchor="middle" font-size="10" fill="#475569">typed JSON</text>
+  <line x1="430" y1="336" x2="400" y2="336" stroke="#64748B" stroke-width="1.6" marker-end="url(#a)"/>
+  <circle cx="415" cy="336" r="9" fill="#059669"/><text class="ui step" x="415" y="339.5" text-anchor="middle">4</text>
+  <text class="ui" x="415" y="320" text-anchor="middle" font-size="10" fill="#475569">typed JSON</text>
 
-  <text class="ui" x="48" y="520" font-size="12" fill="#64748B">The server runs locally, in Docker, or behind a tunnel. The client always runs beside SolidWorks.</text>
-  <g transform="translate(1092 512)">
-    <circle r="7" fill="#E2E8F0"/><text class="ui" x="0" y="3.5" text-anchor="middle" font-size="9.5" font-weight="700" fill="#475569">i</text>
-  </g>
+  <text class="ui" x="48" y="520" font-size="12" fill="#64748B">The server runs locally, in Docker, or behind a tunnel. The client always runs beside SolidWorks; settings are encrypted per Windows user.</text>
+  <text class="ui" x="48" y="540" font-size="11" fill="#94A3B8">Preview and confirmation happen entirely on the client, before any COM call.</text>
 </svg>

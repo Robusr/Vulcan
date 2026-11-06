@@ -119,5 +119,5 @@
   <text class="ui body" x="762" y="522"><tspan class="mono">center_x</tspan> / <tspan class="mono">center_y</tspan> position the sketch.</text>
   <text class="ui body" x="762" y="540"><tspan class="mono">through_all</tspan> cuts in both directions.</text>
 
-  <text class="ui" x="48" y="584" font-size="11.5" fill="#94A3B8">The server checks the envelope; the C# client deserializes typed classes and applies defaults.</text>
+  <text class="ui" x="48" y="584" font-size="11.5" fill="#94A3B8">The server checks the envelope; the client deserializes typed classes, applies defaults, and opens the JSON in an editable preview before execution.</text>
 </svg>
