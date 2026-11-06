@@ -32,6 +32,7 @@
   <a href="#architecture-du-système">Architecture</a> ·
   <a href="#le-contrat-json">Contrat JSON</a> ·
   <a href="#démarrage-rapide">Démarrage rapide</a> ·
+  <a href="#installation-mise-à-niveau-et-désinstallation">Installation</a> ·
   <a href="#parcours-dutilisation">Parcours</a> ·
   <a href="#tests">Tests</a> ·
   <a href="#feuille-de-route">Feuille de route</a>
@@ -442,6 +443,64 @@ La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON
 ### 6. Inspecter le résultat
 
 Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) et affiche **模型生成完成!**. Les journaux client vont dans `Vulcan_Logs\log_YYYYMMDD.txt`, ceux du serveur dans `vulcan_server.log`.
+
+## Nouveautés de la 1.2.1
+
+- Icônes de marque multi-tailles sur le ruban, la barre d’outils et les boutons.
+- Panneau, boîte de réglages et aperçu JSON redessinés.
+- Installateur GPLv3 avec page de licence, assistant moderne, enregistrement silencieux et désinstallation propre.
+- Réglages « apportez votre clé » chiffrés par Windows DPAPI.
+- GIF d’installation, de workflow et de désinstallation avec légendes dans ce README.
+
+## Installation, mise à niveau et désinstallation
+
+### Prérequis
+
+| Composant | Exigence |
+|---|---|
+| Système | Windows 10/11, x64 |
+| CAO | SolidWorks 2025 (testé) ; les versions antérieures peuvent nécessiter le repli interface |
+| Runtime | .NET Framework 4.8 |
+| Serveur | Un serveur Vulcan actif, local ou distant |
+
+### Installation
+
+<p align="center">
+  <img src="docs/assets/vulcan-install.gif" alt="Assistant d’installation Vulcan : accueil, licence GPLv3, dossier cible et fin" width="100%">
+</p>
+
+1. Lancez `Vulcan-Setup-1.2.1.exe` et acceptez l’élévation administrateur.
+2. Acceptez la licence GPLv3 et conservez le dossier `{autopf}\Vulcan`, ou choisissez-en un autre.
+3. L’installateur copie l’add-in, ses dépendances et les icônes, puis exécute `install.bat /quiet` pour l’enregistrer avec `RegAsm`.
+4. Redémarrez SolidWorks ; l’onglet `Vulcan AI` et le bouton `AI生成` sont disponibles.
+
+Installation silencieuse :
+
+```bat
+Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
+
+Variante portable : extrayez `Vulcan-1.2.1-portable.zip` et lancez `install.bat` en administrateur.
+
+### Mise à niveau
+
+Lancez un installateur plus récent sur l’installation existante. Le dossier précédent est conservé et l’add-in réenregistré ; `%APPDATA%\Vulcan\settings.json` n’est pas modifié, donc l’URL du serveur, le jeton et les champs BYOK survivent à la mise à niveau.
+
+### Désinstallation
+
+<p align="center">
+  <img src="docs/assets/vulcan-uninstall.gif" alt="Désinstalleur Vulcan : confirmation, progression et fin" width="100%">
+</p>
+
+1. Ouvrez **Paramètres → Applications → Applications installées**, trouvez **Vulcan AI For SolidWorks** et choisissez **Désinstaller**. Vous pouvez aussi lancer `C:\Program Files\Vulcan\unins000.exe`.
+2. Confirmez. Le désinstalleur exécute `uninstall.bat /quiet`, désenregistre l’add-in, supprime le dossier et les clés d’add-in SolidWorks.
+3. Redémarrez SolidWorks. Les réglages de `%APPDATA%\Vulcan` et les journaux de `Desktop\Vulcan_Logs` sont conservés ; supprimez-les manuellement pour un effacement complet.
+
+Désinstallation silencieuse :
+
+```bat
+"C:\Program Files\Vulcan\unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
 
 ## Tests
 
