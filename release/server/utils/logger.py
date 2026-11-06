@@ -1,26 +1,39 @@
 # Robusr Mar.24th
-# 服务器日志生成器
+# Server logger with console output and rotating file output.
 
 import logging
 import sys
+from logging.handlers import RotatingFileHandler
+
+from config import Config
 
 
-def setup_logger(name='vulcan_server'):
+def setup_logger(name="vulcan_server"):
     logger = logging.getLogger(name)
     if logger.handlers:
-        return logger  # 避免重复添加 handler
+        return logger
 
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    logger.setLevel(getattr(logging, Config.LOG_LEVEL, logging.INFO))
+    logger.propagate = False
 
-    # 控制台输出
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setFormatter(formatter)
-    logger.addHandler(ch)
+    formatter = logging.Formatter(
+        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
 
-    # 文件输出
-    fh = logging.FileHandler('vulcan_server.log', encoding='utf-8')
-    fh.setFormatter(formatter)
-    logger.addHandler(fh)
+    console = logging.StreamHandler(sys.stdout)
+    console.setFormatter(formatter)
+    logger.addHandler(console)
+
+    try:
+        file_handler = RotatingFileHandler(
+            Config.LOG_FILE,
+            maxBytes=5_000_000,
+            backupCount=3,
+            encoding="utf-8",
+        )
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+    except OSError as exc:
+        logger.warning("Cannot write log file %s: %s", Config.LOG_FILE, exc)
 
     return logger

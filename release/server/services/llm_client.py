@@ -1,12 +1,14 @@
 # Robusr Mar.27th
-# LLM大模型调用管理
-import requests
+# LLM client for any OpenAI-compatible /chat/completions endpoint.
 import json
 import re
+
+import requests
+
 from config import Config
 from prompts.system_prompt import SYSTEM_PROMPT
-from utils.logger import setup_logger
 from utils.exceptions import APIConnectionError, LLMResponseError
+from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
@@ -16,76 +18,78 @@ class LLMClient:
         self.api_key = Config.QINIU_API_KEY
         self.base_url = Config.QINIU_BASE_URL
         self.model = Config.QINIU_MODEL
-        self.headers = {
-            "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
-        }
-
         self.system_prompt = SYSTEM_PROMPT
 
-    def call_model(self, user_input: str) -> dict:
-        """
-        调用七牛云 API 并返回解析后的标准JSON
-        """
-        url = f"{self.base_url}/chat/completions"
+    def _headers(self):
+        return {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
+        }
 
+    def call_model(self, user_input: str) -> dict:
+        """Call the provider and return a parsed JSON feature tree."""
+        if not self.api_key or not self.base_url:
+            raise APIConnectionError(
+                "未配置 LLM API Key 或 Base URL，请检查 QINIU_API_KEY 和 QINIU_BASE_URL"
+            )
+
+        url = f"{self.base_url}/chat/completions"
         payload = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": self.system_prompt},
-                {"role": "user", "content": user_input}
+                {"role": "user", "content": user_input},
             ],
-            "temperature": 0.05,  # 极低随机性
-            "max_tokens": 2048,  # 支持多特征长输出
+            "temperature": 0.05,
+            "max_tokens": 2048,
             "top_p": 0.95,
             "frequency_penalty": 0,
-            "presence_penalty": 0
+            "presence_penalty": 0,
         }
 
+        logger.info("正在请求 LLM，prompt 长度=%d", len(user_input))
         try:
-            logger.info(f"正在请求 LLM，用户输入: {user_input}")
             response = requests.post(
                 url,
-                headers=self.headers,
+                headers=self._headers(),
                 json=payload,
-                timeout=Config.LLM_TIMEOUT
+                timeout=Config.LLM_TIMEOUT,
             )
-            response.raise_for_status()  # 捕获HTTP错误
-
-            result = response.json()
-            # 校验返回结构
-            if not result.get("choices") or len(result["choices"]) == 0:
-                raise LLMResponseError("云端模型返回空内容")
-
-            content = result['choices'][0]['message']['content'].strip()
-            logger.info(f"LLM返回原始内容: {content}")
-
-            # 多层容错JSON解析
-            try:
-                # 1. 直接解析
-                return json.loads(content)
-            except json.JSONDecodeError:
-                # 2. 去除markdown代码块包裹
-                logger.warning("LLM返回带代码块，尝试清理")
-                content = re.sub(r'^```json\s*', '', content, flags=re.MULTILINE)
-                content = re.sub(r'\s*```$', '', content, flags=re.MULTILINE)
-                # 3. 提取首尾{}之间的内容
-                start = content.find('{')
-                end = content.rfind('}')
-                if start != -1 and end != -1:
-                    json_str = content[start:end + 1].strip()
-                    return json.loads(json_str)
-                raise LLMResponseError("无法解析模型返回的JSON格式")
-
-        except requests.exceptions.Timeout:
+            response.raise_for_status()
+        except requests.exceptions.Timeout as exc:
             logger.error("LLM 请求超时")
-            raise APIConnectionError("云端模型响应超时，请稍后重试")
-        except requests.exceptions.ConnectionError:
+            raise APIConnectionError("云端模型响应超时，请稍后重试") from exc
+        except requests.exceptions.ConnectionError as exc:
             logger.error("网络连接失败")
-            raise APIConnectionError("无法连接到云端服务器")
-        except json.JSONDecodeError as e:
-            logger.error(f"JSON解析失败: {str(e)}，原始内容: {content}")
-            raise LLMResponseError("云端返回格式错误，无法解析建模参数")
-        except Exception as e:
-            logger.error(f"LLM 调用未知错误: {str(e)}")
-            raise LLMResponseError(f"云端处理错误: {str(e)}")
+            raise APIConnectionError("无法连接到云端服务器") from exc
+        except requests.exceptions.HTTPError as exc:
+            status = exc.response.status_code if exc.response is not None else "unknown"
+            logger.error("LLM 服务返回 HTTP %s", status)
+            raise APIConnectionError(f"云端服务返回 HTTP {status}") from exc
+
+        try:
+            result = response.json()
+        except ValueError as exc:
+            raise LLMResponseError("云端返回的不是 JSON") from exc
+
+        if not result.get("choices"):
+            raise LLMResponseError("云端模型返回空内容")
+
+        content = result["choices"][0]["message"]["content"].strip()
+        logger.debug("LLM 返回原始内容: %s", content)
+
+        # Tolerate markdown fences and prose around the JSON object.
+        try:
+            return json.loads(content)
+        except json.JSONDecodeError:
+            logger.warning("LLM 返回带代码块或额外文本，尝试清理")
+            cleaned = re.sub(r"^```json\s*", "", content, flags=re.MULTILINE)
+            cleaned = re.sub(r"\s*```$", "", cleaned, flags=re.MULTILINE)
+            start = cleaned.find("{")
+            end = cleaned.rfind("}")
+            if start != -1 and end != -1 and end > start:
+                try:
+                    return json.loads(cleaned[start : end + 1])
+                except json.JSONDecodeError as exc:
+                    raise LLMResponseError("无法解析模型返回的JSON格式") from exc
+            raise LLMResponseError("无法解析模型返回的JSON格式")
