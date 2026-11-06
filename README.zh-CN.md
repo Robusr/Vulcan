@@ -14,8 +14,8 @@
   <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=2563eb" alt="GitHub Fork"></a>
   <img src="https://img.shields.io/badge/SolidWorks-2025-e63946?style=flat-square" alt="SolidWorks 2025">
   <img src="https://img.shields.io/badge/.NET_Framework-4.8-512BD4?style=flat-square&amp;logo=dotnet&amp;logoColor=white" alt=".NET Framework 4.8">
-  <img src="https://img.shields.io/badge/Python-3.9+-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.9+">
-  <img src="https://img.shields.io/badge/Flask-3.0-000000?style=flat-square&amp;logo=flask&amp;logoColor=white" alt="Flask 3.0">
+  <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10+">
+  <img src="https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&amp;logo=flask&amp;logoColor=white" alt="Flask 3.1">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-GPLv3-blue?style=flat-square" alt="GPLv3"></a>
 </p>
 
@@ -32,6 +32,7 @@
   <a href="#系统架构">系统架构</a> ·
   <a href="#json-契约">JSON 契约</a> ·
   <a href="#快速开始">快速开始</a> ·
+  <a href="#测试">测试</a> ·
   <a href="#路线图">路线图</a>
 </p>
 
@@ -64,7 +65,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 1. **描述零件。** 在插件面板中输入需求。多语言模型可以理解中文、英文和法文；系统提示词本身以中文编写。
 2. **模型填充模式。** 服务端拼接版本化的 SolidWorks 领域提示词，调用任意 OpenAI 兼容端点。模型返回 JSON，而不是代码。
-3. **插件完成建模。** C# 客户端反序列化特征树，绘制草图并调用 SolidWorks COM API。结果是原生、可编辑的特征树。
+3. **插件完成建模。** C# 客户端反序列化特征树，绘制草图并调用 SolidWorks 原生特征 API。结果是原生、可编辑的特征树。
 
 ## 能力一览
 
@@ -72,13 +73,14 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 |---|---|
 | 自然语言建模 | 一句需求变成有序特征树：先基础特征，后续特征依次叠加。 |
 | 原生输出 | 生成可编辑的 SolidWorks 特征，而不是网格、宏或脚本。 |
-| 结构化契约 | JSON 信封承载 `extrude` 与 `cut`；JSON 用毫米，COM 边界转换为米。 |
+| 结构化契约 | JSON 信封承载 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`；JSON 用毫米，COM 边界转换为米。 |
 | 草图形状库 | 圆形、矩形、正多边形、椭圆、直槽口。 |
-| 孔位控制 | 显式 `center_x`、`center_y`、`through_all`，以及四角孔启发式。 |
+| 特征库 | 拉伸、切除、旋转、圆角、倒角，以及孔别名。 |
+| 孔位控制 | 显式 `center_x`、`center_y`、`through_all`，以及会读取原始中文或英文提示词的四角孔启发式。 |
 | 提供商自由 | OpenAI、DeepSeek、通义千问、七牛云、vLLM、Ollama 或任意兼容端点。 |
 | 服务端可移植 | 本地、Docker 或隧道后运行；只有客户端需要 Windows。 |
 | 可调试管线 | release 版本没有 `exec()`；每个阶段都有日志和类型。 |
-| API 优先执行 | 先调用 COM 特征 API，失败时使用键盘驱动的原生面板兜底。 |
+| API 优先执行 | 优先调用原生特征 API；拉伸和切除失败时，使用键盘驱动的原生面板兜底。 |
 
 ## 系统架构
 
@@ -90,7 +92,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 |---|---|---|
 | 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、提示面板、JSON 信封处理、COM 执行 |
 | 传输 | HTTP REST / JSON | 单一端点：`POST /api/v1/generate` |
-| 服务端 | Python 3.9+ / Flask 3 | 提示词组装、上游大模型调用、信封校验、错误映射 |
+| 服务端 | Python 3.10+ / Flask 3 | 提示词组装、上游大模型调用、信封与参数校验、错误映射 |
 | 模型 | OpenAI 兼容 API | JSON 特征树生成 |
 | 部署 | Docker、反向代理或裸机 | 服务端任意部署；客户端与 SolidWorks 同机 |
 
@@ -114,8 +116,8 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 2. **提示词组装。** 服务端在用户文本前拼接版本化的 SolidWorks 领域提示词。
 3. **模型调用。** 任意 OpenAI 兼容端点返回 JSON 特征树。默认参数为 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048`，超时 30 秒。
 4. **恢复。** 服务端去除 Markdown 代码围栏，再截取第一个 `{` 到最后一个 `}` 后解析。
-5. **校验。** Flask 检查响应是单特征还是多特征信封；C# 客户端把信封反序列化为类型化模型类，再从参数字典读取特征参数并应用建模器默认值。
-6. **执行。** `SwModeler` 绘制草图、选中草图，并调用 `FeatureExtrusion3` 或 `FeatureCut4`。若 COM 调用失败，键盘驱动的兜底方案会打开 SolidWorks 原生特征面板。
+5. **校验。** Flask 检查响应信封并校验特征参数；C# 客户端把信封反序列化为类型化模型类，再从参数字典读取参数并应用建模器默认值。
+6. **执行。** `SwModeler` 绘制草图、选中草图，并调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。拉伸或切除失败时，键盘驱动的兜底方案会打开 SolidWorks 原生特征面板。
 
 模型调用占据绝大部分延迟；其余步骤都在本地，通常在毫秒级。
 
@@ -178,18 +180,33 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 这里只展示四个孔中的一个；完整响应会重复 `cut` 特征，填入其余三个角的坐标。
 
+### 特征类型
+
+| 类型 | 用途 | 关键参数 |
+|---|---|---|
+| `extrude` | 创建基体或添加材料。 | `plane`、`shape`、`depth` |
+| `cut` / `hole` | 从当前实体移除材料。 | `plane`、`shape`、`depth`；完全贯穿时可用 `through_all` |
+| `revolve` | 让偏离旋转轴的轮廓绕轴旋转。 | `plane`、`shape`、轮廓尺寸，以及偏离轴的 `center_x` 或 `center_y` |
+| `fillet` | 对当前实体的所有边倒圆。 | `radius` |
+| `chamfer` | 对当前实体的所有边等距倒角。 | `distance` |
+
 ### 特征模式
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `feature_type` | string | 是 | `extrude` 或 `cut` |
+| `feature_type` | string | 是 | `extrude`、`cut`、`revolve`、`fillet` 或 `chamfer` |
 | `name` | string | 否 | 用于日志的可读名称 |
-| `params.plane` | string | 是 | 请求的基准面；见下方实现说明 |
-| `params.shape` | string | 是 | `circle`、`rectangle`、`polygon`、`ellipse` 或 `slot` |
-| `params.depth` | number | 是 | 盲拉伸/盲切除深度，毫米；`through_all` 为 true 时忽略 |
+| `params.plane` | string | 草图特征必填 | 请求的基准面；支持前视、上视、右视 |
+| `params.shape` | string | 草图特征必填 | `circle`、`rectangle`、`polygon`、`ellipse` 或 `slot` |
+| `params.depth` | number | 拉伸必填；切除在非贯穿时必填 | 盲拉伸/盲切除深度，毫米；`through_all` 为 true 时忽略 |
 | `params.through_all` | boolean | 否 | 仅切除；默认 `false`；为 true 时双向切除 |
-| `params.center_x` | number | 多孔模型的切除特征 | 草图中心在第一个草图轴上的坐标，毫米 |
-| `params.center_y` | number | 多孔模型的切除特征 | 草图中心在第二个草图轴上的坐标，毫米 |
+| `params.center_x` | number | 多孔切除、旋转轮廓 | 草图中心在第一个草图轴上的坐标，毫米 |
+| `params.center_y` | number | 多孔切除、旋转轮廓 | 草图中心在第二个草图轴上的坐标，毫米 |
+| `params.radius` | number | 仅圆角 | 圆角半径，毫米；作用于所有边 |
+| `params.distance` | number | 仅倒角 | 等距倒角距离，毫米；作用于所有边 |
+| `params.angle` | number | 否 | 旋转角度，度；默认 360 |
+| `params.axis` | string | 否 | 旋转轴，`x` 或 `y`；默认 `y` |
+| `params.draft_angle` | number | 否 | 拉伸/切除的拔模角度，度 |
 
 ### 草图形状参数
 
@@ -201,6 +218,13 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | `ellipse` | `major_axis`、`minor_axis` | 毫米 |
 | `slot` | `length`、`width` | 直槽口；宽度即两端圆弧直径 |
 
+补充特征参数：
+
+- **`revolve`：** 轮廓必须偏离旋转轴。把 `center_x` 或 `center_y` 设为非零值，可选 `axis` 为 `x` 或 `y`，`angle` 为 1 到 360 度。
+- **`fillet`：** 必填 `radius`；对当前实体的所有边应用等半径圆角。
+- **`chamfer`：** 必填 `distance`；对当前实体的所有边应用等距倒角。
+- **`draft_angle`：** `extrude` 和 `cut` 可选，单位为度，范围 -89 到 89。
+
 ### 坐标与单位
 
 - **前视基准面：** 草图轴为 X、Y；`center_x` 对应 X，`center_y` 对应 Y。
@@ -211,7 +235,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 ### 实现说明
 
-当前 release 建模器会把草图统一归一化到前视基准面。`plane` 字段仍保留在契约中，并被提示词使用，但通用基准面路由仍在路线图上。对于四角孔，当用户用中文明确要求“四角”“4个”“四个”或“4通孔”时，客户端会按 `±(length / 2 − 10)` 与 `±(width / 2 − 10)` 自动分配孔位。
+当前 release 建模器会把草图绘制到请求的基准面，并能在中文、英文、法文界面中解析前视、上视、右视。对于四角孔，当用户用中文或英文明确要求“四角”“4个”“四个”“4通孔”或“four corners”时，客户端还会在前视 X/Y 坐标中按 `±(length / 2 − 10)` 与 `±(width / 2 − 10)` 自动分配孔位。
 
 ## 设计取舍
 
@@ -223,7 +247,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 Beta 版本让大模型直接输出 Python 代码，由客户端用 `exec()` 执行。这种方式在演示中很灵活，也很惊艳，但工程上很脆弱：幻觉生成的 API 调用可能让 SolidWorks 崩溃，错误恢复几乎不可能，调试意味着阅读一段没人写过的代码。
 
-Rebuild 版本把大模型当作**由模式驱动的参数填充器**。模型只负责填充一个小而类型化的模板，C# 客户端掌握执行权。JSON 合法，特征调用就是良构的；JSON 不合法，信封校验会在触及 SolidWorks 之前将其拦截。release 客户端中没有 `exec()`，也没有代码注入面。
+Rebuild 版本把大模型当作**由模式驱动的参数填充器**。模型只负责填充一个小而类型化的模板，C# 客户端掌握执行权。JSON 合法且参数通过校验，特征调用就是良构的；否则服务端会在触及 SolidWorks 之前拒绝响应。release 客户端中没有 `exec()`，也没有代码注入面。
 
 ### 薄客户端，可移植服务端
 
@@ -239,17 +263,17 @@ Vulcan 通过 [`system_prompt.py`](release/server/prompts/system_prompt.py) 提�
 
 ### API 优先，UI 兜底
 
-SolidWorks 互操作接口对版本很敏感。建模器直接调用 `FeatureExtrusion3` 和 `FeatureCut4`。如果调用失败，兜底方案会激活 `RunCommand`，用模拟按键填写原生特征面板。
+SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。如果拉伸或切除调用失败，兜底方案会激活 `RunCommand`，用模拟按键填写原生特征面板。
 
 兜底方案是务实的，不是优雅的。生成模型时请保持 SolidWorks 在前台；如果兜底频繁触发，应视为需要更新互操作参数的信号。
 
 ## 提示词工程
 
-系统提示词位于 [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.0.0"`，约 140 行。它编码了五件事：
+系统提示词位于 [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.2.0"`，约 198 行。它编码了五件事：
 
 1. **输出纪律。** 只输出 JSON——没有 Markdown、没有解释、没有代码围栏。
 2. **坐标规则。** 逐基准面的轴映射，并给出 200 × 100 × 20 基体与四个孔的完整示例。
-3. **特征模式。** `extrude` 和 `cut` 的必填/可选字段，以及形状专属参数。
+3. **特征模式。** `extrude`、`cut`、`revolve`、`fillet`、`chamfer` 的必填/可选字段，以及形状专属参数。
 4. **防重叠约束。** 多个相同特征必须使用不同坐标，绝不能堆在原点。
 5. **基准面词汇。** 模型必须输出 `前视基准面`、`上视基准面`、`右视基准面` 等中文名称。
 
@@ -261,7 +285,7 @@ SolidWorks 互操作接口对版本很敏感。建模器直接调用 `FeatureExt
 
 | 组件 | 要求 |
 |---|---|
-| 服务端 | Python 3.9–3.11，以及一个 OpenAI 兼容 API 密钥 |
+| 服务端 | Python 3.10–3.11，以及一个 OpenAI 兼容 API 密钥 |
 | 客户端 | Windows 10/11、SolidWorks 2025（已测试）、.NET Framework 4.8 |
 | 构建工具 | Visual Studio 2022，含 .NET 桌面开发工作负载 |
 | 网络 | 客户端能访问服务端；服务端能访问大模型提供商 |
@@ -286,10 +310,10 @@ cp .env.example .env
 # 编辑 .env：填入提供商密钥、Base URL 和模型名称
 
 python app.py
-# → http://0.0.0.0:5000
+# → http://127.0.0.1:5000
 ```
 
-当前 `app.py` 显式绑定 5000 端口并开启 Flask 调试模式。在把服务端暴露到可信网络之外前，请同时修改这两项。
+服务端默认绑定 `127.0.0.1:5000`，仅在 `FLASK_ENV=development` 时开启调试模式。只有放在可信反向代理之后时才设置 `HOST=0.0.0.0`，并在暴露服务前设置 `VULCAN_API_TOKEN`。
 
 ### 3. 或使用 Docker
 
@@ -307,20 +331,20 @@ curl -s http://127.0.0.1:5000/api/v1/generate \
   -d '{"prompt":"前视基准面拉伸200x100x20底座，四角各打一个直径10mm通孔"}'
 ```
 
-响应就是特征树本身，没有额外包装。第一次请求可能需要几秒钟等待模型返回。
+响应就是特征树本身，没有额外包装。如果设置了 `VULCAN_API_TOKEN`，请加上 `-H "Authorization: Bearer $VULCAN_API_TOKEN"`。第一次请求可能需要几秒钟等待模型返回。
 
 ### 5. 安装或构建客户端
 
-**方案 A——预编译安装包。** 在 Windows 上运行 `release/client/Vulcan.SolidWorksClient/Vulcan Setup/Output/Vulcan.exe`。安装包会调用 `RegAsm` 注册插件。已编译的客户端使用 `Services/ApiClient.cs` 中硬编码的端点；如果要连接自己的服务端，请从源码构建。
+**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，再运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan.exe`。安装包会调用 `RegAsm` 注册插件。请在 Windows 环境变量中设置 `VULCAN_SERVER_URL` 和 `VULCAN_API_TOKEN`，让客户端连接你的服务端。
 
 **方案 B——从源码构建。**
 
 1. 在 Visual Studio 2022 中打开 `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln`。
 2. 还原 NuGet 包（客户端使用 `Newtonsoft.Json`）。
-3. 把 SolidWorks 互操作引用指向本机安装位置。项目中含有 `D:\Program Files\SOLIDWORKS Corp\...` 下的绝对 `HintPath`；请更新这些路径，或使用 `ReferenceDLL/` 中版本匹配的程序集。
-4. 在 [`ApiClient.cs`](release/client/Vulcan.SolidWorksClient/Services/ApiClient.cs) 中把 `_baseUrl` 改为你的服务端地址。
+3. 项目使用 `ReferenceDLL/` 中的 SolidWorks 互操作程序集；如果你的 SolidWorks 版本不同，请替换这些文件。
+4. 设置 Windows 环境变量 `VULCAN_SERVER_URL` 指向你的服务端，例如 `https://vulcan.example.com`。如果服务端启用了鉴权，再设置 `VULCAN_API_TOKEN`。
 5. 构建 `Release / x64`。SolidWorks 是 64 位程序，不要发布 x86 构建。
-6. 在输出目录中，以管理员身份打开命令提示符，运行 `install.bat`，或执行 `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase`。
+6. 运行 `build_installer.ps1` 暂存负载，然后以管理员身份执行 `dist\install.bat`，或直接运行 `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase`。
 7. 重启 SolidWorks，打开一个零件文档。`Vulcan AI` 功能区标签页应当出现。
 
 ### 6. 生成第一个模型
@@ -341,6 +365,17 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 点击**开始生成**。插件完成建模、自动缩放到合适视图，并留下可编辑的特征树。
 
+## 测试
+
+服务端测试使用 Flask 测试客户端和模拟的大模型客户端。客户端构建与安装包由 GitHub Actions 工作流覆盖。
+
+```bash
+cd release/server
+pip install -r requirements.txt -r requirements-dev.txt
+pytest
+pip-audit -r requirements.txt
+```
+
 ## 配置说明
 
 ### 服务端环境变量
@@ -350,8 +385,15 @@ QINIU_API_KEY="sk-xxxxxxxxxxxxxxxx"
 QINIU_BASE_URL="https://api.openai.com/v1"
 QINIU_MODEL="gpt-4o-mini"
 
-FLASK_ENV="development"
-FLASK_RUN_PORT="5000"
+HOST="127.0.0.1"
+PORT="5000"
+FLASK_ENV="production"
+VULCAN_API_TOKEN=""
+VULCAN_RATE_LIMIT_PER_MINUTE="60"
+MAX_PROMPT_LENGTH="4000"
+LLM_TIMEOUT="30"
+LOG_LEVEL="INFO"
+LOG_FILE="vulcan_server.log"
 ```
 
 `QINIU_*` 是历史命名：第一次部署使用七牛云。客户端本身兼容 OpenAI 接口，因此这些名称只对 `config.py` 有意义。
@@ -361,8 +403,15 @@ FLASK_RUN_PORT="5000"
 | `QINIU_API_KEY` | 无 | 提供商 API 密钥 |
 | `QINIU_BASE_URL` | 无 | OpenAI 兼容 Base URL |
 | `QINIU_MODEL` | `gpt-oss-120b` | 模型名称 |
-| `FLASK_ENV` | 无 | 由 `Config.DEBUG` 读取；入口仍显式设置 `debug=True` |
-| `FLASK_RUN_PORT` | `5000` | 由 `config.py` 读取；当前 `app.py` 直接绑定 5000 |
+| `HOST` | `127.0.0.1` | 绑定地址；仅在可信反向代理之后使用 `0.0.0.0` |
+| `PORT` | `5000` | 服务端口 |
+| `FLASK_ENV` | `production` | 设为 `development` 才开启 Flask 调试模式 |
+| `VULCAN_API_TOKEN` | 无 | 可选的客户端 Bearer Token |
+| `VULCAN_RATE_LIMIT_PER_MINUTE` | `60` | 生成接口的每 IP 每分钟限额；`0` 表示关闭 |
+| `MAX_PROMPT_LENGTH` | `4000` | 提示词最大字符数 |
+| `LLM_TIMEOUT` | `30` | 上游请求超时秒数 |
+| `LOG_LEVEL` | `INFO` | 日志级别；INFO 只记录提示词长度 |
+| `LOG_FILE` | `vulcan_server.log` | 轮转日志文件 |
 
 ### 提供商示例
 
@@ -378,11 +427,12 @@ FLASK_RUN_PORT="5000"
 
 ### 客户端端点
 
-```csharp
-private readonly string _baseUrl = "http://127.0.0.1:5000";
-```
+客户端从 Windows 环境变量读取 `VULCAN_SERVER_URL` 和 `VULCAN_API_TOKEN`。默认地址是 `http://127.0.0.1:5000`。非本机地址必须使用 HTTPS，除非在可信局域网内设置 `VULCAN_ALLOW_INSECURE=true`。
 
-源码中的默认值指向一个硬编码主机。部署自己的服务端前，请先修改。
+```bat
+setx VULCAN_SERVER_URL "https://vulcan.example.com"
+setx VULCAN_API_TOKEN "your-shared-token"
+```
 
 ### 参数调节
 
@@ -434,11 +484,13 @@ private readonly string _baseUrl = "http://127.0.0.1:5000";
 
 | 状态码 | 触发条件 |
 |---|---|
-| `400` | 缺少或为空的 `prompt`，或没有有效的特征信封 |
+| `400` | 缺少、非字符串、过长或为空的 `prompt`，没有有效的特征信封，或特征参数无效 |
+| `401` | 设置了 `VULCAN_API_TOKEN`，但 Bearer Token 缺失或错误 |
+| `429` | 超过每 IP 限流 |
 | `503` | 大模型提供商不可达，或请求超时 |
 | `500` | 大模型响应无法解析，或其他服务端未知错误 |
 
-**安全提示。** 服务端没有内置鉴权、授权、限流或 CORS 策略。不要把服务端直接暴露到公网。请放在反向代理之后，增加鉴权和配额，并先关闭 Flask 调试模式。
+**安全提示。** 服务端支持可选的 Bearer Token 和每 IP 限流，但不终止 TLS，也没有用户账户。请保持 `HOST=127.0.0.1`，或放在 TLS 反向代理之后，设置 `VULCAN_API_TOKEN`，并且不要在生产环境开启 Flask 调试模式。
 
 ## 项目结构
 
@@ -447,6 +499,8 @@ Vulcan/
 ├── README.md                     # 英文（默认）
 ├── README.zh-CN.md               # 简体中文
 ├── README.fr.md                  # 法文
+├── SECURITY.md                   # 安全策略与密钥轮换
+├── scripts/                      # 维护脚本
 ├── docs/
 │   └── assets/                   # 三份 README 共用的矢量配图
 │
@@ -463,30 +517,32 @@ Vulcan/
     │       ├── Services/         #   ApiClient、SwModeler、Logger
     │       ├── UI/               #   MainWindow（WPF，500 × 300）
     │       ├── ReferenceDLL/     #   SolidWorks 互操作程序集
-    │       └── Vulcan Setup/     #   Inno Setup 安装包
+    │       ├── Vulcan Setup/     #   Inno Setup 安装包
+    │       └── packaging/        #   install/uninstall 脚本与 build_installer.ps1
     └── server/
         ├── app.py                #   Flask 入口
         ├── config.py             #   环境配置
-        ├── .env.example          #   提供商与 Flask 配置模板
-        ├── Dockerfile            #   python:3.9-slim 镜像
+        ├── .env.example          #   提供商、鉴权与服务端配置模板
+        ├── Dockerfile            #   python:3.11-slim + gunicorn 镜像
         ├── prompts/              #   版本化系统提示词
-        ├── services/             #   大模型客户端
-        └── utils/                #   日志与自定义异常
+        ├── services/             #   大模型客户端与特征校验器
+        ├── tests/                #   pytest 测试
+        └── utils/                #   日志、限流与自定义异常
 ```
 
-**仓库说明。** 项目文件实际编译 `Core/SwAddIn.cs`；根目录的 `VulcanApp.cs` 是较早的重复文件，不参与构建。`services/param_parser.py` 是遗留校验器，未接入 release 的 `app.py`；字段级默认值位于 `SwModeler`。
+**仓库说明。** release 客户端实际编译 `Core/SwAddIn.cs`。`beta/` 仅作参考，不再维护。构建产物、日志、`.env` 和安装包负载都不进入 Git。
 
 ## 兼容性与当前范围
 
 | 领域 | 状态 |
 |---|---|
-| SolidWorks | 基于 2025 互操作接口构建（`FeatureExtrusion3`、`FeatureCut4`）。旧版本可能需要调整参数或使用 UI 兜底，不在已测试矩阵内。 |
+| SolidWorks | 已在 SolidWorks 2025 上构建并测试（`FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3`、`InsertFeatureChamfer`）。旧版本可能需要调整参数或使用 UI 兜底，不在已测试矩阵内。 |
 | 客户端平台 | 仅 Windows，x64，.NET Framework 4.8。 |
-| 服务端平台 | Python 3.9–3.11；本地、Docker 或无头运行。 |
-| 特征类型 | 仅 `extrude` 和 `cut`。release 客户端未实现旋转、扫描、放样、圆角、倒角。 |
-| 基准面 | 建模器当前把草图归一化到前视基准面；基准面路由在路线图上。 |
-| 校验 | 服务端检查响应信封；信封反序列化、参数转换和字段默认值位于 C# 客户端。 |
-| 鉴权 | 未内置。请部署在可信网络内，或增加带鉴权和限流的代理。 |
+| 服务端平台 | Python 3.10–3.11；本地、Docker 或无头运行。 |
+| 特征类型 | 已实现 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`。未实现扫描和放样。 |
+| 基准面 | 建模器支持前视、上视、右视基准面，并能解析中文、英文、法文名称。 |
+| 校验 | 服务端检查响应信封并校验特征参数；信封反序列化和字段默认值位于 C# 客户端。 |
+| 鉴权 | 支持可选的 Bearer Token（`VULCAN_API_TOKEN`）和每 IP 限流。TLS 与用户账户仍应由反向代理负责。 |
 | 大模型质量 | 延迟和正确性取决于提供商；建议使用指令遵循能力强的模型。 |
 
 ## 故障排除
@@ -494,27 +550,32 @@ Vulcan/
 | 现象 | 可能原因 | 处理方式 |
 |---|---|---|
 | `Vulcan AI` 标签页不出现 | 插件未注册，或构建为 x86 | 构建 x64 Release 配置，以管理员身份运行 `install.bat` 或 `RegAsm`，重启 SolidWorks |
-| “目标计算机积极拒绝连接” | 服务端未运行，或 `_baseUrl` 错误 | 启动 `python app.py`；检查主机和端口；开放防火墙 |
+| “目标计算机积极拒绝连接” | 服务端未运行，或 `VULCAN_SERVER_URL` 错误 | 启动 `python app.py`；检查主机和端口；开放防火墙 |
 | 没有活动文档 | SolidWorks 未打开零件 | 新建或打开零件文档后重试 |
 | 草图出现但拉伸失败 | 互操作版本不匹配或 SolidWorks 状态异常 | 查看桌面 `Vulcan_Logs`；更新 `FeatureExtrusion3` 参数；生成时保持 SolidWorks 前台 |
+| 圆角或倒角失败 | 半径/距离过大，或实体没有可选的边 | 减小数值，检查基体，并查看 `Vulcan_Logs` |
+| 旋转失败 | 轮廓落在或穿过旋转轴 | 把 `center_x` 或 `center_y` 移离旋转轴 |
+| 安装后服务端测试失败 | 缺少开发依赖 | 运行 `pip install -r requirements.txt -r requirements-dev.txt` |
 | 大模型返回空或畸形响应 | 模型未遵守 JSON 契约 | 换用更强的模型，降低 `temperature`，检查 `vulcan_server.log` |
 | 请求超时 | 模型耗时超过 30 秒 | 同时提高 `LLM_TIMEOUT` 和 `ApiClient` 超时 |
 | 中文或法文需求理解偏差 | 模型缺乏多语言工程词汇 | 使用多语言模型；系统提示词为中文 |
-| 构建时报 SolidWorks 引用错误 | `HintPath` 指向其他安装位置 | 更新引用，或使用 `ReferenceDLL/` 中版本匹配的程序集 |
+| 构建时报 SolidWorks 引用错误 | `ReferenceDLL/` 与当前 SolidWorks 版本不匹配 | 用版本匹配的互操作程序集替换 `ReferenceDLL/` 中的文件 |
 | 安装包注册失败 | SolidWorks 正在运行，或终端未提权 | 关闭 SolidWorks，以管理员身份重新运行安装包 |
-| 模型生成但孔位不对 | 基准面或坐标约定与需求不一致 | 检查返回的 JSON；注意建模器会归一化到前视基准面 |
+| 模型生成但孔位不对 | 基准面或坐标约定与需求不一致 | 检查返回的 JSON；四角孔启发式按前视 X/Y 坐标工作 |
 
-服务端日志写入工作目录下的 `vulcan_server.log`。客户端日志写入桌面上的 `Vulcan_Logs/log_YYYYMMDD.txt`。
+服务端日志写入工作目录下的 `vulcan_server.log`，按 5 MB 轮转，并且不进入 Git。INFO 级别只记录提示词长度；本地调试时可设置 `LOG_LEVEL=DEBUG` 记录完整内容。客户端日志写入桌面上的 `Vulcan_Logs/log_YYYYMMDD.txt`。
 
 ## 路线图
 
-- [ ] 通用基准面路由，取代前视基准面归一化。
-- [ ] 旋转、扫描、放样、圆角、倒角特征。
+- [x] 通用基准面路由。
+- [x] 旋转、圆角、倒角特征。
+- [ ] 扫描和放样特征。
 - [ ] 原生孔阵列、镜像、线性/圆周阵列。
 - [ ] 原生英文和法文系统提示词，而不只依赖模型的多语言能力。
 - [ ] 提供商适配器与流式响应。
-- [ ] 鉴权、限流和按用户配额。
-- [ ] 提示词回归测试与可在 CI 中运行的 COM 抽象层。
+- [x] 可选的 Bearer Token 鉴权和每 IP 限流。
+- [x] 提示词回归测试和 Python CI 工作流。
+- [ ] 可在 CI 中运行的 COM 抽象层。
 - [ ] 用任务窗格替代模态面板。
 - [ ] 装配体级操作与工程图标注。
 
@@ -526,10 +587,10 @@ Vulcan/
 
 - **特征：** 在 `SwModeler` 中增加新的特征类型和形状处理器。
 - **提供商：** 进一步抽象 LLM 客户端，增加提供商适配器。
-- **测试：** 构建提示词回归测试和可在 CI 中运行的 COM 抽象。
+- **测试：** 扩展 Python 测试，并构建可在 CI 中运行的 COM 抽象。
 - **文档：** 完善三份 README，或补充本地化截图与示例。
 
-提交 PR 前，请启动服务端、至少完整跑通一条提示词，并确保 `.env`、日志和构建产物没有进入提交。项目采用 GPLv3，贡献按同一许可证接受。
+提交 PR 前，请运行 `pytest` 和 `pip-audit`，至少完整跑通一条提示词，并确保 `.env`、日志和构建产物没有进入提交。项目采用 GPLv3，贡献按同一许可证接受。
 
 ## 许可证
 
