@@ -32,6 +32,7 @@
   <a href="#architecture-du-système">Architecture</a> ·
   <a href="#le-contrat-json">Contrat JSON</a> ·
   <a href="#démarrage-rapide">Démarrage rapide</a> ·
+  <a href="#parcours-dutilisation">Parcours</a> ·
   <a href="#tests">Tests</a> ·
   <a href="#feuille-de-route">Feuille de route</a>
 </p>
@@ -56,7 +57,7 @@ Ce README se concentre sur `release/`. La piste Beta est conservée comme réfé
 ## Ce qu’il fait
 
 <p align="center">
-  <img src="docs/assets/demo.svg" alt="Une demande en chinois devient une plaque de 200 × 100 × 20 mm avec quatre trous traversants" width="100%">
+  <img src="docs/assets/demo.svg" alt="Trois panneaux : une demande en chinois dans le panneau Vulcan, l’aperçu JSON éditable et l’arbre de fonctions natif du cylindre" width="100%">
 </p>
 
 <p align="center">
@@ -76,7 +77,7 @@ Ce README se concentre sur `release/`. La piste Beta est conservée comme réfé
 </p>
 
 <p align="center">
-  <sub>Le workflow livré en 1.2.1 : décrivez la pièce, vérifiez ou modifiez le JSON généré, puis laissez l’add-in créer des fonctions natives. Capturé depuis l’add-in installé.</sub>
+  <sub>Le workflow livré en 1.2.1 : ouvrez le panneau, configurez le serveur, décrivez la pièce, vérifiez le JSON éditable, puis laissez l’add-in créer des fonctions natives. Capturé depuis l’add-in installé.</sub>
 </p>
 
 
@@ -110,7 +111,7 @@ Ce README se concentre sur `release/`. La piste Beta est conservée comme réfé
 
 | Couche | Pile technique | Responsabilité |
 |---|---|---|
-| Client | C# / WPF / .NET Framework 4.8 | Onglet `Vulcan AI`, panneau de saisie, traitement de l’enveloppe JSON, exécution COM |
+| Client | C# / WPF / .NET Framework 4.8 | Onglet `Vulcan AI`, panneau de saisie, réglages DPAPI, aperçu JSON éditable, exécution COM |
 | Transport | HTTP REST / JSON | Point d’accès unique : `POST /api/v1/generate` |
 | Serveur | Python 3.10+ / Flask 3 | Assemblage du prompt, appel du LLM, validation de l’enveloppe et des paramètres, correspondance des erreurs |
 | Modèle | API compatible OpenAI | Génération de l’arbre de fonctions JSON |
@@ -123,13 +124,13 @@ Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les
 </p>
 
 <p align="center">
-  <sub>Maquette de mise en page du panneau de 500 × 300 px. L’interface livrée est en chinois ; le panneau accepte des demandes en langage naturel.</sub>
+  <sub>Maquette de mise en page du panneau de 520 × 320 px. L’interface livrée est en chinois ; le panneau accepte des demandes en langage naturel.</sub>
 </p>
 
 ## Cycle d’une requête
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="Cycle de requête en six étapes, avec latence et gestion des échecs" width="100%">
+  <img src="docs/assets/pipeline.svg" alt="Cycle de requête en sept étapes, avec latence et gestion des échecs" width="100%">
 </p>
 
 1. **Requête.** L’add-in envoie `{ "prompt": "..." }` au serveur Flask.
@@ -137,7 +138,8 @@ Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les
 3. **Appel du modèle.** Un point d’accès compatible OpenAI renvoie un arbre de fonctions JSON. La requête par défaut utilise `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` et un délai de 30 secondes.
 4. **Récupération.** Le serveur retire les balises de code Markdown, puis extrait du premier `{` au dernier `}` avant l’analyse.
 5. **Validation.** Flask vérifie l’enveloppe et valide les paramètres des fonctions. Le client C# désérialise l’enveloppe en classes typées, puis lit les paramètres dans un dictionnaire et applique les valeurs par défaut du modeleur.
-6. **Exécution.** `SwModeler` dessine l’esquisse, la sélectionne et appelle les API natives, notamment `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3` et `InsertFeatureChamfer`. En cas d’échec d’extrusion ou de coupe, un repli clavier ouvre le panneau natif de SolidWorks.
+6. **Aperçu et édition.** L’add-in ouvre l’arbre dans une fenêtre JSON éditable ; rien n’est écrit avant confirmation.
+7. **Exécution.** `SwModeler` dessine l’esquisse, la sélectionne et appelle les API natives, notamment `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3` et `InsertFeatureChamfer`. En cas d’échec d’extrusion ou de coupe, un repli clavier ouvre le panneau natif de SolidWorks.
 
 L’appel au modèle domine la latence. Tout le reste est local et se mesure généralement en millisecondes.
 
@@ -384,6 +386,62 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 ```
 
 Cliquez sur **开始生成** (Générer). L’add-in récupère un arbre de fonctions et ouvre un aperçu JSON éditable. Vérifiez les paramètres, corrigez ce que le modèle a mal compris, puis cliquez sur **执行建模** (Exécuter). C’est seulement à ce moment que le modeleur construit les fonctions, ajuste la vue et laisse un arbre de fonctions éditable. Annuler l’aperçu ne modifie pas le document.
+
+## Parcours d’utilisation
+
+Cette section décrit chaque élément manipulé, de l’installateur à l’arbre de fonctions.
+
+### 1. Installation
+
+1. Lancez `Vulcan-Setup-1.2.1.exe`. Acceptez l’élévation administrateur, lisez la page GPLv3 et conservez le dossier par défaut `{autopf}\Vulcan`.
+2. L’installateur copie l’add-in, ses dépendances, les icônes et `install.bat` / `uninstall.bat`, puis exécute `install.bat /quiet` pour enregistrer l’add-in x64 avec `RegAsm`.
+3. Vous pouvez aussi extraire `Vulcan-1.2.1-portable.zip` et lancer `install.bat` en administrateur.
+4. Redémarrez SolidWorks.
+
+### 2. Ouvrir le panneau
+
+| Élément | Emplacement | Rôle |
+|---|---|---|
+| Onglet `Vulcan AI` | CommandManager, dernier onglet | Héberge la commande **打开AI生成窗口** |
+| Bouton `AI生成` | Barre d’outils de gauche | Ouvre le même panneau modal |
+| Fenêtre `Vulcan AI For SolidWorks` | Centre de SolidWorks | Panneau de 520 × 320 |
+
+### 3. Configurer le serveur
+
+Cliquez sur **设置** (en haut à droite du panneau). La boîte de dialogue contient cinq champs et quatre boutons.
+
+| Champ | Signification |
+|---|---|
+| 服务端地址 | URL du serveur Vulcan, par défaut `http://127.0.0.1:5000` |
+| 服务端 Token | Correspond à `VULCAN_API_TOKEN` si le serveur exige un jeton |
+| LLM API Key | Votre clé de fournisseur (BYOK) ; laissez vide pour utiliser celle du serveur |
+| LLM Base URL | URL de base compatible OpenAI |
+| 模型名称 | Nom du modèle, par exemple `gpt-4o-mini` |
+
+| Bouton | Comportement |
+|---|---|
+| 测试连接 | Appelle `GET /health` et affiche la réponse |
+| 打开日志目录 | Ouvre `Desktop\Vulcan_Logs` |
+| 取消 | Ferme sans enregistrer |
+| 保存 | Écrit `%APPDATA%\Vulcan\settings.json` ; le jeton et la clé BYOK sont chiffrés par DPAPI |
+
+### 4. Décrire la pièce
+
+Saisissez une demande dans la carte blanche, par exemple `在前视基准面拉伸一个直径40，高度60的圆柱体`. Le texte indicatif disparaît au focus. **开始生成** envoie `POST /api/v1/generate` ; le point d’état reste vert au repos.
+
+### 5. Vérifier et modifier le JSON
+
+La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON et deux boutons.
+
+| Élément | Comportement |
+|---|---|
+| Éditeur JSON | Accepte les modifications ; conservez `feature_type` (ou `features[]`) et un objet `params` |
+| 执行建模 | Valide le JSON, ferme l’aperçu et lance le modeleur |
+| 取消 | Ferme l’aperçu ; le document reste intact |
+
+### 6. Inspecter le résultat
+
+Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) et affiche **模型生成完成!**. Les journaux client vont dans `Vulcan_Logs\log_YYYYMMDD.txt`, ceux du serveur dans `vulcan_server.log`.
 
 ## Tests
 

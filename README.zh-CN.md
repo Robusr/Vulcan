@@ -32,6 +32,7 @@
   <a href="#系统架构">系统架构</a> ·
   <a href="#json-契约">JSON 契约</a> ·
   <a href="#快速开始">快速开始</a> ·
+  <a href="#操作演练">操作演练</a> ·
   <a href="#测试">测试</a> ·
   <a href="#路线图">路线图</a>
 </p>
@@ -56,7 +57,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 ## 它能做什么
 
 <p align="center">
-  <img src="docs/assets/demo.svg" alt="一句中文需求生成 200 × 100 × 20 毫米、带四个通孔的安装板" width="100%">
+  <img src="docs/assets/demo.svg" alt="三联图：Vulcan 面板中的中文需求、可编辑 JSON 预览、SolidWorks 中生成的原生圆柱特征树" width="100%">
 </p>
 
 <p align="center">
@@ -76,7 +77,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <sub>1.2.1 实际工作流：描述零件 → 检查或编辑生成的 JSON → 由插件写入原生特征。截取自已安装的插件。</sub>
+  <sub>1.2.1 实际工作流：打开面板 → 配置服务端 → 描述零件 → 检查或编辑 JSON → 由插件写入原生特征。截取自已安装的插件。</sub>
 </p>
 
 
@@ -110,7 +111,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 | 层次 | 技术栈 | 职责 |
 |---|---|---|
-| 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、提示面板、JSON 信封处理、COM 执行 |
+| 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、提示面板、DPAPI 设置、可编辑 JSON 预览、COM 执行 |
 | 传输 | HTTP REST / JSON | 单一端点：`POST /api/v1/generate` |
 | 服务端 | Python 3.10+ / Flask 3 | 提示词组装、上游大模型调用、信封与参数校验、错误映射 |
 | 模型 | OpenAI 兼容 API | JSON 特征树生成 |
@@ -123,13 +124,13 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <sub>500 × 300 提示面板的布局示意。实际交付界面为中文；面板接受自然语言需求。</sub>
+  <sub>520 × 320 提示面板的布局示意。实际交付界面为中文；面板接受自然语言需求。</sub>
 </p>
 
 ## 请求生命周期
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="六阶段请求生命周期，包含延迟与失败处理" width="100%">
+  <img src="docs/assets/pipeline.svg" alt="七阶段请求生命周期，包含延迟与失败处理" width="100%">
 </p>
 
 1. **请求。** 插件把 `{ "prompt": "..." }` 发送到 Flask 服务端。
@@ -137,7 +138,8 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 3. **模型调用。** 任意 OpenAI 兼容端点返回 JSON 特征树。默认参数为 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048`，超时 30 秒。
 4. **恢复。** 服务端去除 Markdown 代码围栏，再截取第一个 `{` 到最后一个 `}` 后解析。
 5. **校验。** Flask 检查响应信封并校验特征参数；C# 客户端把信封反序列化为类型化模型类，再从参数字典读取参数并应用建模器默认值。
-6. **执行。** `SwModeler` 绘制草图、选中草图，并调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。拉伸或切除失败时，键盘驱动的兜底方案会打开 SolidWorks 原生特征面板。
+6. **预览与编辑。** 插件打开可编辑的 JSON 窗口；确认之前不会写入文档。
+7. **执行。** `SwModeler` 绘制草图、选中草图，并调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。拉伸或切除失败时，键盘驱动的兜底方案会打开 SolidWorks 原生特征面板。
 
 模型调用占据绝大部分延迟；其余步骤都在本地，通常在毫秒级。
 
@@ -384,6 +386,62 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 ```
 
 点击**开始生成**。插件获取特征树后会先打开可编辑的 JSON 预览：确认参数、修正模型理解有偏差的地方，再点击**执行建模**。此时才会写入 SolidWorks、自动缩放到合适视图，并留下可编辑的特征树；取消预览不会改动当前文档。
+
+## 操作演练
+
+这一节逐项说明从安装包到特征树会接触到的每个实体。
+
+### 1. 安装
+
+1. 运行 `Vulcan-Setup-1.2.1.exe`，在 UAC 提示中允许管理员权限，阅读 GPLv3 许可页，保留默认安装目录 `{autopf}\Vulcan`。
+2. 安装包复制插件、依赖、图标资源以及 `install.bat` / `uninstall.bat`，随后以 `install.bat /quiet` 调用 `RegAsm` 注册 x64 插件。
+3. 也可以解压 `Vulcan-1.2.1-portable.zip`，以管理员身份运行 `install.bat`。
+4. 重启 SolidWorks。
+
+### 2. 打开面板
+
+| 实体 | 位置 | 作用 |
+|---|---|---|
+| `Vulcan AI` 功能区标签 | CommandManager 最后一个标签 | 承载“打开AI生成窗口”命令 |
+| `AI生成` 工具栏按钮 | 左侧工具栏 | 打开同一个模态面板 |
+| `Vulcan AI For SolidWorks` 窗口 | SolidWorks 中央 | 520 × 320 提示面板 |
+
+### 3. 配置服务端
+
+点击面板右上角的**设置**，对话框包含五个输入项和四个按钮。
+
+| 输入项 | 含义 |
+|---|---|
+| 服务端地址 | Vulcan 服务端地址，默认 `http://127.0.0.1:5000` |
+| 服务端 Token | 服务端启用鉴权时对应 `VULCAN_API_TOKEN` |
+| LLM API Key | 你自己的提供商密钥（BYOK）；留空则使用服务端密钥 |
+| LLM Base URL | 提供商的 OpenAI 兼容 Base URL |
+| 模型名称 | 例如 `gpt-4o-mini` |
+
+| 按钮 | 行为 |
+|---|---|
+| 测试连接 | 调用 `GET /health`，在对话框内显示响应 |
+| 打开日志目录 | 打开桌面 `Vulcan_Logs` |
+| 取消 | 关闭且不保存 |
+| 保存 | 写入 `%APPDATA%\Vulcan\settings.json`；Token 与 BYOK 密钥由 DPAPI 加密 |
+
+### 4. 描述零件
+
+在白色输入卡片中输入需求，例如 `在前视基准面拉伸一个直径40，高度60的圆柱体`；聚焦时占位提示自动消失。点击**开始生成**会发送 `POST /api/v1/generate`，空闲时状态点为绿色。
+
+### 5. 检查并编辑 JSON
+
+**检查并编辑建模参数**窗口展示原始需求、可编辑 JSON 编辑器和两个按钮。
+
+| 实体 | 行为 |
+|---|---|
+| JSON 编辑器 | 可直接修改；必须保留 `feature_type`（或 `features[]`）与 `params` 对象 |
+| 执行建模 | 校验修改后的 JSON，关闭预览并调用建模器 |
+| 取消 | 关闭预览，文档保持不变 |
+
+### 6. 查看结果
+
+建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图），并弹出“模型生成完成!”提示。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
 
 ## 测试
 
