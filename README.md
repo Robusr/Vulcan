@@ -63,6 +63,15 @@ This README focuses on `release/`. The Beta track is kept for reference and for 
   <sub>Illustrative response. The same contract accepts a base extrude followed by an ordered list of cuts.</sub>
 </p>
 
+<p align="center">
+  <img src="docs/assets/solidworks-plate.gif" alt="Real SolidWorks 2025 output: a 200 x 100 x 20 mm mounting plate with four through holes and filleted edges" width="100%">
+</p>
+
+<p align="center">
+  <sub>Real SolidWorks 2025 output: a 200 × 100 × 20 mm plate with four 10 mm through holes and filleted edges. Captured from the local test harness.</sub>
+</p>
+
+
 1. **Describe the part.** Write a request in the add-in panel. Multilingual models handle Chinese, English, and French input; the system prompt itself is written in Chinese.
 2. **The model fills a schema.** The server prepends a versioned SolidWorks domain prompt and calls any OpenAI-compatible endpoint. The model returns JSON, not code.
 3. **The add-in builds it.** The C# client deserializes the tree, draws sketches, and calls the native SolidWorks feature APIs. The result is a native feature tree you can edit.
