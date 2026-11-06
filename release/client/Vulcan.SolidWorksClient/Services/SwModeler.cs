@@ -19,20 +19,8 @@ namespace Vulcan.SolidWorksClient.Services
         private double _baseLengthMm = 0;
         private double _baseWidthMm = 0;
         private int _currentFeatureIndex = 0;
+        private int _cutFeatureIndex = 0;
         private bool _isFourHoleRequest = false;
-
-        // 中英文基准面名称映射表
-        private readonly Dictionary<string, string> _planeNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "front", "前视基准面" },
-            { "top", "前视基准面" },
-            { "right", "前视基准面" },
-            { "前视", "前视基准面" },
-            { "上视", "前视基准面" },
-            { "右视", "前视基准面" },
-            { "顶面", "前视基准面" },
-            { "底面", "前视基准面" }
-        };
 
         // 支持的草图形状映射
         private readonly HashSet<string> _supportedShapes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -55,8 +43,8 @@ namespace Vulcan.SolidWorksClient.Services
                 _baseLengthMm = 0;
                 _baseWidthMm = 0;
                 _currentFeatureIndex = 0;
-                _isFourHoleRequest = !string.IsNullOrEmpty(userRequest) &&
-                    (userRequest.Contains("四角") || userRequest.Contains("4个") || userRequest.Contains("四个") || userRequest.Contains("4通孔"));
+                _cutFeatureIndex = 0;
+                _isFourHoleRequest = IsFourHoleRequest(userRequest);
 
                 if (modelData == null) throw new ArgumentNullException(nameof(modelData), "云端返回的模型参数为空");
                 if (string.IsNullOrEmpty(modelData.feature_type) && (modelData.features == null || modelData.features.Count == 0))
@@ -90,12 +78,10 @@ namespace Vulcan.SolidWorksClient.Services
                 _activeModel.ShowNamedView2("*上下二等角轴测", 8);
                 _activeModel.ViewZoomtofit2();
                 Logger.Info("=== 建模全流程执行完成 ===");
-                MessageBox.Show("模型生成完成！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
                 Logger.Error("建模执行失败", ex);
-                MessageBox.Show($"建模失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw;
             }
         }
@@ -105,21 +91,37 @@ namespace Vulcan.SolidWorksClient.Services
             if (string.IsNullOrEmpty(featureType)) return;
             if (!string.IsNullOrEmpty(featureName)) Logger.Info($"开始执行特征：{featureName}");
 
+            string normalizedType = featureType.ToLower().Trim();
+            if (normalizedType == "cut" || normalizedType == "hole")
+            {
+                _cutFeatureIndex++;
+            }
+
             // 缓存基体尺寸（仅第一个拉伸特征）
-            if (featureType.ToLower() == "extrude" && _currentFeatureIndex == 1 && parameters.ContainsKey("length") && parameters.ContainsKey("width"))
+            if (normalizedType == "extrude" && _currentFeatureIndex == 1 && parameters.ContainsKey("length") && parameters.ContainsKey("width"))
             {
                 _baseLengthMm = Convert.ToDouble(parameters["length"]);
                 _baseWidthMm = Convert.ToDouble(parameters["width"]);
                 Logger.Info($"已缓存基体尺寸：长{_baseLengthMm}mm，宽{_baseWidthMm}mm");
             }
 
-            switch (featureType.ToLower().Trim())
+            switch (normalizedType)
             {
                 case "extrude":
                     CreateExtrusionFeature(parameters);
                     break;
                 case "cut":
+                case "hole":
                     CreateCutFeature(parameters);
+                    break;
+                case "fillet":
+                    CreateFilletFeature(parameters);
+                    break;
+                case "chamfer":
+                    CreateChamferFeature(parameters);
+                    break;
+                case "revolve":
+                    CreateRevolveFeature(parameters);
                     break;
                 default:
                     Logger.Warning($"暂不支持的特征类型：{featureType}，已跳过");
@@ -131,7 +133,7 @@ namespace Vulcan.SolidWorksClient.Services
         #region 核心特征：拉伸凸台（修复版）
         private void CreateExtrusionFeature(Dictionary<string, object> parameters)
         {
-            string targetPlane = "前视基准面";
+            string targetPlane = GetPlaneName(parameters);
 
             parameters.TryGetValue("depth", out object depthObj);
             double depthMm = depthObj != null ? Convert.ToDouble(depthObj) : 10.0;
@@ -163,7 +165,7 @@ namespace Vulcan.SolidWorksClient.Services
                 IFeatureManager featureManager = _activeModel.FeatureManager;
 
                 // 标准拉伸凸台，单向，沿Z轴正方向
-                featureManager.FeatureExtrusion3(
+                Feature extrusion = featureManager.FeatureExtrusion3(
                     Sd: true,
                     Flip: false,
                     Dir: false,
@@ -175,7 +177,7 @@ namespace Vulcan.SolidWorksClient.Services
                     Dchk2: false,
                     Ddir1: false,
                     Ddir2: false,
-                    Dang1: 0,
+                    Dang1: GetDraftAngleRad(parameters),
                     Dang2: 0,
                     OffsetReverse1: false,
                     OffsetReverse2: false,
@@ -188,6 +190,11 @@ namespace Vulcan.SolidWorksClient.Services
                     StartOffset: 0,
                     FlipStartOffset: false
                 );
+
+                if (extrusion == null)
+                {
+                    throw new InvalidOperationException("拉伸凸台创建失败：FeatureExtrusion3 返回空");
+                }
 
                 Logger.Info("【纯API拉伸凸台成功！】特征创建完成");
             }
@@ -202,7 +209,7 @@ namespace Vulcan.SolidWorksClient.Services
         #region 核心特征：拉伸切除（100%生效最终版）
         private void CreateCutFeature(Dictionary<string, object> parameters)
         {
-            string targetPlane = "前视基准面";
+            string targetPlane = GetPlaneName(parameters);
 
             parameters.TryGetValue("depth", out object depthObj);
             double depthMm = depthObj != null ? Convert.ToDouble(depthObj) : 10.0;
@@ -246,7 +253,7 @@ namespace Vulcan.SolidWorksClient.Services
                 IFeatureManager featureManager = _activeModel.FeatureManager;
 
                 // 核心修复2：FeatureCut4参数100%对齐SolidWorks规范
-                featureManager.FeatureCut4(
+                Feature cut = featureManager.FeatureCut4(
                     Sd: !isBidirectional, // 完全贯穿时用双向
                     Flip: false, // 方向1不反转，朝向实体内部
                     Dir: isBidirectional, // 完全贯穿时启用第二方向
@@ -258,7 +265,7 @@ namespace Vulcan.SolidWorksClient.Services
                     Dchk2: false,
                     Ddir1: false,
                     Ddir2: false,
-                    Dang1: 0,
+                    Dang1: GetDraftAngleRad(parameters),
                     Dang2: 0,
                     OffsetReverse1: false,
                     OffsetReverse2: false,
@@ -276,6 +283,11 @@ namespace Vulcan.SolidWorksClient.Services
                     OptimizeGeometry: true
                 );
 
+                if (cut == null)
+                {
+                    throw new InvalidOperationException("拉伸切除创建失败：FeatureCut4 返回空");
+                }
+
                 Logger.Info("【纯API拉伸切除成功！】特征创建完成");
             }
             catch (Exception ex1)
@@ -290,9 +302,9 @@ namespace Vulcan.SolidWorksClient.Services
         private (double centerXM, double centerYM) GetSketchCoordinate(Dictionary<string, object> parameters, bool useAutoHolePosition)
         {
             // 自动四角孔位逻辑：仅用户明确要求时触发
-            if (useAutoHolePosition)
+            if (useAutoHolePosition && _baseLengthMm > 0 && _baseWidthMm > 0)
             {
-                int holeIndex = _currentFeatureIndex - 2;
+                int holeIndex = _cutFeatureIndex - 1;
                 var holePositions = new List<Tuple<double, double>>()
                 {
                     Tuple.Create(_baseLengthMm/2 - 10, _baseWidthMm/2 - 10),  // 右上
@@ -456,6 +468,152 @@ namespace Vulcan.SolidWorksClient.Services
         }
         #endregion
 
+
+        #region 新增特征：圆角、倒角、旋转
+        private void CreateFilletFeature(Dictionary<string, object> parameters)
+        {
+            double radiusMm = GetDouble(parameters, "radius", 5.0);
+            if (radiusMm <= 0) throw new InvalidOperationException("圆角半径必须大于0");
+            SelectAllEdges();
+
+            IFeatureManager featureManager = _activeModel.FeatureManager;
+            object result = featureManager.FeatureFillet3(
+                (int)swFeatureFilletOptions_e.swFeatureFilletUniformRadius,
+                radiusMm / 1000.0,
+                0,
+                0,
+                (int)swFeatureFilletType_e.swFeatureFilletType_Simple,
+                (int)swFilletOverFlowType_e.swFilletOverFlowType_Default,
+                0,
+                null, null, null, null, null, null, null);
+
+            Feature fillet = result as Feature;
+            if (fillet == null) throw new InvalidOperationException("圆角创建失败：FeatureFillet3 返回空");
+            Logger.Info($"圆角创建完成，半径：{radiusMm}mm");
+        }
+
+        private void CreateChamferFeature(Dictionary<string, object> parameters)
+        {
+            double distanceMm = GetDouble(parameters, "distance", 2.0);
+            if (distanceMm <= 0) throw new InvalidOperationException("倒角距离必须大于0");
+            SelectAllEdges();
+
+            IFeatureManager featureManager = _activeModel.FeatureManager;
+            Feature chamfer = featureManager.InsertFeatureChamfer(
+                0,
+                (int)swChamferType_e.swChamferEqualDistance,
+                distanceMm / 1000.0,
+                0, 0, 0, 0, 0);
+
+            if (chamfer == null) throw new InvalidOperationException("倒角创建失败：InsertFeatureChamfer 返回空");
+            Logger.Info($"倒角创建完成，距离：{distanceMm}mm");
+        }
+
+        private void CreateRevolveFeature(Dictionary<string, object> parameters)
+        {
+            string targetPlane = GetPlaneName(parameters);
+            string shape = GetString(parameters, "shape", "rectangle").ToLowerInvariant();
+            if (!_supportedShapes.Contains(shape))
+            {
+                Logger.Warning($"不支持的形状：{shape}，默认使用矩形");
+                shape = "rectangle";
+            }
+
+            (double centerXM, double centerYM) = GetSketchCoordinate(parameters, false);
+            (string sketchName, string axisId) = DrawRevolveSketch(
+                targetPlane, shape, parameters, centerXM, centerYM,
+                GetString(parameters, "axis", "y").ToLowerInvariant());
+
+            if (string.IsNullOrEmpty(sketchName)) throw new Exception("旋转草图绘制失败");
+
+            _activeModel.ClearSelection2(true);
+            bool sketchSelected = _activeModel.Extension.SelectByID2(sketchName, "SKETCH", 0, 0, 0, true, 0, null, 0);
+            if (!sketchSelected) throw new Exception("旋转草图选中失败");
+            bool axisSelected = !string.IsNullOrEmpty(axisId) &&
+                _activeModel.Extension.SelectByID2(axisId, "SKETCHSEGMENT", 0, 0, 0, true, 0, null, 0);
+            if (!axisSelected) Logger.Warning("旋转轴选中失败，将尝试让 SolidWorks 自动识别");
+
+            double angleDeg = GetDouble(parameters, "angle", 360.0);
+            if (angleDeg <= 0 || angleDeg > 360) angleDeg = 360.0;
+            double angleRad = angleDeg * Math.PI / 180.0;
+            int revolveType = angleDeg >= 359.999
+                ? (int)swRevolveType_e.swRevolveTypeOneDirection360Degrees
+                : (int)swRevolveType_e.swRevolveTypeOneDirection;
+
+            Feature revolve = _activeModel.FeatureManager.FeatureRevolve(
+                angleRad, false, 0, revolveType,
+                (int)swRevolveOptions_e.swRevolveOptionsNone,
+                true, false, true);
+
+            if (revolve == null)
+            {
+                throw new InvalidOperationException("旋转特征创建失败：FeatureRevolve 返回空");
+            }
+            Logger.Info($"旋转特征创建完成，角度：{angleDeg}度");
+        }
+
+        private (string sketchName, string axisId) DrawRevolveSketch(
+            string targetPlane,
+            string shape,
+            Dictionary<string, object> parameters,
+            double centerXM,
+            double centerYM,
+            string axis)
+        {
+            Feature targetPlaneFeature = FindPlaneFeature(targetPlane);
+            if (targetPlaneFeature == null) throw new Exception($"未找到基准面：{targetPlane}");
+            if (!targetPlaneFeature.Select2(false, 0)) throw new Exception($"基准面 {targetPlane} 选择失败");
+
+            _sketchManager.InsertSketch(true);
+            switch (shape)
+            {
+                case "circle": DrawCircle(parameters, centerXM, centerYM); break;
+                case "rectangle": DrawRectangle(parameters, centerXM, centerYM); break;
+                case "polygon": DrawPolygon(parameters, centerXM, centerYM); break;
+                case "ellipse": DrawEllipse(parameters, centerXM, centerYM); break;
+                case "slot": DrawSlot(parameters, centerXM, centerYM); break;
+            }
+
+            SketchSegment axisSegment = axis == "x"
+                ? _sketchManager.CreateCenterLine(-1, 0, 0, 1, 0, 0)
+                : _sketchManager.CreateCenterLine(0, -1, 0, 0, 1, 0);
+            string axisId = axisSegment?.GetID()?.ToString();
+
+            _activeModel.ClearSelection2(true);
+            _sketchManager.InsertSketch(true);
+            string sketchName = GetLastSketchName();
+            Logger.Info($"已绘制旋转草图：{sketchName}，旋转轴：{axis}，轴ID：{axisId}");
+            return (sketchName, axisId);
+        }
+
+        private void SelectAllEdges()
+        {
+            _activeModel.ClearSelection2(true);
+            PartDoc part = _activeModel as PartDoc;
+            if (part == null) throw new Exception("当前文档不是零件文档");
+
+            object[] bodies = part.GetBodies2((int)swBodyType_e.swSolidBody, false) as object[];
+            if (bodies == null || bodies.Length == 0) throw new Exception("零件中没有实体");
+
+            int selected = 0;
+            foreach (object bodyObject in bodies)
+            {
+                Body2 body = bodyObject as Body2;
+                if (body == null) continue;
+                object[] edges = body.GetEdges() as object[];
+                if (edges == null) continue;
+                foreach (object edgeObject in edges)
+                {
+                    Entity edge = edgeObject as Entity;
+                    if (edge != null && edge.Select4(true, null)) selected++;
+                }
+            }
+
+            if (selected == 0) throw new Exception("没有可选择的边");
+            Logger.Info($"已选中 {selected} 条边");
+        }
+        #endregion
+
         #region 兜底方案（键盘模拟，100%生效）
         private void ExecuteExtrusionFallback(double depthMm, bool isCut)
         {
@@ -504,6 +662,94 @@ namespace Vulcan.SolidWorksClient.Services
         #endregion
 
         #region 工具方法
+
+        private static double GetDouble(Dictionary<string, object> parameters, string key, double fallback)
+        {
+            if (parameters != null && parameters.TryGetValue(key, out object value) && value != null)
+            {
+                try { return Convert.ToDouble(value); } catch { }
+            }
+            return fallback;
+        }
+
+        private static string GetString(Dictionary<string, object> parameters, string key, string fallback)
+        {
+            if (parameters != null && parameters.TryGetValue(key, out object value) && value != null)
+            {
+                string text = value.ToString().Trim();
+                if (!string.IsNullOrEmpty(text)) return text;
+            }
+            return fallback;
+        }
+
+        private static double GetDraftAngleRad(Dictionary<string, object> parameters)
+        {
+            double degrees = GetDouble(parameters, "draft_angle", 0.0);
+            if (degrees <= -90 || degrees >= 90) return 0.0;
+            return degrees * Math.PI / 180.0;
+        }
+
+        private static string GetPlaneName(Dictionary<string, object> parameters)
+        {
+            string raw = GetString(parameters, "plane", "前视基准面");
+            string key = raw.ToLowerInvariant()
+                .Replace(" plane", "")
+                .Replace("基准面", "")
+                .Replace("plan de ", "")
+                .Trim();
+
+            switch (key)
+            {
+                case "front":
+                case "face":
+                case "前视":
+                    return "前视基准面";
+                case "top":
+                case "dessus":
+                case "上视":
+                    return "上视基准面";
+                case "right":
+                case "droite":
+                case "右视":
+                    return "右视基准面";
+                default:
+                    return raw;
+            }
+        }
+
+        private static bool PlaneMatches(string featureName, string targetPlane)
+        {
+            string name = featureName.ToLowerInvariant();
+            if (targetPlane == "前视基准面")
+                return name.Contains("front") || name.Contains("前视") || name.Contains("face");
+            if (targetPlane == "上视基准面")
+                return name.Contains("top") || name.Contains("上视") || name.Contains("dessus");
+            if (targetPlane == "右视基准面")
+                return name.Contains("right") || name.Contains("右视") || name.Contains("droite");
+            return name.Contains(targetPlane.ToLowerInvariant());
+        }
+
+        private static bool IsFourHoleRequest(string userRequest)
+        {
+            if (string.IsNullOrEmpty(userRequest))
+            {
+                return false;
+            }
+
+            if (userRequest.Contains("四角") ||
+                userRequest.Contains("4个") ||
+                userRequest.Contains("四个") ||
+                userRequest.Contains("4通孔"))
+            {
+                return true;
+            }
+
+            return userRequest.IndexOf("four corner", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   userRequest.IndexOf("4 corner", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   userRequest.IndexOf("four holes", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   userRequest.IndexOf("4 holes", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
         private void EnsureActivePartDocument()
         {
             _activeModel = _swApp.ActiveDoc as ModelDoc2;
@@ -516,14 +762,6 @@ namespace Vulcan.SolidWorksClient.Services
             Logger.Warning("当前无激活的SolidWorks文档，提示用户手动打开");
         }
 
-        private string GetRealPlaneName(string inputPlane)
-        {
-            if (string.IsNullOrEmpty(inputPlane)) return "前视基准面";
-
-            string cleanInput = inputPlane.Trim().ToLower().Replace(" plane", "").Replace("基准面", "");
-            return _planeNameMap.TryGetValue(cleanInput, out string realName) ? realName : "前视基准面";
-        }
-
         private Feature FindPlaneFeature(string targetPlane)
         {
             Feature currentFeature = _activeModel.FirstFeature() as Feature;
@@ -532,10 +770,11 @@ namespace Vulcan.SolidWorksClient.Services
             while (currentFeature != null)
             {
                 string featureName = currentFeature.Name;
-                if (featureName.Contains("基准面") || featureName.ToLower().Contains("plane"))
+                string lowerName = featureName.ToLowerInvariant();
+                if (featureName.Contains("基准面") || lowerName.Contains("plane") || lowerName.Contains("plan"))
                 {
                     allPlanes.Add(currentFeature);
-                    if (featureName.Equals(targetPlane, StringComparison.OrdinalIgnoreCase))
+                    if (PlaneMatches(featureName, targetPlane))
                     {
                         return currentFeature;
                     }
@@ -547,17 +786,12 @@ namespace Vulcan.SolidWorksClient.Services
             {
                 if (plane.Name.IndexOf(targetPlane, StringComparison.OrdinalIgnoreCase) >= 0)
                 {
-                    Logger.Warning($"精准匹配失败，模糊匹配到基准面：{plane.Name}");
+                    Logger.Warning($"模糊匹配到基准面：{plane.Name}");
                     return plane;
                 }
             }
 
-            if (allPlanes.Count > 0)
-            {
-                Logger.Warning($"未找到目标基准面，兜底使用第一个基准面：{allPlanes[0].Name}");
-                return allPlanes[0];
-            }
-
+            Logger.Warning($"未找到目标基准面：{targetPlane}");
             return null;
         }
         #endregion

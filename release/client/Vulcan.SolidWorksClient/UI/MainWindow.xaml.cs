@@ -67,7 +67,7 @@ namespace Vulcan.SolidWorksClient.UI
 
                 // 4. 执行建模
                 StatusText.Text = "正在执行建模...";
-                _swModeler.ExecuteModeling(modelData);
+                _swModeler.ExecuteModeling(modelData, userPrompt);
 
                 // 5. 完成
                 StatusText.Text = "模型生成完成！";
