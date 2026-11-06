@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Vulcan.SolidWorksClient.Services;
 
@@ -17,11 +18,20 @@ namespace Vulcan.SolidWorksClient.UI
         private readonly TextBox _llmModel = new TextBox();
         private readonly TextBlock _status = new TextBlock();
 
+        private static readonly Brush PageBrush = BrushFrom("#F1F5F9");
+        private static readonly Brush CardBrush = BrushFrom("#FFFFFF");
+        private static readonly Brush LineBrush = BrushFrom("#CBD5E1");
+        private static readonly Brush LabelBrush = BrushFrom("#334155");
+        private static readonly Brush MutedBrush = BrushFrom("#64748B");
+        private static readonly Brush AccentBrush = BrushFrom("#F97316");
+
         public SettingsWindow()
         {
             Title = "Vulcan 设置";
-            Width = 560;
-            Height = 470;
+            Width = 580;
+            Height = 500;
+            Background = PageBrush;
+            FontFamily = new FontFamily("Microsoft YaHei UI");
             ResizeMode = ResizeMode.CanResize;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
@@ -40,7 +50,8 @@ namespace Vulcan.SolidWorksClient.UI
             {
                 Text = "LLM API Key 会随生成请求发送到你的 Vulcan 服务端，仅在请求期间使用，不写入日志。建议通过 HTTPS 连接。",
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = Brushes.Gray,
+                Foreground = MutedBrush,
+                FontSize = 12,
                 Margin = new Thickness(0, 4, 0, 10)
             };
             root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
@@ -49,7 +60,8 @@ namespace Vulcan.SolidWorksClient.UI
             root.Children.Add(note);
 
             _status.TextWrapping = TextWrapping.Wrap;
-            _status.Foreground = Brushes.DimGray;
+            _status.Foreground = MutedBrush;
+            _status.FontSize = 12;
             _status.Margin = new Thickness(0, 0, 0, 10);
             root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             Grid.SetRow(_status, row++);
@@ -63,13 +75,14 @@ namespace Vulcan.SolidWorksClient.UI
                 Margin = new Thickness(0, 4, 0, 0)
             };
 
-            var testButton = new Button { Content = "测试连接", Width = 90, Height = 30, Margin = new Thickness(0, 0, 8, 0) };
+            var testButton = CreateButton("测试连接", false);
             testButton.Click += TestConnection_Click;
-            var logsButton = new Button { Content = "打开日志目录", Width = 110, Height = 30, Margin = new Thickness(0, 0, 8, 0) };
+            var logsButton = CreateButton("打开日志目录", false);
             logsButton.Click += OpenLogs_Click;
-            var cancelButton = new Button { Content = "取消", Width = 80, Height = 30, Margin = new Thickness(0, 0, 8, 0) };
+            var cancelButton = CreateButton("取消", false);
             cancelButton.Click += (s, e) => { DialogResult = false; };
-            var saveButton = new Button { Content = "保存", Width = 80, Height = 30, IsDefault = true };
+            var saveButton = CreateButton("保存", true);
+            saveButton.IsDefault = true;
             saveButton.Click += Save_Click;
 
             buttons.Children.Add(testButton);
@@ -86,21 +99,62 @@ namespace Vulcan.SolidWorksClient.UI
             LoadSettings();
         }
 
+        private static Brush BrushFrom(string hex)
+        {
+            return (Brush)new BrushConverter().ConvertFromString(hex);
+        }
+
+        private static Button CreateButton(string text, bool primary)
+        {
+            var button = new Button
+            {
+                Content = text,
+                Height = 32,
+                MinWidth = 96,
+                Margin = new Thickness(0, 0, 8, 0),
+                Padding = new Thickness(14, 4, 14, 4),
+                FontSize = 12,
+                Cursor = Cursors.Hand,
+                BorderThickness = primary ? new Thickness(0) : new Thickness(1)
+            };
+
+            if (primary)
+            {
+                button.Background = AccentBrush;
+                button.Foreground = Brushes.White;
+                button.FontWeight = FontWeights.Bold;
+            }
+            else
+            {
+                button.Background = CardBrush;
+                button.Foreground = LabelBrush;
+                button.BorderBrush = LineBrush;
+            }
+
+            return button;
+        }
+
         private static void AddRow(Grid root, int row, string label, Control input, string tooltip)
         {
             root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             var text = new TextBlock
             {
                 Text = label,
+                Foreground = LabelBrush,
+                FontSize = 12,
                 VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0, 0, 12, 10)
+                Margin = new Thickness(0, 0, 12, 12)
             };
             Grid.SetRow(text, row);
             Grid.SetColumn(text, 0);
             root.Children.Add(text);
 
-            input.Height = 28;
-            input.Margin = new Thickness(0, 0, 0, 10);
+            input.Height = 30;
+            input.FontSize = 12;
+            input.Padding = new Thickness(6, 4, 6, 4);
+            input.Background = CardBrush;
+            input.BorderBrush = LineBrush;
+            input.Margin = new Thickness(0, 0, 0, 12);
             input.ToolTip = tooltip;
             Grid.SetRow(input, row);
             Grid.SetColumn(input, 1);
