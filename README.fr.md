@@ -63,6 +63,15 @@ Ce README se concentre sur `release/`. La piste Beta est conservée comme réfé
   <sub>Réponse illustrative. Le même contrat accepte une extrusion de base suivie d’une liste ordonnée de coupes.</sub>
 </p>
 
+<p align="center">
+  <img src="docs/assets/solidworks-plate.gif" alt="Sortie réelle SolidWorks 2025 : plaque de 200 × 100 × 20 mm avec quatre trous traversants et arêtes arrondies" width="100%">
+</p>
+
+<p align="center">
+  <sub>Sortie réelle de SolidWorks 2025 : plaque de 200 × 100 × 20 mm avec quatre trous traversants de 10 mm et des arêtes arrondies. Capturée par le programme de test local.</sub>
+</p>
+
+
 1. **Décrivez la pièce.** Saisissez une demande dans le panneau de l’add-in. Les modèles multilingues comprennent le chinois, l’anglais et le français ; le prompt système est lui-même rédigé en chinois.
 2. **Le modèle remplit un schéma.** Le serveur préfixe la demande avec un prompt métier SolidWorks versionné et appelle n’importe quel point d’accès compatible OpenAI. Le modèle renvoie du JSON, pas du code.
 3. **L’add-in construit la pièce.** Le client C# désérialise l’arbre, dessine les esquisses et appelle les API natives de SolidWorks. Le résultat est un arbre de fonctions natif et éditable.

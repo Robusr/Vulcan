@@ -21,3 +21,4 @@
 *.exe binary
 *.pdb binary
 *.tlb binary
+*.gif binary
