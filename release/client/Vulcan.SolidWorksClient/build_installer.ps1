@@ -1,7 +1,7 @@
 param(
     [string]$Configuration = "Release",
     [string]$Platform = "x64",
-    [string]$InnoSetup = "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
+    [string]$InnoSetup = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -9,6 +9,14 @@ $root = $PSScriptRoot
 $release = Join-Path $root "bin\$Platform\$Configuration"
 $dist = Join-Path $root "dist"
 $clientDll = Join-Path $release "Vulcan.SolidWorksClient.dll"
+
+$isccCandidates = @(
+    $InnoSetup,
+    (Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\ISCC.exe"),
+    "D:\Program Files (x86)\Inno Setup 6\ISCC.exe",
+    "C:\Program Files (x86)\Inno Setup 6\ISCC.exe"
+)
+$iscc = $isccCandidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -First 1
 
 if (-not (Test-Path $clientDll)) {
     throw "Build $Configuration|$Platform first. Missing: $clientDll"
@@ -48,6 +56,14 @@ foreach ($file in $interop) {
 Copy-Item (Join-Path $root "packaging\install.bat") $dist
 Copy-Item (Join-Path $root "packaging\uninstall.bat") $dist
 
+$icons = Join-Path $root "icons"
+if (Test-Path $icons) {
+    $iconDist = Join-Path $dist "icons"
+    New-Item -ItemType Directory -Path $iconDist | Out-Null
+    Copy-Item (Join-Path $icons "icon_*.png") $iconDist
+    Copy-Item (Join-Path $icons "Vulcan.ico") $iconDist
+}
+
 $regAsm = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"
 if (-not (Test-Path $regAsm)) {
     throw "64-bit RegAsm.exe not found at $regAsm"
@@ -56,8 +72,8 @@ Copy-Item $regAsm $dist
 
 Write-Host "Payload staged in $dist"
 
-if (Test-Path $InnoSetup) {
-    & $InnoSetup (Join-Path $root "Vulcan Setup\Vulcan setup.iss")
+if ($iscc) {
+    & $iscc (Join-Path $root "Vulcan Setup\Vulcan setup.iss")
     Write-Host "Installer written to $(Join-Path $root 'Vulcan Setup\Output')"
 } else {
     Write-Host "Inno Setup 6 not found. Payload is ready in $dist."
