@@ -1,7 +1,8 @@
 [Setup]
 AppId={{03D4BCE0-7A21-4660-82A1-4CEEF0FBD651}
 AppName=Vulcan
-AppVersion=1.1.0
+AppVersion=1.2.0
+AppVerName=Vulcan 1.2.0
 AppPublisher=Robusr
 AppPublisherURL=https://github.com/Robusr/Vulcan
 AppSupportURL=https://github.com/Robusr/Vulcan
@@ -9,9 +10,11 @@ AppUpdatesURL=https://github.com/Robusr/Vulcan
 DefaultDirName={autopf}\Vulcan
 DefaultGroupName=Vulcan
 OutputDir=Output
-OutputBaseFilename=Vulcan
+OutputBaseFilename=Vulcan-Setup-1.2.0
 Compression=lzma
 SolidCompression=yes
+WizardStyle=modern
+LicenseFile=..\..\..\..\LICENSE
 DisableDirPage=no
 DisableProgramGroupPage=yes
 WizardImageFile=embedded\banner.bmp
@@ -22,20 +25,20 @@ AlwaysShowDirOnReadyPage=no
 DisableReadyPage=yes
 DisableWelcomePage=no
 UninstallDisplayName=Vulcan AI For SolidWorks
-UninstallDisplayIcon=embedded\Vulcan.ico
+UninstallDisplayIcon={app}\icons\Vulcan.ico
 AppComments=Vulcan AI For SolidWorks
 PrivilegesRequired=admin
-ArchitecturesAllowed=x64
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesAllowed=x64compatible
+ArchitecturesInstallIn64BitMode=x64compatible
 CloseApplications=yes
 RestartApplications=no
 SetupLogging=yes
 UsePreviousAppDir=yes
-VersionInfoVersion=1.1.0.0
-VersionInfoProductVersion=1.1.0
+VersionInfoVersion=1.2.0.0
+VersionInfoProductVersion=1.2.0
 VersionInfoProductName=Vulcan
 VersionInfoCompany=Robusr
-VersionInfoTextVersion=v1.1.0
+VersionInfoTextVersion=v1.2.0
 VersionInfoCopyright=GPL-3.0-or-later
 VersionInfoDescription=Vulcan AI For SolidWorks
 
@@ -46,7 +49,7 @@ Source: "..\dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs creat
 Filename: "{app}\install.bat"; Description: "Register Vulcan with SolidWorks"; StatusMsg: "正在安装 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist; Parameters: "/quiet"
 
 [UninstallRun]
-Filename: "{app}\uninstall.bat"; StatusMsg: "正在卸载 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist; Parameters: "/quiet"
+Filename: "{app}\uninstall.bat"; StatusMsg: "正在卸载 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist; Parameters: "/quiet"; RunOnceId: "UnregisterVulcan"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"

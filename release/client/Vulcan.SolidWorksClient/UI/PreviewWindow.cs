@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using Newtonsoft.Json;
 using Vulcan.SolidWorksClient.Models;
@@ -11,17 +12,25 @@ namespace Vulcan.SolidWorksClient.UI
     {
         private readonly TextBox _json;
 
+        private static readonly Brush PageBrush = BrushFrom("#F1F5F9");
+        private static readonly Brush CardBrush = BrushFrom("#FFFFFF");
+        private static readonly Brush LineBrush = BrushFrom("#CBD5E1");
+        private static readonly Brush AccentBrush = BrushFrom("#F97316");
+        private static readonly Brush LabelBrush = BrushFrom("#334155");
+
         public ModelData Result { get; private set; }
 
         public PreviewWindow(ModelData modelData, string prompt)
         {
             Title = "检查并编辑建模参数";
-            Width = 720;
-            Height = 560;
+            Width = 760;
+            Height = 600;
+            Background = PageBrush;
+            FontFamily = new FontFamily("Microsoft YaHei UI");
             ResizeMode = ResizeMode.CanResize;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
 
-            var root = new Grid { Margin = new Thickness(14) };
+            var root = new Grid { Margin = new Thickness(18) };
             root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Auto) });
             root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
@@ -30,7 +39,9 @@ namespace Vulcan.SolidWorksClient.UI
             var header = new TextBlock
             {
                 Text = "确认后才会写入 SolidWorks。可直接编辑下面的 JSON。",
+                FontSize = 14,
                 FontWeight = FontWeights.Bold,
+                Foreground = BrushFrom("#0F172A"),
                 Margin = new Thickness(0, 0, 0, 6)
             };
             Grid.SetRow(header, 0);
@@ -45,48 +56,50 @@ namespace Vulcan.SolidWorksClient.UI
             {
                 Text = "需求：" + promptText,
                 TextWrapping = TextWrapping.Wrap,
-                Foreground = Brushes.Gray,
-                Margin = new Thickness(0, 0, 0, 8)
+                Foreground = BrushFrom("#64748B"),
+                FontSize = 12,
+                Margin = new Thickness(0, 0, 0, 10)
             };
             Grid.SetRow(promptLabel, 1);
             root.Children.Add(promptLabel);
 
+            var card = new Border
+            {
+                Background = CardBrush,
+                BorderBrush = LineBrush,
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(8),
+                Padding = new Thickness(8),
+                Margin = new Thickness(0, 0, 0, 12)
+            };
             _json = new TextBox
             {
                 Text = JsonConvert.SerializeObject(modelData, Formatting.Indented),
                 AcceptsReturn = true,
                 AcceptsTab = true,
+                Background = Brushes.Transparent,
+                BorderThickness = new Thickness(0),
                 FontFamily = new FontFamily("Consolas"),
                 FontSize = 12,
+                Foreground = BrushFrom("#0F172A"),
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
                 HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-                TextWrapping = TextWrapping.NoWrap,
-                Margin = new Thickness(0, 0, 0, 10)
+                TextWrapping = TextWrapping.NoWrap
             };
-            Grid.SetRow(_json, 2);
-            root.Children.Add(_json);
+            card.Child = _json;
+            Grid.SetRow(card, 2);
+            root.Children.Add(card);
 
             var buttons = new StackPanel
             {
                 Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Right
             };
-            var execute = new Button
-            {
-                Content = "执行建模",
-                Width = 100,
-                Height = 30,
-                IsDefault = true,
-                Margin = new Thickness(0, 0, 8, 0)
-            };
+            var execute = CreateButton("执行建模", true);
+            execute.IsDefault = true;
             execute.Click += Execute_Click;
-            var cancel = new Button
-            {
-                Content = "取消",
-                Width = 80,
-                Height = 30,
-                IsCancel = true
-            };
+            var cancel = CreateButton("取消", false);
+            cancel.IsCancel = true;
             cancel.Click += (s, e) => { DialogResult = false; };
             buttons.Children.Add(execute);
             buttons.Children.Add(cancel);
@@ -94,6 +107,40 @@ namespace Vulcan.SolidWorksClient.UI
             root.Children.Add(buttons);
 
             Content = root;
+        }
+
+        private static Brush BrushFrom(string hex)
+        {
+            return (Brush)new BrushConverter().ConvertFromString(hex);
+        }
+
+        private static Button CreateButton(string text, bool primary)
+        {
+            var button = new Button
+            {
+                Content = text,
+                Width = primary ? 108 : 84,
+                Height = 34,
+                Margin = new Thickness(0, 0, 8, 0),
+                FontSize = 13,
+                Cursor = Cursors.Hand,
+                BorderThickness = primary ? new Thickness(0) : new Thickness(1)
+            };
+
+            if (primary)
+            {
+                button.Background = AccentBrush;
+                button.Foreground = Brushes.White;
+                button.FontWeight = FontWeights.Bold;
+            }
+            else
+            {
+                button.Background = CardBrush;
+                button.Foreground = LabelBrush;
+                button.BorderBrush = LineBrush;
+            }
+
+            return button;
         }
 
         private void Execute_Click(object sender, RoutedEventArgs e)

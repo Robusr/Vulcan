@@ -153,6 +153,33 @@ namespace VulcanAddin
                 // 启用工具栏和菜单
                 mainCmdGroup.HasToolbar = true;
                 mainCmdGroup.HasMenu = true;
+
+                // 绑定品牌图标（20/32/40/64/96/128 六档 PNG，见 SolidWorks API ICommandGroup::IconList）
+                try
+                {
+                    string iconDir = System.IO.Path.Combine(
+                        System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+                        "icons");
+                    List<string> iconPaths = new List<string>();
+                    foreach (string size in new[] { "20", "32", "40", "64", "96", "128" })
+                    {
+                        string iconPath = System.IO.Path.Combine(iconDir, "icon_" + size + ".png");
+                        if (System.IO.File.Exists(iconPath))
+                        {
+                            iconPaths.Add(iconPath);
+                        }
+                    }
+                    if (iconPaths.Count > 0)
+                    {
+                        mainCmdGroup.IconList = iconPaths.ToArray();
+                        mainCmdGroup.MainIconList = iconPaths.ToArray();
+                    }
+                }
+                catch (Exception iconEx)
+                {
+                    Logger.Warning("设置插件图标失败", iconEx);
+                }
+
                 mainCmdGroup.Activate();
                 #endregion
 

@@ -28,12 +28,13 @@ namespace Vulcan.SolidWorksClient.UI
             var settingsButton = new Button
             {
                 Content = "设置",
-                Width = 56,
-                Height = 24,
+                MinWidth = 64,
+                Height = 28,
                 HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Top,
-                Margin = new Thickness(0, -4, 0, 0),
-                ToolTip = "配置服务端、Token 和 LLM API Key"
+                VerticalAlignment = VerticalAlignment.Center,
+                Margin = new Thickness(0),
+                ToolTip = "配置服务端、Token 和 LLM API Key",
+                Style = TryFindResource("GhostButton") as Style
             };
             settingsButton.Click += (s, e) =>
             {
