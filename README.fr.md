@@ -72,11 +72,11 @@ Ce README se concentre sur `release/`. La piste Beta est conservée comme réfé
 </p>
 
 <p align="center">
-  <img src="docs/assets/vulcan-workflow.gif" alt="Workflow Vulcan 1.2.0 : prompt en chinois, aperçu JSON éditable et arbre de fonctions natif dans SolidWorks" width="100%">
+  <img src="docs/assets/vulcan-workflow.gif" alt="Workflow Vulcan 1.2.1 : prompt en chinois, aperçu JSON éditable et arbre de fonctions natif dans SolidWorks" width="100%">
 </p>
 
 <p align="center">
-  <sub>Le workflow livré en 1.2.0 : décrivez la pièce, vérifiez ou modifiez le JSON généré, puis laissez l’add-in créer des fonctions natives. Capturé depuis l’add-in installé.</sub>
+  <sub>Le workflow livré en 1.2.1 : décrivez la pièce, vérifiez ou modifiez le JSON généré, puis laissez l’add-in créer des fonctions natives. Capturé depuis l’add-in installé.</sub>
 </p>
 
 
@@ -355,7 +355,7 @@ La réponse est l’arbre de fonctions lui-même, sans enveloppe supplémentaire
 
 ### 5. Installer ou compiler le client
 
-**Option A — installateur précompilé.** Les installateurs précompilés peuvent être diffusés via GitHub Releases, ou construits localement. Compilez `Release | x64`, puis exécutez `build_installer.ps1` ; il prépare le payload dans `dist/` et produit `Vulcan Setup/Output/Vulcan-Setup-1.2.0.exe`. L’installateur demande l’élévation, enregistre l’add-in x64 avec `RegAsm` en silence et ne laisse aucune fenêtre de console ouverte. Une fois l’installation terminée, lancez SolidWorks et configurez le client dans l’add-in : cliquez sur **设置** en haut à droite du panneau Vulcan, puis saisissez l’URL du serveur, un éventuel jeton partagé et, si vous voulez utiliser votre propre clé, la clé API, l’URL de base et le modèle du fournisseur. Les réglages sont stockés dans `%APPDATA%\Vulcan\settings.json`, les secrets étant chiffrés par Windows DPAPI.
+**Option A — installateur précompilé.** Les installateurs précompilés peuvent être diffusés via GitHub Releases, ou construits localement. Compilez `Release | x64`, puis exécutez `build_installer.ps1` ; il prépare le payload dans `dist/` et produit `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`. L’installateur demande l’élévation, enregistre l’add-in x64 avec `RegAsm` en silence et ne laisse aucune fenêtre de console ouverte. Une fois l’installation terminée, lancez SolidWorks et configurez le client dans l’add-in : cliquez sur **设置** en haut à droite du panneau Vulcan, puis saisissez l’URL du serveur, un éventuel jeton partagé et, si vous voulez utiliser votre propre clé, la clé API, l’URL de base et le modèle du fournisseur. Les réglages sont stockés dans `%APPDATA%\Vulcan\settings.json`, les secrets étant chiffrés par Windows DPAPI.
 
 **Option B — compilation depuis les sources.**
 

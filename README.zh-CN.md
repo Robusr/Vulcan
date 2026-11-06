@@ -72,11 +72,11 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <img src="docs/assets/vulcan-workflow.gif" alt="Vulcan 1.2.0 工作流：中文提示词、可编辑 JSON 预览、SolidWorks 原生特征树" width="100%">
+  <img src="docs/assets/vulcan-workflow.gif" alt="Vulcan 1.2.1 工作流：中文提示词、可编辑 JSON 预览、SolidWorks 原生特征树" width="100%">
 </p>
 
 <p align="center">
-  <sub>1.2.0 实际工作流：描述零件 → 检查或编辑生成的 JSON → 由插件写入原生特征。截取自已安装的插件。</sub>
+  <sub>1.2.1 实际工作流：描述零件 → 检查或编辑生成的 JSON → 由插件写入原生特征。截取自已安装的插件。</sub>
 </p>
 
 
@@ -355,7 +355,7 @@ curl -s http://127.0.0.1:5000/api/v1/generate \
 
 ### 5. 安装或构建客户端
 
-**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，再运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan-Setup-1.2.0.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在插件面板右上角点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
+**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，再运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在插件面板右上角点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
 
 **方案 B——从源码构建。**
 
