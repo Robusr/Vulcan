@@ -32,6 +32,7 @@
   <a href="#系统架构">系统架构</a> ·
   <a href="#json-契约">JSON 契约</a> ·
   <a href="#快速开始">快速开始</a> ·
+  <a href="#安装升级与卸载">安装/卸载</a> ·
   <a href="#操作演练">操作演练</a> ·
   <a href="#测试">测试</a> ·
   <a href="#路线图">路线图</a>
@@ -442,6 +443,64 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 ### 6. 查看结果
 
 建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图），并弹出“模型生成完成!”提示。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
+
+## 1.2.1 更新要点
+
+- 功能区、工具栏与命令按钮使用品牌多尺寸图标。
+- 重绘提示面板、设置对话框与可编辑 JSON 预览。
+- 安装包加入 GPLv3 许可页、现代向导、静默注册与卸载清理。
+- 自带密钥（BYOK）设置使用 Windows DPAPI 加密保存。
+- README 内嵌带说明条的安装、工作流与卸载 GIF。
+
+## 安装、升级与卸载
+
+### 环境要求
+
+| 组件 | 要求 |
+|---|---|
+| 操作系统 | Windows 10/11，x64 |
+| CAD | SolidWorks 2025（已测试）；旧版本可能需要 UI 兜底 |
+| 运行时 | .NET Framework 4.8 |
+| 服务端 | 正在运行的 Vulcan 服务端，本地或远程 |
+
+### 安装
+
+<p align="center">
+  <img src="docs/assets/vulcan-install.gif" alt="Vulcan 安装向导：欢迎页、GPLv3 许可、目标目录与完成页" width="100%">
+</p>
+
+1. 运行 `Vulcan-Setup-1.2.1.exe`，在 UAC 提示中允许管理员权限。
+2. 接受 GPLv3 许可，保留默认目录 `{autopf}\Vulcan` 或选择其他位置。
+3. 安装包复制插件、依赖与图标，并以 `install.bat /quiet` 调用 `RegAsm` 注册 x64 插件。
+4. 重启 SolidWorks，`Vulcan AI` 标签页与 `AI生成` 工具栏按钮即可使用。
+
+静默安装：
+
+```bat
+Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
+
+便携方式：解压 `Vulcan-1.2.1-portable.zip`，以管理员身份运行 `install.bat`。
+
+### 升级
+
+在已有安装上直接运行新版安装包。安装程序沿用原目录并重新注册插件，不会改动 `%APPDATA%\Vulcan\settings.json`，服务端地址、Token 与 BYOK 配置都会保留。
+
+### 卸载
+
+<p align="center">
+  <img src="docs/assets/vulcan-uninstall.gif" alt="Vulcan 卸载程序：确认、移除进度与完成页" width="100%">
+</p>
+
+1. 打开 **设置 → 应用 → 已安装的应用**，找到 **Vulcan AI For SolidWorks** 并选择**卸载**；也可以运行 `C:\Program Files\Vulcan\unins000.exe`。
+2. 确认移除。卸载程序执行 `uninstall.bat /quiet`，注销插件、删除安装目录，并清理 SolidWorks 插件注册表项。
+3. 重启 SolidWorks。`%APPDATA%\Vulcan` 中的设置与桌面 `Vulcan_Logs` 中的日志会被保留；如需彻底清理请手动删除。
+
+静默卸载：
+
+```bat
+"C:\Program Files\Vulcan\unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+```
 
 ## 测试
 
