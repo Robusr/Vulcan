@@ -1,58 +1,78 @@
-﻿using System;
+using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Vulcan.SolidWorksClient.Models;
-using Vulcan.SolidWorksClient.Services;
 
 namespace Vulcan.SolidWorksClient.Services
 {
     public class ApiClient
     {
+        private const string DefaultBaseUrl = "http://127.0.0.1:5000";
         private readonly HttpClient _httpClient;
-        private readonly string _baseUrl = "http://38.99.243.36:5000"; // 你的后端地址
+        private readonly string _baseUrl;
 
-        public ApiClient()
+        public ApiClient(string baseUrl = null, string apiToken = null)
         {
+            _baseUrl = (baseUrl ?? Environment.GetEnvironmentVariable("VULCAN_SERVER_URL") ?? DefaultBaseUrl).TrimEnd('/');
+            string token = apiToken ?? Environment.GetEnvironmentVariable("VULCAN_API_TOKEN");
+            bool allowInsecure = string.Equals(
+                Environment.GetEnvironmentVariable("VULCAN_ALLOW_INSECURE"),
+                "true",
+                StringComparison.OrdinalIgnoreCase);
+
+            if (!Uri.TryCreate(_baseUrl, UriKind.Absolute, out Uri uri))
+            {
+                throw new ArgumentException($"VULCAN_SERVER_URL 不是有效地址: {_baseUrl}", nameof(baseUrl));
+            }
+            if (uri.Scheme != Uri.UriSchemeHttps && !uri.IsLoopback && !allowInsecure)
+            {
+                throw new InvalidOperationException(
+                    "非本机服务端必须使用 HTTPS。若在可信局域网内测试，请设置 VULCAN_ALLOW_INSECURE=true。");
+            }
+
             _httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromSeconds(30) // 和后端超时时间匹配
+                Timeout = TimeSpan.FromSeconds(30)
             };
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            if (!string.IsNullOrWhiteSpace(token))
+            {
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", token);
+            }
         }
 
         /// <summary>
-        /// 调用后端生成接口，获取建模参数
+        /// 调用后端生成接口，获取建模参数。
         /// </summary>
         /// <param name="userPrompt">用户输入的自然语言建模需求</param>
-        /// <returns>解析后的ModelData</returns>
+        /// <returns>解析后的 ModelData</returns>
         public async Task<ModelData> GenerateModelAsync(string userPrompt)
         {
             try
             {
-                Logger.Info($"正在调用后端接口，用户需求：{userPrompt}");
+                Logger.Info($"正在调用后端接口，prompt 长度：{userPrompt?.Length ?? 0}");
 
-                // 1. 构建请求
                 var request = new ApiRequest { prompt = userPrompt };
-                var jsonContent = JsonConvert.SerializeObject(request);
+                string jsonContent = JsonConvert.SerializeObject(request);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                // 2. 发送请求
                 var response = await _httpClient.PostAsync($"{_baseUrl}/api/v1/generate", content);
-                var responseContent = await response.Content.ReadAsStringAsync();
+                string responseContent = await response.Content.ReadAsStringAsync();
 
-                // 3. 处理错误响应
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorResponse = JsonConvert.DeserializeObject<ApiErrorResponse>(responseContent);
-                    string errorMsg = errorResponse?.message ?? $"接口请求失败，状态码：{(int)response.StatusCode}";
+                    string errorMsg = errorResponse?.message
+                        ?? $"接口请求失败，状态码：{(int)response.StatusCode}";
                     Logger.Error($"后端接口调用失败：{errorMsg}", null);
                     throw new Exception(errorMsg);
                 }
 
-                // 4. 解析成功响应
-                Logger.Info($"后端接口返回成功，原始内容：{responseContent}");
+                Logger.Info($"后端接口返回成功，内容长度：{responseContent.Length}");
                 var modelData = JsonConvert.DeserializeObject<ModelData>(responseContent);
 
                 if (modelData == null)

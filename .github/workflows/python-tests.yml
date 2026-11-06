@@ -1,0 +1,26 @@
+name: Python tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: release/server
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Run tests
+        run: pytest --cov=app --cov=config --cov=services --cov=utils --cov=prompts --cov-report=term-missing --cov-fail-under=85
+      - name: Audit dependencies
+        run: pip-audit -r requirements.txt

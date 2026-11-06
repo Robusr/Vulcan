@@ -4,11 +4,21 @@
 # Python
 **/__pycache__/
 **/venv/
+.venv/
 *.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+.audit_tmp/
 
 # Environment & secrets
 .env
+.env.*
+!**/.env.example
+
+# Logs
 *.log
+*.log.*
 
 # Visual Studio
 .vs/
@@ -17,6 +27,22 @@
 **/obj/
 **/bin/
 **/packages/
+*.nupkg
+*.pdb
+*.tlb
+!**/ReferenceDLL/*.tlb
+*.baml
+*.cache
+*.Up2Date
+*.force
+
+# Installer payloads and local build output
+release/client/Vulcan.SolidWorksClient/dist/
+release/client/Vulcan.SolidWorksClient/Vulcan Setup/Output/
+release/client/Vulcan.SolidWorksClient/Vulcan Setup/{pf}/
 
 # macOS
 .DS_Store
+
+# Local test/build output
+/dist/

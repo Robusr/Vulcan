@@ -1,0 +1,17 @@
+name: Client build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: microsoft/setup-msbuild@v2
+      - name: Restore NuGet packages
+        run: nuget restore release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln
+      - name: Build x64 Release
+        run: msbuild release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln /p:Configuration=Release /p:Platform=x64 /v:minimal

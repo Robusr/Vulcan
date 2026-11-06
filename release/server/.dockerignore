@@ -1,0 +1,15 @@
+.env
+.env.*
+!.env.example
+*.log
+*.log.*
+__pycache__/
+**/__pycache__/
+.venv/
+venv/
+.pytest_cache/
+tests/
+Dockerfile
+.dockerignore
+README*
+docs/

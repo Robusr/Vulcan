@@ -1,8 +1,10 @@
 # Robusr Mar.24th
-# 定义服务器调用LLM业务异常
+# Business exceptions returned by the LLM pipeline.
+
 
 class VulcanBaseError(Exception):
-    """基础异常类"""
+    """Base exception for Vulcan server errors."""
+
     status_code = 500
 
     def __init__(self, message):
@@ -11,15 +13,18 @@ class VulcanBaseError(Exception):
 
 
 class APIConnectionError(VulcanBaseError):
-    """网络连接错误"""
-    status_code = 502
+    """The upstream LLM provider is unreachable or timed out."""
 
-
-class LLMResponseError(VulcanBaseError):
-    """LLM 响应错误"""
     status_code = 503
 
 
+class LLMResponseError(VulcanBaseError):
+    """The upstream response could not be parsed or validated."""
+
+    status_code = 500
+
+
 class ParamValidationError(VulcanBaseError):
-    """参数验证错误"""
+    """The request parameters are invalid."""
+
     status_code = 400
