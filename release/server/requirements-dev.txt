@@ -1,5 +1,5 @@
 pytest==8.3.3
 pytest-cov==7.1.0
 requests-mock==1.12.1
-pywin32>=306; sys_platform == "win32"
+pywin32>=312; sys_platform == "win32"
 pip-audit>=2.10.1
