@@ -9,7 +9,7 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: microsoft/setup-msbuild@v3
       - name: Restore NuGet packages
         run: nuget restore release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln
