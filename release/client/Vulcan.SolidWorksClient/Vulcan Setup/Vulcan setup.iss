@@ -43,10 +43,10 @@ VersionInfoDescription=Vulcan AI For SolidWorks
 Source: "..\dist\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 [Run]
-Filename: "{app}\install.bat"; Description: "Register Vulcan with SolidWorks"; StatusMsg: "正在安装 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist
+Filename: "{app}\install.bat"; Description: "Register Vulcan with SolidWorks"; StatusMsg: "正在安装 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist; Parameters: "/quiet"
 
 [UninstallRun]
-Filename: "{app}\uninstall.bat"; StatusMsg: "正在卸载 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist
+Filename: "{app}\uninstall.bat"; StatusMsg: "正在卸载 Vulcan..."; Flags: runhidden waituntilterminated skipifdoesntexist; Parameters: "/quiet"
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
