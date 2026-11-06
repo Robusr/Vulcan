@@ -90,6 +90,9 @@ Ce README se concentre sur `release/`. La piste Beta est conservée comme réfé
 | Serveur portable | Fonctionne en local, dans Docker ou derrière un tunnel ; seul le client exige Windows. |
 | Chaîne de traitement débogable | Pas de `exec()` dans la version release ; chaque étape est journalisée et typée. |
 | Exécution API d’abord | API natives prioritaires ; en cas d’échec d’extrusion ou de coupe, repli clavier dans le panneau natif. |
+| Clé personnelle | Renseignez la clé du fournisseur, l’URL de base et le modèle dans la boîte de dialogue de réglages. La clé est chiffrée par Windows DPAPI sur votre machine et n’est transmise qu’à votre serveur Vulcan, le temps d’une requête. |
+| Aperçu éditable | Chaque réponse s’ouvre dans un aperçu JSON éditable. Rien n’atteint SolidWorks avant votre validation. |
+| Installation silencieuse | L’installateur demande l’élévation, enregistre l’add-in x64 avec `RegAsm` et se désinstalle proprement. |
 
 ## Architecture du système
 
@@ -260,7 +263,7 @@ La piste Rebuild traite le LLM comme un **paramétreur guidé par un schéma**. 
 
 ### Un client mince, un serveur portable
 
-1. **Les clés restent côté serveur.** Intégrer une clé d’API LLM dans une macro cliente n’est pas acceptable.
+1. **Les clés restent côté serveur par défaut.** Intégrer une clé d’API LLM dans une macro cliente n’est pas acceptable. Lorsqu’un utilisateur choisit d’apporter sa propre clé, l’add-in la chiffre localement avec Windows DPAPI et ne la transmet à son serveur Vulcan que le temps d’une requête.
 2. **Les prompts évoluent vite.** Mettre à jour un prompt serveur prend quelques secondes ; livrer un nouvel add-in exige une compilation et une réinstallation.
 3. **Le serveur peut tourner sans interface.** Cela préserve la possibilité de traitement par lots, de contrôles CI et d’une future interface web.
 
@@ -344,14 +347,14 @@ La réponse est l’arbre de fonctions lui-même, sans enveloppe supplémentaire
 
 ### 5. Installer ou compiler le client
 
-**Option A — installateur précompilé.** Les installateurs précompilés peuvent être diffusés via GitHub Releases, ou construits localement. Compilez `Release | x64`, puis exécutez `build_installer.ps1` ; il prépare le payload dans `dist/` et produit `Vulcan Setup/Output/Vulcan.exe`. L’installateur enregistre l’add-in avec `RegAsm`. Définissez `VULCAN_SERVER_URL` et `VULCAN_API_TOKEN` dans l’environnement Windows pour pointer vers votre serveur.
+**Option A — installateur précompilé.** Les installateurs précompilés peuvent être diffusés via GitHub Releases, ou construits localement. Compilez `Release | x64`, puis exécutez `build_installer.ps1` ; il prépare le payload dans `dist/` et produit `Vulcan Setup/Output/Vulcan.exe`. L’installateur demande l’élévation, enregistre l’add-in x64 avec `RegAsm` en silence et ne laisse aucune fenêtre de console ouverte. Une fois l’installation terminée, lancez SolidWorks et configurez le client dans l’add-in : cliquez sur **设置** en haut à droite du panneau Vulcan, puis saisissez l’URL du serveur, un éventuel jeton partagé et, si vous voulez utiliser votre propre clé, la clé API, l’URL de base et le modèle du fournisseur. Les réglages sont stockés dans `%APPDATA%\Vulcan\settings.json`, les secrets étant chiffrés par Windows DPAPI.
 
 **Option B — compilation depuis les sources.**
 
 1. Ouvrez `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` dans Visual Studio 2022.
 2. Restaurez les paquets NuGet (le client utilise `Newtonsoft.Json`).
 3. Le projet référence les assemblys d’interopérabilité SolidWorks dans `ReferenceDLL/`. Remplacez ces fichiers si votre version de SolidWorks diffère.
-4. Définissez la variable d’environnement Windows `VULCAN_SERVER_URL` vers votre serveur, par exemple `https://vulcan.example.com`. Définissez `VULCAN_API_TOKEN` si le serveur l’exige.
+4. Après la compilation et l’enregistrement, ouvrez la boîte de dialogue **设置** et saisissez l’URL de votre serveur, par exemple `https://vulcan.example.com`, ainsi que `VULCAN_API_TOKEN` si le serveur l’exige. Les variables d’environnement équivalentes (`VULCAN_SERVER_URL`, `VULCAN_API_TOKEN`) restent valables et servent de repli lorsque la boîte de dialogue est vide.
 5. Compilez en `Release / x64`. SolidWorks est 64 bits ; ne livrez pas de build x86.
 6. Exécutez `build_installer.ps1` pour préparer le payload, puis lancez `dist\install.bat` depuis une invite de commandes élevée, ou exécutez `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase` directement.
 7. Redémarrez SolidWorks et ouvrez une pièce. L’onglet `Vulcan AI` doit apparaître.
@@ -372,7 +375,7 @@ Create a 200 x 100 x 20 mm base on the front plane, with a 10 mm through hole at
 Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversant de 10 mm à chaque coin.
 ```
 
-Cliquez sur **开始生成** (Générer). L’add-in construit les fonctions, ajuste la vue et laisse un arbre de fonctions éditable.
+Cliquez sur **开始生成** (Générer). L’add-in récupère un arbre de fonctions et ouvre un aperçu JSON éditable. Vérifiez les paramètres, corrigez ce que le modèle a mal compris, puis cliquez sur **执行建模** (Exécuter). C’est seulement à ce moment que le modeleur construit les fonctions, ajuste la vue et laisse un arbre de fonctions éditable. Annuler l’aperçu ne modifie pas le document.
 
 ## Tests
 
@@ -434,14 +437,30 @@ Les noms `QINIU_*` sont historiques : le premier déploiement utilisait Qiniu Cl
 
 Utilisez un modèle fort en suivi d’instructions et fiable en sortie JSON. Les modèles faibles produisent les échecs classiques : balises Markdown, prose avant le JSON ou coordonnées qui se chevauchent.
 
-### Point d’accès du client
+### Réglages du client
 
-Le client lit `VULCAN_SERVER_URL` et `VULCAN_API_TOKEN` dans l’environnement Windows. La valeur par défaut est `http://127.0.0.1:5000`. Les hôtes non locaux doivent utiliser HTTPS, sauf si `VULCAN_ALLOW_INSECURE=true` est défini pour un réseau local de confiance.
+L’add-in se configure dans sa propre boîte de dialogue : cliquez sur **设置** en haut à droite du panneau Vulcan.
+
+| Champ | Rôle |
+|---|---|
+| URL du serveur | Le serveur Vulcan, par exemple `https://vulcan.example.com` |
+| Jeton du serveur | Correspond à `VULCAN_API_TOKEN` lorsque le serveur exige un jeton Bearer |
+| Clé API LLM | Votre propre clé de fournisseur ; laissez vide pour utiliser celle du serveur |
+| URL de base LLM | URL de base compatible OpenAI de votre fournisseur |
+| Modèle | Nom du modèle, par exemple `gpt-4o-mini` |
+
+La boîte de dialogue propose aussi **测试连接** (test de santé), **打开日志目录** (ouvrir le dossier des journaux) et **保存** (enregistrer). Les réglages sont écrits dans `%APPDATA%\Vulcan\settings.json` ; `ServerToken` et `LlmApiKey` sont chiffrés par Windows DPAPI pour l’utilisateur courant, donc le fichier n’est pas portable d’une machine ou d’un compte à l’autre et ne doit jamais être versionné.
+
+L’ordre de résolution de l’URL du serveur est : argument explicite du constructeur → boîte de dialogue → `VULCAN_SERVER_URL` → `http://127.0.0.1:5000`. Le jeton suit le même ordre. Les remplacements LLM sont envoyés au serveur via les en-têtes `X-LLM-API-Key`, `X-LLM-Base-URL` et `X-LLM-Model` ; les champs vides sont omis et le serveur retombe sur sa configuration `QINIU_*`.
+
+Les variables d’environnement restent utiles pour les déploiements scriptés ou partagés :
 
 ```bat
 setx VULCAN_SERVER_URL "https://vulcan.example.com"
 setx VULCAN_API_TOKEN "your-shared-token"
 ```
+
+Les hôtes non locaux doivent utiliser HTTPS, sauf si `VULCAN_ALLOW_INSECURE=true` est défini pour un réseau local de confiance.
 
 ### Réglages
 
@@ -499,6 +518,16 @@ Les erreurs utilisent une petite enveloppe :
 | `503` | Le fournisseur LLM est injoignable ou la requête a expiré |
 | `500` | La réponse du LLM est illisible, ou une erreur serveur inconnue est survenue |
 
+**En-têtes de clé personnelle (facultatifs).** L’add-in peut remplacer le fournisseur du serveur pour une requête donnée :
+
+| En-tête | Rôle |
+|---|---|
+| `X-LLM-API-Key` | Clé du fournisseur, utilisée pour cette requête uniquement |
+| `X-LLM-Base-URL` | URL de base compatible OpenAI ; ignorée si `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` |
+| `X-LLM-Model` | Nom du modèle |
+
+Les en-têtes absents retombent sur `QINIU_*`. Les valeurs sont limitées en longueur, l’URL de base doit commencer par `http` ou `https`, et ni les clés ni les prompts ne sont écrits dans le journal du serveur.
+
 **Sécurité.** Le serveur prend en charge un jeton Bearer optionnel et une limitation par IP. Il ne termine pas TLS et n’a pas de comptes utilisateurs. Gardez `HOST=127.0.0.1` ou placez-le derrière un proxy inverse TLS, définissez `VULCAN_API_TOKEN`, et n’activez jamais le mode debug Flask en production.
 
 ## Structure du projet
@@ -523,8 +552,8 @@ Vulcan/
     │   └── Vulcan.SolidWorksClient/
     │       ├── Core/             #   SwAddIn — enregistrement COM et cycle de vie
     │       ├── Models/           #   ModelData — types de requête et réponse
-    │       ├── Services/         #   ApiClient, SwModeler, Logger
-    │       ├── UI/               #   MainWindow (WPF, 500 × 300)
+    │       ├── Services/         #   ApiClient, SwModeler, SettingsStore, Logger
+    │       ├── UI/               #   MainWindow, SettingsWindow, PreviewWindow (WPF)
     │       ├── ReferenceDLL/     #   Assemblys d’interopérabilité SolidWorks
     │       ├── Vulcan Setup/     #   Installateur Inno Setup
     │       └── packaging/        #   scripts install/uninstall et build_installer.ps1
@@ -570,6 +599,11 @@ Vulcan/
 | Une demande en chinois ou en français est mal comprise | Le modèle manque de vocabulaire technique multilingue | Utilisez un modèle multilingue ; le prompt système est en chinois |
 | La compilation échoue sur les références SolidWorks | `ReferenceDLL/` ne correspond pas à votre version de SolidWorks | Remplacez les assemblys d’interopérabilité dans `ReferenceDLL/` par des versions correspondantes |
 | L’enregistrement de l’installateur échoue | SolidWorks tourne, ou le shell n’est pas élevé | Fermez SolidWorks et relancez l’installateur en administrateur |
+| La boîte de dialogue ne joint pas le serveur | URL erronée, serveur arrêté ou jeton incorrect | Utilisez **测试连接** ; vérifiez `VULCAN_SERVER_URL` et la console du serveur |
+| Le fournisseur renvoie `401` ou `403` | La clé personnelle est invalide, expirée ou sans accès au modèle | Saisissez à nouveau la clé dans **设置** ; vérifiez la console du fournisseur |
+| L’aperçu refuse le JSON modifié | La modification ne respecte plus le contrat | Conservez `feature_type` (ou `features`) et un objet `params` ; voir le contrat JSON |
+| Les réglages ne sont pas conservés | `%APPDATA%\Vulcan` n’est pas accessible en écriture, ou le profil Windows a changé | Vérifiez les droits du dossier ; les secrets sont chiffrés par Windows utilisateur |
+| L’onglet manque après une réinstallation | Un ancien enregistrement pointe vers l’ancien chemin de DLL | Exécutez `uninstall.bat` en administrateur, puis réinstallez |
 | La pièce apparaît mais les trous sont mal placés | Le plan ou la convention de coordonnées ne correspond pas à la demande | Inspectez le JSON renvoyé ; l’heuristique des quatre coins travaille en X/Y sur le plan de face |
 
 Les journaux serveur sont écrits dans `vulcan_server.log` dans le répertoire de travail, avec rotation à 5 Mo, et ne sont pas suivis par Git. À INFO, les prompts ne sont journalisés qu’en longueur ; définissez `LOG_LEVEL=DEBUG` pour le contenu complet en local. Les journaux client sont écrits dans `Vulcan_Logs/log_YYYYMMDD.txt` sur le bureau.
@@ -583,6 +617,9 @@ Les journaux serveur sont écrits dans `vulcan_server.log` dans le répertoire d
 - [ ] Prompts système natifs en anglais et en français, pas seulement le comportement multilingue du modèle.
 - [ ] Adaptateurs de fournisseurs et réponses en flux.
 - [x] Authentification Bearer optionnelle et limitation par IP.
+- [x] Réglages de fournisseur avec clé personnelle, chiffrée localement par Windows DPAPI.
+- [x] Aperçu JSON éditable avant exécution.
+- [x] Scripts d’installation et de désinstallation silencieux et auto-élevés.
 - [x] Tests de régression des prompts et workflow CI Python.
 - [ ] Couche COM simulée pour la CI client.
 - [ ] Interface en volet des tâches au lieu d’un panneau modal.

@@ -90,6 +90,9 @@ This README focuses on `release/`. The Beta track is kept for reference and for 
 | Portable server | Runs locally, in Docker, or behind a tunnel; only the client needs Windows. |
 | Debuggable pipeline | No `exec()` in the release track; each stage is logged and typed. |
 | API-first execution | Native feature APIs first. Extrusion and cut failures fall back to a keyboard-driven native panel. |
+| Bring your own key | Set the provider key, base URL, and model in the add-in settings dialog. The key is DPAPI-encrypted on your machine and sent only to your Vulcan server, for the duration of a request. |
+| Editable preview | Every response opens in an editable JSON preview. Nothing reaches SolidWorks until you review and confirm the feature tree. |
+| Quiet install and uninstall | The installer self-elevates, registers the x64 add-in with `RegAsm`, and uninstalls cleanly without leaving a stale registration behind. |
 
 ## System architecture
 
@@ -260,7 +263,7 @@ The Rebuild track treats the LLM as a **schema-driven parameterizer**. The model
 
 ### A thin client and a portable server
 
-1. **Keys stay server-side.** Embedding an LLM API key in a client-side macro is not acceptable.
+1. **Keys stay server-side by default.** Embedding an LLM API key in a client-side macro is not acceptable. When a user chooses to bring their own key, the add-in stores it locally with Windows DPAPI and forwards it to their Vulcan server only for the duration of a request.
 2. **Prompts iterate quickly.** Updating a server prompt takes seconds; shipping a new add-in requires a rebuild and reinstall.
 3. **The server can run headless.** That keeps the door open for batch processing, CI checks, and a future web front end.
 
@@ -344,14 +347,14 @@ The response is the feature tree itself, not a wrapper. If `VULCAN_API_TOKEN` is
 
 ### 5. Install or build the client
 
-**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. Run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan.exe`. The installer registers the add-in with `RegAsm`. Set `VULCAN_SERVER_URL` and `VULCAN_API_TOKEN` in the Windows environment to point the client at your server.
+**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. Run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client in the add-in: click **设置** in the top-right corner of the Vulcan panel and enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
 
 **Option B — build from source.**
 
 1. Open `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` in Visual Studio 2022.
 2. Restore NuGet packages (the client uses `Newtonsoft.Json`).
 3. The project references the SolidWorks interop assemblies in `ReferenceDLL/`. Replace those files if your SolidWorks version differs.
-4. Set the `VULCAN_SERVER_URL` environment variable to your server, for example `https://vulcan.example.com`. Set `VULCAN_API_TOKEN` if the server requires it.
+4. Build and register, then open the **设置** dialog and enter your server URL, for example `https://vulcan.example.com`, plus `VULCAN_API_TOKEN` if the server requires one. The equivalent Windows environment variables (`VULCAN_SERVER_URL`, `VULCAN_API_TOKEN`) still work and act as a fallback when the settings dialog is empty.
 5. Build `Release | x64`. SolidWorks is 64-bit; do not ship an x86 build.
 6. Run `build_installer.ps1` to stage the payload, then execute `dist\install.bat` from an elevated command prompt, or run `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase` directly.
 7. Restart SolidWorks and open a Part document. The `Vulcan AI` ribbon tab should appear.
@@ -372,7 +375,7 @@ Create a 200 x 100 x 20 mm base on the front plane, with a 10 mm through hole at
 Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversant de 10 mm à chaque coin.
 ```
 
-Click **开始生成** (Generate). The add-in builds the features, zooms to fit, and leaves the model as an editable feature tree.
+Click **开始生成** (Generate). The add-in fetches a feature tree and opens an editable JSON preview. Review the parameters, adjust anything the model got wrong, and click **执行建模** (Execute). Only then does the modeler build the features, zoom to fit, and leave the model as an editable feature tree. Cancelling the preview leaves SolidWorks untouched.
 
 ## Testing
 
@@ -434,14 +437,30 @@ The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. The c
 
 Use a model with strong instruction-following and reliable JSON output. Weak models produce the classic failure modes: markdown wrappers, prose before the JSON, or coordinates that overlap.
 
-### Client endpoint
+### Client settings
 
-The client reads `VULCAN_SERVER_URL` and `VULCAN_API_TOKEN` from the Windows environment. The default is `http://127.0.0.1:5000`. Non-loopback hosts must use HTTPS unless `VULCAN_ALLOW_INSECURE=true` is set for a trusted LAN.
+The add-in is configured in its own dialog: click **设置** in the top-right corner of the Vulcan panel.
+
+| Field | Purpose |
+|---|---|
+| Server URL | The Vulcan server, for example `https://vulcan.example.com` |
+| Server token | Matches `VULCAN_API_TOKEN` when the server requires a bearer token |
+| LLM API Key | Your own provider key; leave empty to use the server's key |
+| LLM Base URL | OpenAI-compatible base URL for your provider |
+| LLM Model | Model name, for example `gpt-4o-mini` |
+
+The dialog also has **测试连接** (health check), **打开日志目录** (open the client log folder), and **保存**. Settings are written to `%APPDATA%\Vulcan\settings.json`; `ServerToken` and `LlmApiKey` are encrypted with Windows DPAPI for the current user, so the file is not portable across machines or accounts and must never be committed.
+
+Resolution order for the server URL is: explicit constructor argument → settings dialog → `VULCAN_SERVER_URL` → `http://127.0.0.1:5000`. The token follows the same order. The LLM overrides are sent to the server as `X-LLM-API-Key`, `X-LLM-Base-URL`, and `X-LLM-Model`; empty fields are omitted, so the server falls back to its own `QINIU_*` configuration.
+
+The environment variables still work for scripted or shared deployments:
 
 ```bat
 setx VULCAN_SERVER_URL "https://vulcan.example.com"
 setx VULCAN_API_TOKEN "your-shared-token"
 ```
+
+Non-loopback hosts must use HTTPS unless `VULCAN_ALLOW_INSECURE=true` is set for a trusted LAN.
 
 ### Tuning
 
@@ -499,6 +518,16 @@ Errors use a small envelope:
 | `503` | The LLM provider is unreachable or the request timed out |
 | `500` | The LLM response could not be parsed, or an unknown server error occurred |
 
+**Bring-your-own-key headers (optional).** The add-in can override the server's provider for a single request:
+
+| Header | Purpose |
+|---|---|
+| `X-LLM-API-Key` | Provider key, used for this request only |
+| `X-LLM-Base-URL` | OpenAI-compatible base URL; ignored when `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` |
+| `X-LLM-Model` | Model name |
+
+Omitted headers fall back to `QINIU_*`. Values are length-limited, the base URL must use `http` or `https`, and neither keys nor prompts are written to the server log.
+
 **Security.** The server supports an optional bearer token and per-IP rate limiting. It does not terminate TLS and has no user accounts. Keep `HOST=127.0.0.1` or put it behind a TLS reverse proxy, set `VULCAN_API_TOKEN`, and never enable Flask debug mode in production.
 
 ## Project structure
@@ -523,8 +552,8 @@ Vulcan/
     │   └── Vulcan.SolidWorksClient/
     │       ├── Core/             #   SwAddIn — COM registration and lifecycle
     │       ├── Models/           #   ModelData — request/response types
-    │       ├── Services/         #   ApiClient, SwModeler, Logger
-    │       ├── UI/               #   MainWindow (WPF, 500 × 300)
+    │       ├── Services/         #   ApiClient, SwModeler, SettingsStore, Logger
+    │       ├── UI/               #   MainWindow, SettingsWindow, PreviewWindow (WPF)
     │       ├── ReferenceDLL/     #   SolidWorks interop assemblies
     │       ├── Vulcan Setup/     #   Inno Setup installer
     │       └── packaging/        #   install/uninstall scripts and build_installer.ps1
@@ -570,6 +599,11 @@ Vulcan/
 | Chinese or French request is misunderstood | The model lacks multilingual engineering vocabulary | Use a multilingual model; the system prompt is Chinese |
 | Build fails on SolidWorks references | `ReferenceDLL/` does not match your SolidWorks version | Replace the interop assemblies in `ReferenceDLL/` with matching ones |
 | Installer registration fails | SolidWorks is running, or the shell is not elevated | Close SolidWorks and rerun the installer as administrator |
+| Settings dialog cannot reach the server | Wrong URL, server down, or a token mismatch | Use **测试连接** in the dialog; check `VULCAN_SERVER_URL` and the server console |
+| Provider returns `401` or `403` | The BYOK key is invalid, expired, or lacks access to the model | Re-enter the key in **设置**; check the provider console |
+| Preview rejects the edited JSON | The edit no longer matches the contract | Keep `feature_type` (or `features`) and a `params` object; see the JSON contract |
+| Settings do not persist | `%APPDATA%\Vulcan` is not writable, or the Windows profile changed | Check folder permissions; the secrets are DPAPI-encrypted per Windows user |
+| Ribbon missing after reinstalling | An old registration still points at the previous DLL path | Run `uninstall.bat` as administrator, then reinstall |
 | Model appears but holes are in the wrong place | The plane or coordinate convention does not match the request | Inspect the returned JSON; the four-corner heuristic assumes front-plane X/Y |
 
 Server logs are written to `vulcan_server.log` in the working directory, rotated at 5 MB, and ignored by git. Prompts are logged by length at INFO level; set `LOG_LEVEL=DEBUG` to include full content locally. Client logs are written to `Vulcan_Logs/log_YYYYMMDD.txt` on the desktop.
@@ -583,6 +617,9 @@ Server logs are written to `vulcan_server.log` in the working directory, rotated
 - [ ] Native English and French system prompts, not only multilingual model behavior.
 - [ ] Provider adapters and streaming responses.
 - [x] Optional bearer-token authentication and per-IP rate limiting.
+- [x] Bring-your-own-key provider settings with local DPAPI storage.
+- [x] Editable JSON preview before execution.
+- [x] Self-elevating, quiet install and uninstall scripts.
 - [x] Prompt regression tests and a Python CI workflow.
 - [ ] A mocked COM layer for client CI.
 - [ ] A task-pane UI instead of a modal panel.

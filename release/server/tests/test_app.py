@@ -70,7 +70,7 @@ def test_prompt_too_long(client, monkeypatch):
 
 
 def test_success(client, monkeypatch):
-    monkeypatch.setattr(llm_client, "call_model", lambda prompt: VALID_TREE)
+    monkeypatch.setattr(llm_client, "call_model", lambda prompt, **kwargs: VALID_TREE)
     response = client.post("/api/v1/generate", json={"prompt": "a cylinder"})
     assert response.status_code == 200
     assert response.get_json()["feature_type"] == "extrude"
@@ -80,7 +80,7 @@ def test_multi_feature_envelope(client, monkeypatch):
     monkeypatch.setattr(
         llm_client,
         "call_model",
-        lambda prompt: {"model_name": "Plate", "features": [VALID_TREE]},
+        lambda prompt, **kwargs: {"model_name": "Plate", "features": [VALID_TREE]},
     )
     response = client.post("/api/v1/generate", json={"prompt": "a plate"})
     assert response.status_code == 200
@@ -88,13 +88,13 @@ def test_multi_feature_envelope(client, monkeypatch):
 
 
 def test_invalid_envelope(client, monkeypatch):
-    monkeypatch.setattr(llm_client, "call_model", lambda prompt: {"foo": "bar"})
+    monkeypatch.setattr(llm_client, "call_model", lambda prompt, **kwargs: {"foo": "bar"})
     response = client.post("/api/v1/generate", json={"prompt": "a plate"})
     assert response.status_code == 400
 
 
 def test_llm_connection_error(client, monkeypatch):
-    def fail(prompt):
+    def fail(prompt, **kwargs):
         raise APIConnectionError("provider down")
 
     monkeypatch.setattr(llm_client, "call_model", fail)
@@ -103,7 +103,7 @@ def test_llm_connection_error(client, monkeypatch):
 
 
 def test_llm_response_error(client, monkeypatch):
-    def fail(prompt):
+    def fail(prompt, **kwargs):
         raise LLMResponseError("bad json")
 
     monkeypatch.setattr(llm_client, "call_model", fail)
@@ -113,7 +113,7 @@ def test_llm_response_error(client, monkeypatch):
 
 def test_invalid_feature_params(client, monkeypatch):
     monkeypatch.setattr(
-        llm_client, "call_model", lambda prompt: {"feature_type": "fillet", "params": {}}
+        llm_client, "call_model", lambda prompt, **kwargs: {"feature_type": "fillet", "params": {}}
     )
     response = client.post("/api/v1/generate", json={"prompt": "fillet"})
     assert response.status_code == 400
@@ -125,7 +125,7 @@ def test_auth_required(client, monkeypatch):
     response = client.post("/api/v1/generate", json={"prompt": "a plate"})
     assert response.status_code == 401
 
-    monkeypatch.setattr(llm_client, "call_model", lambda prompt: VALID_TREE)
+    monkeypatch.setattr(llm_client, "call_model", lambda prompt, **kwargs: VALID_TREE)
     response = client.post(
         "/api/v1/generate",
         json={"prompt": "a plate"},
@@ -135,7 +135,7 @@ def test_auth_required(client, monkeypatch):
 
 
 def test_rate_limit(client, monkeypatch):
-    monkeypatch.setattr(llm_client, "call_model", lambda prompt: VALID_TREE)
+    monkeypatch.setattr(llm_client, "call_model", lambda prompt, **kwargs: VALID_TREE)
     monkeypatch.setattr(rate_limiter, "limit", 1)
     rate_limiter.reset()
 

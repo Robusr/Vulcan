@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Controls;
 using Vulcan.SolidWorksClient.Services;
 
 namespace Vulcan.SolidWorksClient.UI
@@ -7,20 +8,46 @@ namespace Vulcan.SolidWorksClient.UI
     public partial class MainWindow : Window
     {
         private readonly SwModeler _swModeler;
-        private readonly ApiClient _apiClient;
         private readonly string _defaultPromptText = "例如：在前视基准面拉伸一个直径50，高度100圆柱体";
 
         public MainWindow(SwModeler swModeler)
         {
             InitializeComponent();
             _swModeler = swModeler ?? throw new ArgumentNullException(nameof(swModeler));
-            _apiClient = new ApiClient();
+            AddSettingsButton();
+        }
+
+        private void AddSettingsButton()
+        {
+            var root = Content as Grid;
+            if (root == null)
+            {
+                return;
+            }
+
+            var settingsButton = new Button
+            {
+                Content = "设置",
+                Width = 56,
+                Height = 24,
+                HorizontalAlignment = HorizontalAlignment.Right,
+                VerticalAlignment = VerticalAlignment.Top,
+                Margin = new Thickness(0, -4, 0, 0),
+                ToolTip = "配置服务端、Token 和 LLM API Key"
+            };
+            settingsButton.Click += (s, e) =>
+            {
+                var window = new SettingsWindow { Owner = this };
+                if (window.ShowDialog() == true)
+                {
+                    StatusText.Text = "设置已保存";
+                }
+            };
+            Grid.SetRow(settingsButton, 0);
+            root.Children.Add(settingsButton);
         }
 
         #region 占位符焦点事件
-        /// <summary>
-        /// 输入框获得焦点，清空默认提示文本
-        /// </summary>
         private void PromptTextBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if (PromptTextBox.Text.Trim() == _defaultPromptText)
@@ -29,9 +56,6 @@ namespace Vulcan.SolidWorksClient.UI
             }
         }
 
-        /// <summary>
-        /// 输入框失去焦点，无内容时恢复默认提示文本
-        /// </summary>
         private void PromptTextBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(PromptTextBox.Text))
@@ -42,14 +66,10 @@ namespace Vulcan.SolidWorksClient.UI
         #endregion
 
         #region 生成按钮点击事件
-        /// <summary>
-        /// 生成按钮点击事件
-        /// </summary>
         private async void GenerateBtn_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                // 1. 获取用户输入，过滤默认提示文本
                 string userPrompt = PromptTextBox.Text.Trim();
                 if (string.IsNullOrEmpty(userPrompt) || userPrompt == _defaultPromptText)
                 {
@@ -57,19 +77,23 @@ namespace Vulcan.SolidWorksClient.UI
                     return;
                 }
 
-                // 2. 禁用按钮，防止重复点击
                 GenerateBtn.IsEnabled = false;
                 GenerateBtn.Content = "正在生成模型...";
                 StatusText.Text = "正在请求云端生成参数...";
 
-                // 3. 调用后端接口
-                var modelData = await _apiClient.GenerateModelAsync(userPrompt);
+                var apiClient = new ApiClient();
+                var modelData = await apiClient.GenerateModelAsync(userPrompt);
 
-                // 4. 执行建模
+                var preview = new PreviewWindow(modelData, userPrompt) { Owner = this };
+                if (preview.ShowDialog() != true || preview.Result == null)
+                {
+                    StatusText.Text = "已取消执行";
+                    return;
+                }
+
                 StatusText.Text = "正在执行建模...";
-                _swModeler.ExecuteModeling(modelData, userPrompt);
+                _swModeler.ExecuteModeling(preview.Result, userPrompt);
 
-                // 5. 完成
                 StatusText.Text = "模型生成完成！";
                 MessageBox.Show("模型生成完成！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
             }
@@ -80,7 +104,6 @@ namespace Vulcan.SolidWorksClient.UI
             }
             finally
             {
-                // 恢复按钮状态
                 GenerateBtn.IsEnabled = true;
                 GenerateBtn.Content = "开始生成";
             }

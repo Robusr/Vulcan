@@ -90,6 +90,9 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | 服务端可移植 | 本地、Docker 或隧道后运行；只有客户端需要 Windows。 |
 | 可调试管线 | release 版本没有 `exec()`；每个阶段都有日志和类型。 |
 | API 优先执行 | 优先调用原生特征 API；拉伸和切除失败时，使用键盘驱动的原生面板兜底。 |
+| 自带密钥 | 在插件设置对话框中填写提供商密钥、Base URL 和模型。密钥用 Windows DPAPI 在本机加密，仅在一次请求期间发送到你自己的 Vulcan 服务端。 |
+| 可编辑预览 | 每份响应都会打开可编辑的 JSON 预览，确认之前不会写入 SolidWorks。 |
+| 静默安装与卸载 | 安装包自动提权，静默调用 `RegAsm` 注册 x64 插件，卸载时干净移除注册。 |
 
 ## 系统架构
 
@@ -260,7 +263,7 @@ Rebuild 版本把大模型当作**由模式驱动的参数填充器**。模型�
 
 ### 薄客户端，可移植服务端
 
-1. **密钥留在服务端。** 把大模型 API 密钥嵌入客户端宏不可接受。
+1. **默认把密钥留在服务端。** 把大模型 API 密钥嵌入客户端宏不可接受。当用户选择自带密钥时，插件会用 Windows DPAPI 在本机加密保存，并只在单次请求期间转发给用户自己的 Vulcan 服务端。
 2. **提示词可以快速迭代。** 更新服务端提示词只需几秒；发布新插件则需要重新构建和安装。
 3. **服务端可以无头运行。** 这为批处理、CI 检查和未来的 Web 前端保留了空间。
 
@@ -344,14 +347,14 @@ curl -s http://127.0.0.1:5000/api/v1/generate \
 
 ### 5. 安装或构建客户端
 
-**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，再运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan.exe`。安装包会调用 `RegAsm` 注册插件。请在 Windows 环境变量中设置 `VULCAN_SERVER_URL` 和 `VULCAN_API_TOKEN`，让客户端连接你的服务端。
+**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，再运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在插件面板右上角点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
 
 **方案 B——从源码构建。**
 
 1. 在 Visual Studio 2022 中打开 `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln`。
 2. 还原 NuGet 包（客户端使用 `Newtonsoft.Json`）。
 3. 项目使用 `ReferenceDLL/` 中的 SolidWorks 互操作程序集；如果你的 SolidWorks 版本不同，请替换这些文件。
-4. 设置 Windows 环境变量 `VULCAN_SERVER_URL` 指向你的服务端，例如 `https://vulcan.example.com`。如果服务端启用了鉴权，再设置 `VULCAN_API_TOKEN`。
+4. 构建并注册后，打开**设置**对话框填写服务端地址，例如 `https://vulcan.example.com`；如果服务端启用了鉴权，再填写 `VULCAN_API_TOKEN`。等价的环境变量（`VULCAN_SERVER_URL`、`VULCAN_API_TOKEN`）仍然可用，并在设置对话框留空时作为兜底。
 5. 构建 `Release / x64`。SolidWorks 是 64 位程序，不要发布 x86 构建。
 6. 运行 `build_installer.ps1` 暂存负载，然后以管理员身份执行 `dist\install.bat`，或直接运行 `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase`。
 7. 重启 SolidWorks，打开一个零件文档。`Vulcan AI` 功能区标签页应当出现。
@@ -372,7 +375,7 @@ Create a 200 x 100 x 20 mm base on the front plane, with a 10 mm through hole at
 Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversant de 10 mm à chaque coin.
 ```
 
-点击**开始生成**。插件完成建模、自动缩放到合适视图，并留下可编辑的特征树。
+点击**开始生成**。插件获取特征树后会先打开可编辑的 JSON 预览：确认参数、修正模型理解有偏差的地方，再点击**执行建模**。此时才会写入 SolidWorks、自动缩放到合适视图，并留下可编辑的特征树；取消预览不会改动当前文档。
 
 ## 测试
 
@@ -434,14 +437,30 @@ LOG_FILE="vulcan_server.log"
 
 建议选择指令遵循能力强、JSON 输出稳定的模型。较弱的模型通常会出现这些问题：Markdown 包裹、JSON 前后夹杂解释，或坐标重叠。
 
-### 客户端端点
+### 客户端设置
 
-客户端从 Windows 环境变量读取 `VULCAN_SERVER_URL` 和 `VULCAN_API_TOKEN`。默认地址是 `http://127.0.0.1:5000`。非本机地址必须使用 HTTPS，除非在可信局域网内设置 `VULCAN_ALLOW_INSECURE=true`。
+插件在自己的对话框中完成配置：点击 Vulcan 面板右上角的**设置**。
+
+| 字段 | 用途 |
+|---|---|
+| 服务端地址 | Vulcan 服务端，例如 `https://vulcan.example.com` |
+| 服务端 Token | 对应 `VULCAN_API_TOKEN`，服务端启用鉴权时填写 |
+| LLM API Key | 你自己的提供商密钥；留空则使用服务端配置 |
+| LLM Base URL | 提供商的 OpenAI 兼容 Base URL |
+| 模型名称 | 例如 `gpt-4o-mini` |
+
+对话框还提供**测试连接**（健康检查）、**打开日志目录**和**保存**。设置写入 `%APPDATA%\Vulcan\settings.json`，其中 `ServerToken` 和 `LlmApiKey` 使用 Windows DPAPI 按当前用户加密，因此文件不能跨机器或跨账户复制，也不能提交到仓库。
+
+服务端地址的优先级为：构造函数显式参数 → 设置对话框 → `VULCAN_SERVER_URL` 环境变量 → `http://127.0.0.1:5000`；Token 遵循同样的顺序。LLM 覆盖项以 `X-LLM-API-Key`、`X-LLM-Base-URL`、`X-LLM-Model` 请求头发送给服务端，留空的字段不会发送，服务端会回退到自己的 `QINIU_*` 配置。
+
+环境变量仍然适用于脚本化或共享部署：
 
 ```bat
 setx VULCAN_SERVER_URL "https://vulcan.example.com"
 setx VULCAN_API_TOKEN "your-shared-token"
 ```
+
+非本机地址必须使用 HTTPS，除非在可信局域网内设置 `VULCAN_ALLOW_INSECURE=true`。
 
 ### 参数调节
 
@@ -499,6 +518,16 @@ setx VULCAN_API_TOKEN "your-shared-token"
 | `503` | 大模型提供商不可达，或请求超时 |
 | `500` | 大模型响应无法解析，或其他服务端未知错误 |
 
+**自带密钥请求头（可选）。** 插件可以针对单次请求覆盖服务端的提供商：
+
+| 请求头 | 用途 |
+|---|---|
+| `X-LLM-API-Key` | 提供商密钥，仅用于本次请求 |
+| `X-LLM-Base-URL` | OpenAI 兼容 Base URL；`VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` 时忽略 |
+| `X-LLM-Model` | 模型名称 |
+
+未提供的请求头回退到 `QINIU_*`。取值有长度上限，Base URL 必须以 `http` 或 `https` 开头，密钥和提示词都不会写入服务端日志。
+
 **安全提示。** 服务端支持可选的 Bearer Token 和每 IP 限流，但不终止 TLS，也没有用户账户。请保持 `HOST=127.0.0.1`，或放在 TLS 反向代理之后，设置 `VULCAN_API_TOKEN`，并且不要在生产环境开启 Flask 调试模式。
 
 ## 项目结构
@@ -523,8 +552,8 @@ Vulcan/
     │   └── Vulcan.SolidWorksClient/
     │       ├── Core/             #   SwAddIn——COM 注册与生命周期
     │       ├── Models/           #   ModelData——请求/响应类型
-    │       ├── Services/         #   ApiClient、SwModeler、Logger
-    │       ├── UI/               #   MainWindow（WPF，500 × 300）
+    │       ├── Services/         #   ApiClient、SwModeler、SettingsStore、Logger
+    │       ├── UI/               #   MainWindow、SettingsWindow、PreviewWindow（WPF）
     │       ├── ReferenceDLL/     #   SolidWorks 互操作程序集
     │       ├── Vulcan Setup/     #   Inno Setup 安装包
     │       └── packaging/        #   install/uninstall 脚本与 build_installer.ps1
@@ -570,6 +599,11 @@ Vulcan/
 | 中文或法文需求理解偏差 | 模型缺乏多语言工程词汇 | 使用多语言模型；系统提示词为中文 |
 | 构建时报 SolidWorks 引用错误 | `ReferenceDLL/` 与当前 SolidWorks 版本不匹配 | 用版本匹配的互操作程序集替换 `ReferenceDLL/` 中的文件 |
 | 安装包注册失败 | SolidWorks 正在运行，或终端未提权 | 关闭 SolidWorks，以管理员身份重新运行安装包 |
+| 设置对话框连不上服务端 | 地址错误、服务端未启动或 Token 不匹配 | 在对话框中使用**测试连接**；检查 `VULCAN_SERVER_URL` 与服务端控制台 |
+| 提供商返回 `401` 或 `403` | 自带密钥无效、过期或无权访问该模型 | 在**设置**中重新填写密钥；检查提供商控制台 |
+| 预览拒绝编辑后的 JSON | 修改后不再符合契约 | 保留 `feature_type`（或 `features`）和 `params` 对象；参见 JSON 契约 |
+| 设置无法保存 | `%APPDATA%\Vulcan` 不可写，或 Windows 账户已切换 | 检查目录权限；密钥按 Windows 用户加密 |
+| 重装后功能区不出现 | 旧注册仍指向之前的 DLL 路径 | 以管理员身份运行 `uninstall.bat` 后重新安装 |
 | 模型生成但孔位不对 | 基准面或坐标约定与需求不一致 | 检查返回的 JSON；四角孔启发式按前视 X/Y 坐标工作 |
 
 服务端日志写入工作目录下的 `vulcan_server.log`，按 5 MB 轮转，并且不进入 Git。INFO 级别只记录提示词长度；本地调试时可设置 `LOG_LEVEL=DEBUG` 记录完整内容。客户端日志写入桌面上的 `Vulcan_Logs/log_YYYYMMDD.txt`。
@@ -583,6 +617,9 @@ Vulcan/
 - [ ] 原生英文和法文系统提示词，而不只依赖模型的多语言能力。
 - [ ] 提供商适配器与流式响应。
 - [x] 可选的 Bearer Token 鉴权和每 IP 限流。
+- [x] 自带密钥的提供商设置，密钥经 Windows DPAPI 本地加密。
+- [x] 执行前可编辑的 JSON 预览。
+- [x] 自动提权的静默安装与卸载脚本。
 - [x] 提示词回归测试和 Python CI 工作流。
 - [ ] 可在 CI 中运行的 COM 抽象层。
 - [ ] 用任务窗格替代模态面板。

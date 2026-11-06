@@ -85,6 +85,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Net.Http" />
+    <Reference Include="System.Security" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
@@ -94,10 +95,13 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\ApiClient.cs" />
     <Compile Include="Services\Logger.cs" />
+    <Compile Include="Services\SettingsStore.cs" />
     <Compile Include="Services\SwModeler.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="UI\PreviewWindow.cs" />
+    <Compile Include="UI\SettingsWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

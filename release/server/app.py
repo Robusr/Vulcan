@@ -73,8 +73,14 @@ def generate_model():
                 f"prompt长度不能超过{Config.MAX_PROMPT_LENGTH}个字符", 400
             )
 
-        # 2. Ask the LLM for a feature tree.
-        model_data = llm_client.call_model(user_prompt)
+        # 2. Ask the LLM for a feature tree. Per-request BYOK overrides come
+        #    from headers the client plugin sends (its own key/base URL/model).
+        model_data = llm_client.call_model(
+            user_prompt,
+            api_key=request.headers.get("X-LLM-API-Key"),
+            base_url=request.headers.get("X-LLM-Base-URL"),
+            model=request.headers.get("X-LLM-Model"),
+        )
         if not isinstance(model_data, dict):
             return _error("模型返回格式错误", 400)
 
