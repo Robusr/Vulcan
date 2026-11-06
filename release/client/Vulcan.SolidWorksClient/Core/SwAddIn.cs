@@ -213,7 +213,7 @@ namespace VulcanAddin
                 IntPtr ownerHwnd = IntPtr.Zero;
                 try
                 {
-                    var frame = _swApp.Frame();
+                    Frame frame = _swApp.Frame() as Frame;
                     if (frame != null)
                     {
                         ownerHwnd = new IntPtr(frame.GetHWnd());
