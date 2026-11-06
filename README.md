@@ -72,11 +72,11 @@ This README focuses on `release/`. The Beta track is kept for reference and for 
 </p>
 
 <p align="center">
-  <img src="docs/assets/vulcan-workflow.gif" alt="Vulcan 1.2.0 workflow: a Chinese prompt, an editable JSON preview, and a native feature tree in SolidWorks" width="100%">
+  <img src="docs/assets/vulcan-workflow.gif" alt="Vulcan 1.2.1 workflow: a Chinese prompt, an editable JSON preview, and a native feature tree in SolidWorks" width="100%">
 </p>
 
 <p align="center">
-  <sub>The shipped 1.2.0 workflow: describe the part, review or edit the generated JSON, then let the add-in build native features. Captured from the installed add-in.</sub>
+  <sub>The shipped 1.2.1 workflow: describe the part, review or edit the generated JSON, then let the add-in build native features. Captured from the installed add-in.</sub>
 </p>
 
 
@@ -355,7 +355,7 @@ The response is the feature tree itself, not a wrapper. If `VULCAN_API_TOKEN` is
 
 ### 5. Install or build the client
 
-**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. Run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan-Setup-1.2.0.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client in the add-in: click **设置** in the top-right corner of the Vulcan panel and enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
+**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. Run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client in the add-in: click **设置** in the top-right corner of the Vulcan panel and enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
 
 **Option B — build from source.**
 
