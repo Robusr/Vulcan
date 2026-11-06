@@ -38,3 +38,10 @@ class Config:
     QINIU_BASE_URL = (os.getenv("QINIU_BASE_URL") or "").rstrip("/")
     QINIU_MODEL = os.getenv("QINIU_MODEL", "gpt-oss-120b")
     LLM_TIMEOUT = _int_env("LLM_TIMEOUT", 30)
+
+    # BYOK: let each client override key/base URL/model per request.
+    ALLOW_CUSTOM_LLM_BASE_URL = os.getenv(
+        "VULCAN_ALLOW_CUSTOM_LLM_BASE_URL", "true"
+    ).strip().lower() == "true"
+    MAX_LLM_API_KEY_LENGTH = _int_env("MAX_LLM_API_KEY_LENGTH", 512)
+    MAX_LLM_BASE_URL_LENGTH = _int_env("MAX_LLM_BASE_URL_LENGTH", 512)

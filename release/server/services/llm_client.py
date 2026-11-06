@@ -20,22 +20,38 @@ class LLMClient:
         self.model = Config.QINIU_MODEL
         self.system_prompt = SYSTEM_PROMPT
 
-    def _headers(self):
-        return {
-            "Authorization": f"Bearer {self.api_key}",
+    def call_model(self, user_input, api_key=None, base_url=None, model=None):
+        """Call the provider and return a parsed JSON feature tree.
+
+        The client may provide a per-request API key, base URL, and model.
+        When custom base URLs are disabled, the server-side URL wins.
+        """
+        effective_api_key = (api_key or "").strip() or (self.api_key or "").strip()
+        requested_base_url = (base_url or "").strip()
+        if requested_base_url and not Config.ALLOW_CUSTOM_LLM_BASE_URL:
+            logger.warning("客户端自定义 LLM Base URL 已被服务端配置禁用")
+            requested_base_url = ""
+        effective_base_url = (requested_base_url or self.base_url or "").rstrip("/")
+        effective_model = (model or "").strip() or self.model
+
+        if not effective_api_key or not effective_base_url:
+            raise APIConnectionError(
+                "未配置 LLM API Key 或 Base URL，请在插件设置中填写或配置服务端环境变量"
+            )
+        if len(effective_api_key) > Config.MAX_LLM_API_KEY_LENGTH:
+            raise APIConnectionError("LLM API Key 过长")
+        if len(effective_base_url) > Config.MAX_LLM_BASE_URL_LENGTH:
+            raise APIConnectionError("LLM Base URL 过长")
+        if not effective_base_url.startswith(("http://", "https://")):
+            raise APIConnectionError("LLM Base URL 必须以 http:// 或 https:// 开头")
+
+        headers = {
+            "Authorization": f"Bearer {effective_api_key}",
             "Content-Type": "application/json",
         }
-
-    def call_model(self, user_input: str) -> dict:
-        """Call the provider and return a parsed JSON feature tree."""
-        if not self.api_key or not self.base_url:
-            raise APIConnectionError(
-                "未配置 LLM API Key 或 Base URL，请检查 QINIU_API_KEY 和 QINIU_BASE_URL"
-            )
-
-        url = f"{self.base_url}/chat/completions"
+        url = f"{effective_base_url}/chat/completions"
         payload = {
-            "model": self.model,
+            "model": effective_model,
             "messages": [
                 {"role": "system", "content": self.system_prompt},
                 {"role": "user", "content": user_input},
@@ -47,11 +63,15 @@ class LLMClient:
             "presence_penalty": 0,
         }
 
-        logger.info("正在请求 LLM，prompt 长度=%d", len(user_input))
+        logger.info(
+            "正在请求 LLM，model=%s，prompt 长度=%d",
+            effective_model,
+            len(user_input),
+        )
         try:
             response = requests.post(
                 url,
-                headers=self._headers(),
+                headers=headers,
                 json=payload,
                 timeout=Config.LLM_TIMEOUT,
             )
