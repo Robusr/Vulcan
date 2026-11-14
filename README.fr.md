@@ -212,12 +212,20 @@ Un seul des quatre trous est représenté. La réponse complète répète la fon
 | `revolve` | Fait tourner un profil décalé autour d’un axe. | `plane`, `shape`, dimensions du profil, et `center_x` ou `center_y` décalé de l’axe |
 | `fillet` | Arrondit toutes les arêtes du solide courant. | `radius` |
 | `chamfer` | Applique un chanfrein à distance égale à toutes les arêtes. | `distance` |
+| `linear_pattern` | Répète le solide courant dans une direction. | `direction`, `count`, `spacing` ; en option `count2`, `spacing2`, `seed`, `flip` |
+| `circular_pattern` | Répète le solide courant autour d’un axe. | `axis`, `count`, `angle` ; en option `equal_spacing`, `seed`, `flip` |
+| `mirror` | Met le solide courant en miroir par rapport à un plan. | `plane` ; en option `seed`, `merge` |
+| `shell` | Évide le solide avec une épaisseur de paroi. | `thickness` ; en option `remove_faces`, `outward` |
+| `draft` | Applique un angle de dépouille aux faces choisies. | `angle` ; en option `faces`, `neutral_plane`, `propagation` |
+| `sweep` | Balaye un profil circulaire le long d’un chemin. | `diameter`, `path_length` ; en option `path_plane`, `path_shape` |
+| `loft` | Crée un lissage entre deux profils. | `height`, `profile1`, `profile2` ; en option `plane` |
+| `rib` | Insère une nervure à partir d’une esquisse ouverte. | `thickness`, `length` ; en option `plane`, `center_x`, `center_y`, `draft_angle`, `two_sided` |
 
 ### Schéma des fonctions
 
 | Champ | Type | Requis | Remarques |
 |---|---|---|---|
-| `feature_type` | chaîne | oui | `extrude`, `cut`, `revolve`, `fillet` ou `chamfer` |
+| `feature_type` | chaîne | oui | L’un des types du tableau des types de fonctions |
 | `name` | chaîne | non | Libellé lisible utilisé dans les journaux |
 | `params.plane` | chaîne | oui pour les fonctions d’esquisse | Plan demandé ; les plans de face, dessus et droite sont pris en charge |
 | `params.shape` | chaîne | oui pour les fonctions d’esquisse | `circle`, `rectangle`, `polygon`, `ellipse` ou `slot` |
@@ -247,6 +255,35 @@ Paramètres de fonctions supplémentaires :
 - **`fillet` :** exige `radius` ; applique un congé à rayon constant à toutes les arêtes du solide courant.
 - **`chamfer` :** exige `distance` ; applique un chanfrein à distance égale à toutes les arêtes du solide courant.
 - **`draft_angle` :** optionnel sur `extrude` et `cut`, en degrés de -89 à 89.
+- **`linear_pattern` / `circular_pattern` / `mirror` / `shell` / `draft` :** agissent sur le solide courant. `seed` peut référencer le `name` d’une fonction précédente de la même réponse ; le client le mappe au nom réel créé dans SolidWorks.
+- **`sweep` :** le balayage utilise un profil circulaire de `diameter`. Le chemin est dessiné sur `path_plane`, avec `path_shape` égal à `line` ou `arc` ; `path_length` est en millimètres.
+- **`loft` :** les deux profils sont des esquisses sur `plane` et sur un plan décalé de `height` millimètres. `profile1` et `profile2` utilisent les mêmes champs de forme que les fonctions d’esquisse.
+- **`rib` :** `length` est la longueur du segment d’esquisse dans le plan choisi. `direction` vaut `x` ou `y` dans ce plan et `y` par défaut ; `two_sided` vaut `true` par défaut. Le segment doit traverser la cavité pour que ses deux extrémités touchent les parois existantes.
+
+### Fonctions relationnelles et avancées
+
+| Type | Paramètres requis | Paramètres optionnels |
+|---|---|---|
+| `linear_pattern` | `direction`, `count`, `spacing` | `seed`, `count2`, `spacing2`, `flip` |
+| `circular_pattern` | `axis`, `count`, `angle` | `seed`, `equal_spacing`, `flip` |
+| `mirror` | `plane` | `seed`, `merge` |
+| `shell` | `thickness` | `remove_faces`, `outward` |
+| `draft` | `angle` | `faces`, `neutral_plane`, `propagation` |
+| `sweep` | `diameter`, `path_length` | `path_plane`, `path_shape`, `path_center_x`, `path_center_y` |
+| `loft` | `height`, `profile1`, `profile2` | `plane` |
+| `rib` | `thickness`, `length` | `plane`, `center_x`, `center_y`, `direction`, `draft_angle`, `two_sided` |
+
+`seed` référence le `name` d’une fonction précédente de la même réponse ; le client le mappe au nom réel créé dans SolidWorks. `sweep` utilise un profil circulaire ; `path_shape` vaut `line` ou `arc`. `loft` crée un plan décalé de `height` millimètres par rapport à `plane`. Pour `rib`, le segment d’esquisse doit traverser la cavité afin que ses deux extrémités touchent les parois existantes.
+
+```json
+{
+  "features": [
+    { "feature_type": "extrude", "name": "Base", "params": { "plane": "前视基准面", "shape": "rectangle", "length": 120, "width": 80, "depth": 12 } },
+    { "feature_type": "extrude", "name": "Boss", "params": { "plane": "前视基准面", "shape": "circle", "diameter": 16, "depth": 10, "center_x": -30, "center_y": 0 } },
+    { "feature_type": "mirror", "name": "Boss mirror", "params": { "seed": "Boss", "plane": "right" } }
+  ]
+}
+```
 
 ### Coordonnées et unités
 
@@ -292,7 +329,7 @@ Le repli est pragmatique, pas élégant. Gardez SolidWorks au premier plan penda
 
 ## Ingénierie du prompt
 
-Le prompt système se trouve dans [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py) et est versionné par `PROMPT_VERSION = "2.2.0"` (environ 198 lignes). Il encode cinq éléments :
+Le prompt système se trouve dans [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py) et est versionné par `PROMPT_VERSION = "2.4.0"` (environ 300 lignes). Il encode cinq éléments :
 
 1. **Discipline de sortie.** JSON uniquement — pas de Markdown, pas de prose, pas de balises de code.
 2. **Règles de coordonnées.** Correspondances axe-plan, avec un exemple travaillé pour une base de 200 × 100 × 20 et quatre trous.
@@ -443,6 +480,11 @@ La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON
 ### 6. Inspecter le résultat
 
 Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) et affiche **模型生成完成!**. Les journaux client vont dans `Vulcan_Logs\log_YYYYMMDD.txt`, ceux du serveur dans `vulcan_server.log`.
+
+## À venir
+
+- Ajout des fonctions natives `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib`.
+- Contrat du prompt passé à `PROMPT_VERSION = "2.4.0"` et documentation anglaise, chinoise et française mise à jour.
 
 ## Nouveautés de la 1.2.1
 
@@ -702,7 +744,7 @@ Vulcan/
 | SolidWorks | Construit et testé avec SolidWorks 2025 (`FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, `InsertFeatureChamfer`). Les versions antérieures peuvent nécessiter des ajustements de paramètres ou le repli interface ; elles ne font pas partie de la matrice testée. |
 | Plateforme client | Windows uniquement, x64, .NET Framework 4.8. |
 | Plateforme serveur | Python 3.10–3.11 ; local, Docker ou sans interface. |
-| Types de fonctions | `extrude`, `cut`, `revolve`, `fillet` et `chamfer` sont implémentés. Le balayage et le lissage ne le sont pas. |
+| Types de fonctions | `extrude`, `cut`, `revolve`, `fillet`, `chamfer`, `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib` sont implémentés. |
 | Plans | Le modeleur route les plans de face, de dessus et de droite et résout les noms chinois, anglais et français. |
 | Validation | Le serveur contrôle l’enveloppe et valide les paramètres des fonctions ; la désérialisation et les valeurs par défaut sont dans le client C#. |
 | Authentification | Jeton Bearer optionnel (`VULCAN_API_TOKEN`) et limitation par IP. TLS et comptes utilisateurs restent du ressort d’un proxy inverse. |
@@ -737,8 +779,9 @@ Les journaux serveur sont écrits dans `vulcan_server.log` dans le répertoire d
 
 - [x] Routage général des plans de référence.
 - [x] Fonctions révolution, congé et chanfrein.
-- [ ] Fonctions balayage et lissage.
-- [ ] Motifs de trous natifs, symétrie et répétitions linéaires ou circulaires.
+- [x] Fonctions balayage, lissage et nervure.
+- [x] Répétitions linéaires/circulaires et symétrie.
+- [ ] Assistant de perçage et améliorations des tableaux de trous.
 - [ ] Prompts système natifs en anglais et en français, pas seulement le comportement multilingue du modèle.
 - [ ] Adaptateurs de fournisseurs et réponses en flux.
 - [x] Authentification Bearer optionnelle et limitation par IP.

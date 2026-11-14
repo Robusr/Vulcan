@@ -4,7 +4,7 @@ from prompts.system_prompt import PROMPT_VERSION, SYSTEM_PROMPT
 
 
 def test_prompt_version_is_current():
-    assert PROMPT_VERSION == "2.2.0"
+    assert PROMPT_VERSION == "2.4.0"
 
 
 def test_prompt_example_has_four_unique_holes():
@@ -25,6 +25,20 @@ def test_prompt_example_has_four_unique_holes():
 
 def test_prompt_documents_new_feature_types():
     for feature_type in ("extrude", "cut", "revolve", "fillet", "chamfer"):
+        assert feature_type in SYSTEM_PROMPT
+
+
+def test_prompt_documents_relational_feature_types():
+    for feature_type in (
+        "linear_pattern",
+        "circular_pattern",
+        "mirror",
+        "shell",
+        "draft",
+        "sweep",
+        "loft",
+        "rib",
+    ):
         assert feature_type in SYSTEM_PROMPT
 
 
