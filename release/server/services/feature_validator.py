@@ -2,8 +2,35 @@
 # Keep this permissive enough for current models but strict on values that
 # would produce broken geometry or COM failures.
 
-ALLOWED_FEATURE_TYPES = {"extrude", "cut", "hole", "revolve", "fillet", "chamfer"}
+ALLOWED_FEATURE_TYPES = {
+    "extrude",
+    "cut",
+    "hole",
+    "revolve",
+    "fillet",
+    "chamfer",
+    "linear_pattern",
+    "circular_pattern",
+    "mirror",
+    "shell",
+    "draft",
+    "sweep",
+    "loft",
+    "rib",
+}
 ALLOWED_SHAPES = {"circle", "rectangle", "polygon", "ellipse", "slot"}
+ALLOWED_DIRECTIONS = {"x", "y", "z"}
+ALLOWED_MIRROR_PLANES = {
+    "front",
+    "top",
+    "right",
+    "前视基准面",
+    "上视基准面",
+    "右视基准面",
+}
+ALLOWED_REMOVE_FACES = {"top", "bottom", "front", "back", "left", "right", "none"}
+ALLOWED_DRAFT_FACES = {"sides", "top", "bottom"}
+ALLOWED_NEUTRAL_PLANES = {"front", "top", "right"}
 
 
 def _is_number(value):
@@ -26,6 +53,15 @@ def _number(params, key, errors, minimum=None, maximum=None, required=True):
     return value
 
 
+def _integer(params, key, errors, minimum=None, maximum=None, required=True):
+    value = _number(
+        params, key, errors, minimum=minimum, maximum=maximum, required=required
+    )
+    if value is not None and int(value) != value:
+        errors.append(f"{key} 必须是整数")
+    return value
+
+
 def _string(params, key, errors, allowed=None, required=True):
     if key not in params:
         if required:
@@ -38,6 +74,18 @@ def _string(params, key, errors, allowed=None, required=True):
     value = value.strip()
     if allowed is not None and value.lower() not in allowed:
         errors.append(f"{key} 不支持: {value}")
+    return value
+
+
+def _bool(params, key, errors, required=False, default=False):
+    if key not in params:
+        if required:
+            errors.append(f"缺少 {key}")
+        return default
+    value = params[key]
+    if not isinstance(value, bool):
+        errors.append(f"{key} 必须是布尔值")
+        return default
     return value
 
 
@@ -103,6 +151,101 @@ def _validate_sketch_feature(feature_type, params, errors):
                 errors.append("revolve 的 center_y 不能为 0，轮廓必须偏离旋转轴")
 
 
+def _validate_seed(params, errors):
+    _string(params, "seed", errors, required=False)
+
+
+def _validate_linear_pattern(params, errors):
+    _validate_seed(params, errors)
+    _string(params, "direction", errors, allowed=ALLOWED_DIRECTIONS)
+    _integer(params, "count", errors, minimum=2, maximum=1000)
+    _number(params, "spacing", errors, minimum=0.01)
+    _bool(params, "flip", errors)
+
+    count2 = params.get("count2")
+    spacing2 = params.get("spacing2")
+    if (count2 is None) != (spacing2 is None):
+        errors.append("count2 与 spacing2 必须同时提供")
+    else:
+        _integer(params, "count2", errors, minimum=2, maximum=1000, required=False)
+        _number(params, "spacing2", errors, minimum=0.01, required=False)
+
+
+def _validate_circular_pattern(params, errors):
+    _validate_seed(params, errors)
+    _string(params, "axis", errors, allowed=ALLOWED_DIRECTIONS)
+    _integer(params, "count", errors, minimum=2, maximum=1000)
+    _number(params, "angle", errors, minimum=0.01, maximum=360)
+    _bool(params, "equal_spacing", errors)
+    _bool(params, "flip", errors)
+
+
+def _validate_mirror(params, errors):
+    _validate_seed(params, errors)
+    _string(params, "plane", errors, allowed=ALLOWED_MIRROR_PLANES)
+    _bool(params, "merge", errors)
+
+
+def _validate_shell(params, errors):
+    _number(params, "thickness", errors, minimum=0.01)
+    _string(params, "remove_faces", errors, allowed=ALLOWED_REMOVE_FACES, required=False)
+    _bool(params, "outward", errors)
+
+
+def _validate_draft(params, errors):
+    _number(params, "angle", errors, minimum=-89, maximum=89)
+    _string(params, "faces", errors, allowed=ALLOWED_DRAFT_FACES, required=False)
+    _string(params, "neutral_plane", errors, allowed=ALLOWED_NEUTRAL_PLANES, required=False)
+    _integer(params, "propagation", errors, minimum=0, maximum=4, required=False)
+
+
+ALLOWED_PATH_SHAPES = {"line", "arc"}
+
+
+def _validate_profile(profile, errors, prefix):
+    if not isinstance(profile, dict):
+        errors.append(f"{prefix} 必须是 JSON 对象")
+        return
+    sub_errors = []
+    _validate_shape(profile, sub_errors)
+    _number(profile, "center_x", sub_errors, required=False)
+    _number(profile, "center_y", sub_errors, required=False)
+    errors.extend(prefix + error for error in sub_errors)
+
+
+def _validate_sweep(params, errors):
+    _number(params, "diameter", errors, minimum=0.01)
+    _number(params, "path_length", errors, minimum=0.01)
+    _string(params, "path_plane", errors, allowed=ALLOWED_MIRROR_PLANES, required=False)
+    _string(params, "path_shape", errors, allowed=ALLOWED_PATH_SHAPES, required=False)
+    _number(params, "path_center_x", errors, required=False)
+    _number(params, "path_center_y", errors, required=False)
+
+
+def _validate_loft(params, errors):
+    _string(params, "plane", errors, required=False)
+    _number(params, "height", errors, minimum=0.01)
+    if "profile1" not in params:
+        errors.append("缺少 profile1")
+    else:
+        _validate_profile(params["profile1"], errors, "profile1.")
+    if "profile2" not in params:
+        errors.append("缺少 profile2")
+    else:
+        _validate_profile(params["profile2"], errors, "profile2.")
+
+
+def _validate_rib(params, errors):
+    _number(params, "thickness", errors, minimum=0.01)
+    _number(params, "length", errors, minimum=0.01)
+    _string(params, "direction", errors, allowed={"x", "y"}, required=False)
+    _string(params, "plane", errors, required=False)
+    _number(params, "center_x", errors, required=False)
+    _number(params, "center_y", errors, required=False)
+    _number(params, "draft_angle", errors, minimum=-89, maximum=89, required=False)
+    _bool(params, "two_sided", errors)
+
+
 def validate_feature(feature, prefix=""):
     if not isinstance(feature, dict):
         return [f"{prefix}特征必须是 JSON 对象"]
@@ -125,6 +268,22 @@ def validate_feature(feature, prefix=""):
         _number(params, "radius", errors, minimum=0.01)
     elif feature_type == "chamfer":
         _number(params, "distance", errors, minimum=0.01)
+    elif feature_type == "linear_pattern":
+        _validate_linear_pattern(params, errors)
+    elif feature_type == "circular_pattern":
+        _validate_circular_pattern(params, errors)
+    elif feature_type == "mirror":
+        _validate_mirror(params, errors)
+    elif feature_type == "shell":
+        _validate_shell(params, errors)
+    elif feature_type == "draft":
+        _validate_draft(params, errors)
+    elif feature_type == "sweep":
+        _validate_sweep(params, errors)
+    elif feature_type == "loft":
+        _validate_loft(params, errors)
+    elif feature_type == "rib":
+        _validate_rib(params, errors)
 
     return [prefix + error for error in errors]
 

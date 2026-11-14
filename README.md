@@ -212,12 +212,20 @@ One of the four holes is shown. The full response repeats the `cut` feature with
 | `revolve` | Revolves an offset profile around an axis. | `plane`, `shape`, profile dimensions, and `center_x` or `center_y` offset from the axis |
 | `fillet` | Rounds every edge of the current solid. | `radius` |
 | `chamfer` | Applies an equal-distance chamfer to every edge. | `distance` |
+| `linear_pattern` | Repeats the current solid along a direction. | `direction`, `count`, `spacing`; optional `count2`, `spacing2`, `seed`, `flip` |
+| `circular_pattern` | Repeats the current solid around an axis. | `axis`, `count`, `angle`; optional `equal_spacing`, `seed`, `flip` |
+| `mirror` | Mirrors the current solid across a datum plane. | `plane`; optional `seed`, `merge` |
+| `shell` | Hollows the solid with a wall thickness. | `thickness`; optional `remove_faces`, `outward` |
+| `draft` | Applies a draft angle to selected faces. | `angle`; optional `faces`, `neutral_plane`, `propagation` |
+| `sweep` | Sweeps a circular profile along a path. | `diameter`, `path_length`; optional `path_plane`, `path_shape` |
+| `loft` | Lofts between two profiles. | `height`, `profile1`, `profile2`; optional `plane` |
+| `rib` | Inserts a rib from an open sketch. | `thickness`, `length`; optional `plane`, `center_x`, `center_y`, `draft_angle`, `two_sided` |
 
 ### Feature schema
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
-| `feature_type` | string | yes | `extrude`, `cut`, `revolve`, `fillet`, or `chamfer` |
+| `feature_type` | string | yes | One of the types in the feature types table |
 | `name` | string | no | Human-readable label used in logs |
 | `params.plane` | string | yes for sketch features | Requested datum plane; front, top, and right are supported |
 | `params.shape` | string | yes for sketch features | `circle`, `rectangle`, `polygon`, `ellipse`, or `slot` |
@@ -247,6 +255,35 @@ Additional feature parameters:
 - **`fillet`:** requires `radius`; applies a constant-radius fillet to all edges of the current solid.
 - **`chamfer`:** requires `distance`; applies an equal-distance chamfer to all edges of the current solid.
 - **`draft_angle`:** optional on `extrude` and `cut`, in degrees from -89 to 89.
+- **`linear_pattern` / `circular_pattern` / `mirror` / `shell` / `draft`:** operate on the current solid. `seed` may reference the `name` of an earlier feature in the same response; the client maps it to the generated SolidWorks feature name.
+- **`sweep`:** the sweep uses a circular profile of `diameter`. The path is drawn on `path_plane`, with `path_shape` set to `line` or `arc`; `path_length` is in millimetres.
+- **`loft`:** two profiles are sketches on `plane` and on an offset plane `height` millimetres away. `profile1` and `profile2` use the same shape fields as sketch features.
+- **`rib`:** `length` is the sketch line length in the chosen plane. `direction` is `x` or `y` in that plane and defaults to `y`; `two_sided` defaults to `true`. The line must span the cavity so both ends meet existing walls.
+
+### Relational and advanced features
+
+| Type | Required parameters | Optional parameters |
+|---|---|---|
+| `linear_pattern` | `direction`, `count`, `spacing` | `seed`, `count2`, `spacing2`, `flip` |
+| `circular_pattern` | `axis`, `count`, `angle` | `seed`, `equal_spacing`, `flip` |
+| `mirror` | `plane` | `seed`, `merge` |
+| `shell` | `thickness` | `remove_faces`, `outward` |
+| `draft` | `angle` | `faces`, `neutral_plane`, `propagation` |
+| `sweep` | `diameter`, `path_length` | `path_plane`, `path_shape`, `path_center_x`, `path_center_y` |
+| `loft` | `height`, `profile1`, `profile2` | `plane` |
+| `rib` | `thickness`, `length` | `plane`, `center_x`, `center_y`, `direction`, `draft_angle`, `two_sided` |
+
+`seed` matches the `name` of an earlier feature in the same response, and the client maps it to the generated SolidWorks feature name. `sweep` uses a circular profile; `path_shape` is `line` or `arc`. `loft` creates an offset plane `height` millimetres from `plane`. For `rib`, the sketch line must span the cavity so both ends meet existing walls.
+
+```json
+{
+  "features": [
+    { "feature_type": "extrude", "name": "Base", "params": { "plane": "前视基准面", "shape": "rectangle", "length": 120, "width": 80, "depth": 12 } },
+    { "feature_type": "extrude", "name": "Boss", "params": { "plane": "前视基准面", "shape": "circle", "diameter": 16, "depth": 10, "center_x": -30, "center_y": 0 } },
+    { "feature_type": "mirror", "name": "Boss mirror", "params": { "seed": "Boss", "plane": "right" } }
+  ]
+}
+```
 
 ### Coordinates and units
 
@@ -292,7 +329,7 @@ The fallback is pragmatic, not elegant. Keep SolidWorks focused while a model is
 
 ## Prompt engineering
 
-The system prompt lives in [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py) and is versioned with `PROMPT_VERSION = "2.2.0"` (about 198 lines). It encodes five things:
+The system prompt lives in [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py) and is versioned with `PROMPT_VERSION = "2.4.0"` (about 300 lines). It encodes five things:
 
 1. **Output discipline.** JSON only — no markdown, no prose, no code fences.
 2. **Coordinate rules.** Per-plane axis mappings, with a worked example for a 200 × 100 × 20 base and four holes.
@@ -443,6 +480,11 @@ The **检查并编辑建模参数** window shows the original request, an editab
 ### 6. Inspect the result
 
 The modeler creates native features (for the example: `凸台-拉伸1` plus its sketch). A **模型生成完成!** dialog confirms success. Client logs are written to `Vulcan_Logs\log_YYYYMMDD.txt`; server logs to `vulcan_server.log`.
+
+## Unreleased
+
+- Added native `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` features.
+- Raised the prompt contract to `PROMPT_VERSION = "2.4.0"` and updated the English, Chinese, and French documentation.
 
 ## What's new in 1.2.1
 
@@ -702,7 +744,7 @@ Vulcan/
 | SolidWorks | Built and tested against SolidWorks 2025 (`FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, `InsertFeatureChamfer`). Older releases may need parameter updates or the UI fallback; they are not part of the tested matrix. |
 | Client platform | Windows only, x64, .NET Framework 4.8. |
 | Server platform | Python 3.10–3.11; local, Docker, or headless. |
-| Feature types | `extrude`, `cut`, `revolve`, `fillet`, and `chamfer` are implemented. Sweep and loft are not. |
+| Feature types | `extrude`, `cut`, `revolve`, `fillet`, `chamfer`, `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` are implemented. |
 | Planes | The modeler routes front, top, and right datum planes and resolves Chinese, English, and French plane names. |
 | Validation | The server checks the envelope and validates feature parameters; envelope deserialization and field defaults live in the C# client. |
 | Authentication | Optional bearer token (`VULCAN_API_TOKEN`) and per-IP rate limiting. TLS and user accounts still belong in a reverse proxy. |
@@ -737,8 +779,9 @@ Server logs are written to `vulcan_server.log` in the working directory, rotated
 
 - [x] General datum-plane routing.
 - [x] Revolve, fillet, and chamfer features.
-- [ ] Sweep and loft features.
-- [ ] Native hole patterns, mirroring, and linear/circular arrays.
+- [x] Sweep, loft, and rib features.
+- [x] Linear/circular patterns and mirroring.
+- [ ] Hole Wizard and hole-array enhancements.
 - [ ] Native English and French system prompts, not only multilingual model behavior.
 - [ ] Provider adapters and streaming responses.
 - [x] Optional bearer-token authentication and per-IP rate limiting.

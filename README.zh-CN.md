@@ -212,12 +212,20 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | `revolve` | 让偏离旋转轴的轮廓绕轴旋转。 | `plane`、`shape`、轮廓尺寸，以及偏离轴的 `center_x` 或 `center_y` |
 | `fillet` | 对当前实体的所有边倒圆。 | `radius` |
 | `chamfer` | 对当前实体的所有边等距倒角。 | `distance` |
+| `linear_pattern` | 沿指定方向重复当前实体。 | `direction`、`count`、`spacing`；可选 `count2`、`spacing2`、`seed`、`flip` |
+| `circular_pattern` | 绕指定轴重复当前实体。 | `axis`、`count`、`angle`；可选 `equal_spacing`、`seed`、`flip` |
+| `mirror` | 按基准面镜像当前实体。 | `plane`；可选 `seed`、`merge` |
+| `shell` | 按壁厚抽壳。 | `thickness`；可选 `remove_faces`、`outward` |
+| `draft` | 对选定面施加拔模角。 | `angle`；可选 `faces`、`neutral_plane`、`propagation` |
+| `sweep` | 沿路径扫掠圆形轮廓。 | `diameter`、`path_length`；可选 `path_plane`、`path_shape` |
+| `loft` | 在两个截面之间放样。 | `height`、`profile1`、`profile2`；可选 `plane` |
+| `rib` | 由开放草图生成筋。 | `thickness`、`length`；可选 `plane`、`center_x`、`center_y`、`draft_angle`、`two_sided` |
 
 ### 特征模式
 
 | 字段 | 类型 | 必填 | 说明 |
 |---|---|---|---|
-| `feature_type` | string | 是 | `extrude`、`cut`、`revolve`、`fillet` 或 `chamfer` |
+| `feature_type` | string | 是 | 特征类型表中的任一类型 |
 | `name` | string | 否 | 用于日志的可读名称 |
 | `params.plane` | string | 草图特征必填 | 请求的基准面；支持前视、上视、右视 |
 | `params.shape` | string | 草图特征必填 | `circle`、`rectangle`、`polygon`、`ellipse` 或 `slot` |
@@ -247,6 +255,35 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 - **`fillet`：** 必填 `radius`；对当前实体的所有边应用等半径圆角。
 - **`chamfer`：** 必填 `distance`；对当前实体的所有边应用等距倒角。
 - **`draft_angle`：** `extrude` 和 `cut` 可选，单位为度，范围 -89 到 89。
+- **`linear_pattern` / `circular_pattern` / `mirror` / `shell` / `draft`：** 作用于当前实体。`seed` 可引用同一响应中前面特征的 `name`，客户端会映射到 SolidWorks 实际生成的特征名。
+- **`sweep`：** 使用 `diameter` 指定的圆形轮廓，路径画在 `path_plane` 上；`path_shape` 为 `line` 或 `arc`，`path_length` 单位为毫米。
+- **`loft`：** 两个截面分别位于 `plane` 与相距 `height` 毫米的偏移面上；`profile1`、`profile2` 使用与草图特征相同的形状字段。
+- **`rib`：** `length` 是所选基准面上草图线段的长度；`direction` 为该平面内的 `x` 或 `y`，默认 `y`；`two_sided` 默认 `true`。线段必须横跨型腔，两端接触已有壁面。
+
+### 关系型与高级特征
+
+| 类型 | 必填参数 | 可选参数 |
+|---|---|---|
+| `linear_pattern` | `direction`、`count`、`spacing` | `seed`、`count2`、`spacing2`、`flip` |
+| `circular_pattern` | `axis`、`count`、`angle` | `seed`、`equal_spacing`、`flip` |
+| `mirror` | `plane` | `seed`、`merge` |
+| `shell` | `thickness` | `remove_faces`、`outward` |
+| `draft` | `angle` | `faces`、`neutral_plane`、`propagation` |
+| `sweep` | `diameter`、`path_length` | `path_plane`、`path_shape`、`path_center_x`、`path_center_y` |
+| `loft` | `height`、`profile1`、`profile2` | `plane` |
+| `rib` | `thickness`、`length` | `plane`、`center_x`、`center_y`、`direction`、`draft_angle`、`two_sided` |
+
+`seed` 匹配同一响应中前面特征的 `name`，客户端会映射到 SolidWorks 实际生成的特征名。`sweep` 使用圆形轮廓，`path_shape` 为 `line` 或 `arc`。`loft` 会在 `plane` 的 `height` 毫米偏移处自动创建基准面。`rib` 的草图线段必须横跨型腔，两端接触已有壁面。
+
+```json
+{
+  "features": [
+    { "feature_type": "extrude", "name": "Base", "params": { "plane": "前视基准面", "shape": "rectangle", "length": 120, "width": 80, "depth": 12 } },
+    { "feature_type": "extrude", "name": "Boss", "params": { "plane": "前视基准面", "shape": "circle", "diameter": 16, "depth": 10, "center_x": -30, "center_y": 0 } },
+    { "feature_type": "mirror", "name": "Boss mirror", "params": { "seed": "Boss", "plane": "right" } }
+  ]
+}
+```
 
 ### 坐标与单位
 
@@ -292,7 +329,7 @@ SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征
 
 ## 提示词工程
 
-系统提示词位于 [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.2.0"`，约 198 行。它编码了五件事：
+系统提示词位于 [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.4.0"`，约 300 行。它编码了五件事：
 
 1. **输出纪律。** 只输出 JSON——没有 Markdown、没有解释、没有代码围栏。
 2. **坐标规则。** 逐基准面的轴映射，并给出 200 × 100 × 20 基体与四个孔的完整示例。
@@ -443,6 +480,11 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 ### 6. 查看结果
 
 建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图），并弹出“模型生成完成!”提示。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
+
+## 未发布
+
+- 新增原生 `linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib` 特征。
+- 提示词契约升级到 `PROMPT_VERSION = "2.4.0"`，英文、中文、法文文档同步更新。
 
 ## 1.2.1 更新要点
 
@@ -702,7 +744,7 @@ Vulcan/
 | SolidWorks | 已在 SolidWorks 2025 上构建并测试（`FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3`、`InsertFeatureChamfer`）。旧版本可能需要调整参数或使用 UI 兜底，不在已测试矩阵内。 |
 | 客户端平台 | 仅 Windows，x64，.NET Framework 4.8。 |
 | 服务端平台 | Python 3.10–3.11；本地、Docker 或无头运行。 |
-| 特征类型 | 已实现 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`。未实现扫描和放样。 |
+| 特征类型 | 已实现 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`、`linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib`。 |
 | 基准面 | 建模器支持前视、上视、右视基准面，并能解析中文、英文、法文名称。 |
 | 校验 | 服务端检查响应信封并校验特征参数；信封反序列化和字段默认值位于 C# 客户端。 |
 | 鉴权 | 支持可选的 Bearer Token（`VULCAN_API_TOKEN`）和每 IP 限流。TLS 与用户账户仍应由反向代理负责。 |
@@ -737,8 +779,9 @@ Vulcan/
 
 - [x] 通用基准面路由。
 - [x] 旋转、圆角、倒角特征。
-- [ ] 扫描和放样特征。
-- [ ] 原生孔阵列、镜像、线性/圆周阵列。
+- [x] 扫掠、放样和筋特征。
+- [x] 线性/圆周阵列与镜像。
+- [ ] 孔向导与孔阵列增强。
 - [ ] 原生英文和法文系统提示词，而不只依赖模型的多语言能力。
 - [ ] 提供商适配器与流式响应。
 - [x] 可选的 Bearer Token 鉴权和每 IP 限流。

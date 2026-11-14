@@ -40,7 +40,7 @@
     <text class="ui t" x="214" y="190">Prompt assembly</text>
     <text class="ui d" x="214" y="214">Domain prompt plus</text>
     <text class="ui d" x="214" y="232">user text; versioned</text>
-    <text class="ui m" x="214" y="252">PROMPT_VERSION 2.2.0</text>
+    <text class="ui m" x="214" y="252">PROMPT_VERSION 2.4.0</text>
   </g>
   <g>
     <rect x="360" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
