@@ -74,11 +74,11 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <img src="docs/assets/vulcan-workflow.gif" alt="Vulcan 1.2.1 工作流：中文提示词、可编辑 JSON 预览、SolidWorks 原生特征树" width="100%">
+  <img src="docs/assets/ui-generate-flow.gif" alt="Vulcan 当前工作流：在 Vulcan AI 标签页选择圆柱示例、生成特征树、检查可编辑 JSON，并在 SolidWorks 中写入原生拉伸特征" width="100%">
 </p>
 
 <p align="center">
-  <sub>1.2.1 实际工作流：打开面板 → 配置服务端 → 描述零件 → 检查或编辑 JSON → 由插件写入原生特征。截取自已安装的插件。</sub>
+  <sub>SolidWorks 2025 实际工作流：在 Vulcan AI 标签页选择示例 → 生成特征树 → 检查或编辑 JSON → 由插件写入原生特征。截取自已安装的插件。</sub>
 </p>
 
 
@@ -112,20 +112,37 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 | 层次 | 技术栈 | 职责 |
 |---|---|---|
-| 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、提示面板、DPAPI 设置、可编辑 JSON 预览、COM 执行 |
+| 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、任务窗格、状态窗口、DPAPI 设置、可编辑 JSON 预览、COM 执行 |
 | 传输 | HTTP REST / JSON | `POST /api/v1/generate`，以及 `POST /api/v1/generate/stream` 的 SSE 流式接口 |
 | 服务端 | Python 3.10+ / Flask 3 | 提示词组装、上游大模型调用、信封与参数校验、错误映射 |
 | 模型 | OpenAI 兼容 API | JSON 特征树生成 |
 | 部署 | Docker、反向代理或裸机 | 服务端任意部署；客户端与 SolidWorks 同机 |
 
-插件会在零件、装配和工程图中注册 `Vulcan AI` 功能区标签页，同时提供工具栏和菜单命令。按钮打开一个模态 WPF 面板，而不是独立的 CAD 应用。
+插件会在零件、装配和工程图中注册 `Vulcan AI` 功能区标签页，并提供工具栏、菜单命令和停靠式任务窗格。每个命令都有独立图标。主入口是任务窗格；如果窗格创建失败，会回退到模态 WPF 面板。
 
 <p align="center">
-  <img src="docs/assets/panel.svg" alt="Vulcan 插件提示面板布局示意" width="76%">
+  <img src="docs/assets/ui-toolbar-ribbon.png" alt="Vulcan AI 功能区标签页的八个命令，以及显示安装板提示词的任务窗格" width="100%">
 </p>
 
 <p align="center">
-  <sub>680 × 520 提示面板的布局示意。实际交付界面为中文；面板接受自然语言需求。</sub>
+  <sub>SolidWorks 2025 中的 Vulcan AI 标签页与命令组。每个命令都会打开任务窗格、对话框或状态视图。</sub>
+</p>
+
+<p align="center">
+  <img src="docs/assets/ui-command-tour.gif" alt="命令巡览：圆柱示例填入提示词，安装板示例替换提示词，状态命令打开运行状态窗口" width="100%">
+</p>
+
+<p align="center">
+  <sub>命令巡览：一键填入可直接运行的示例，状态命令打开包含实时服务端健康与最近运行的状态窗口。</sub>
+</p>
+
+<p align="center">
+  <img src="docs/assets/ui-task-pane.png" alt="停靠式 Vulcan 任务窗格：示例、连接测试、运行状态、日志快捷操作，以及提示词与生成按钮" width="36%">
+  <img src="docs/assets/ui-status-window.png" alt="Vulcan 状态窗口：服务端地址、提供商、连接状态、最近操作、特征数量与更新时间" width="54%">
+</p>
+
+<p align="center">
+  <sub>任务窗格让示例与健康检查触手可及；状态窗口记录最近操作、特征数量与错误。</sub>
 </p>
 
 ## 请求生命周期
@@ -507,6 +524,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 - 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；功能区命令在窗格不可用时回退模态面板。
 - 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
 - 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
+- README 配图更新为 SolidWorks 2025 实机截图（功能区标签页、任务窗格、状态窗口），并新增命令巡览与端到端生成 GIF。
 
 ## 1.2.1 更新要点
 
@@ -786,7 +804,7 @@ Vulcan/
 │       ├── client-python-beta/   #     使用 exec() 的 PyQt5 客户端
 │       └── server-python-beta/   #     FastAPI + AsyncOpenAI 服务端
 ├── docs/
-│   └── assets/                   #   三份 README 共用的矢量配图
+│   └── assets/                   #   三份 README 共用的配图、截图与 GIF
 ├── scripts/                      # 维护脚本
 └── tools/                        # 文档与演示工具
 ```

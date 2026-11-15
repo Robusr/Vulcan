@@ -74,11 +74,11 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 </p>
 
 <p align="center">
-  <img src="docs/assets/vulcan-workflow.gif" alt="Vulcan 1.2.1 workflow: a Chinese prompt, an editable JSON preview, and a native feature tree in SolidWorks" width="100%">
+  <img src="docs/assets/ui-generate-flow.gif" alt="Current Vulcan workflow: pick the cylinder example in the Vulcan AI tab, generate the feature tree, review the editable JSON, and build a native SolidWorks extrusion" width="100%">
 </p>
 
 <p align="center">
-  <sub>The shipped 1.2.1 workflow: open the panel, configure the server, describe the part, review the editable JSON, then build native features. Captured from the installed add-in.</sub>
+  <sub>Current workflow in SolidWorks 2025: pick an example from the Vulcan AI tab, generate the feature tree, review the editable JSON, then build native features. Captured from the installed add-in.</sub>
 </p>
 
 
@@ -112,20 +112,37 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 
 | Layer | Stack | Responsibility |
 |---|---|---|
-| Client | C# / WPF / .NET Framework 4.8 | `Vulcan AI` ribbon tab, prompt panel, DPAPI settings, editable JSON preview, COM execution |
+| Client | C# / WPF / .NET Framework 4.8 | `Vulcan AI` CommandManager tab, task pane, status window, DPAPI settings, editable JSON preview, COM execution |
 | Transport | HTTP REST / JSON | `POST /api/v1/generate`, plus SSE streaming at `POST /api/v1/generate/stream` |
 | Server | Python 3.10+ / Flask 3 | Prompt assembly, LLM call, envelope and parameter validation, error mapping |
 | Model | OpenAI-compatible API | JSON feature tree generation |
 | Deployment | Docker, reverse proxy, or bare metal | Server anywhere; client beside SolidWorks |
 
-The add-in registers a `Vulcan AI` ribbon tab for parts, assemblies, and drawings, plus a toolbar and menu command. The button opens a modal WPF panel; it is not a separate CAD application.
+The add-in registers a `Vulcan AI` CommandManager tab for parts, assemblies, and drawings, with a toolbar, menu commands, and a docked task pane. Each command has its own icon. The task pane is the primary entry point; if it cannot be created, the add-in falls back to a modal WPF panel.
 
 <p align="center">
-  <img src="docs/assets/panel.svg" alt="Layout mockup of the Vulcan add-in prompt panel" width="76%">
+  <img src="docs/assets/ui-toolbar-ribbon.png" alt="Vulcan AI CommandManager tab with eight commands and the docked task pane showing a plate prompt" width="100%">
 </p>
 
 <p align="center">
-  <sub>Layout mockup of the 680 × 520 prompt panel. The shipped UI is Chinese; the panel accepts natural-language requests.</sub>
+  <sub>The Vulcan AI tab and command group in SolidWorks 2025. Each command opens the task pane, a dialog, or a status view.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/assets/ui-command-tour.gif" alt="Command tour: cylinder example fills the prompt, plate example replaces it, and the status command opens the run status window" width="100%">
+</p>
+
+<p align="center">
+  <sub>Command tour: one click fills a ready-to-run example, and the status command opens a window with live server health and the last run.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/assets/ui-task-pane.png" alt="Docked Vulcan task pane with quick actions for examples, connection test, status, and logs, plus the prompt and generate button" width="36%">
+  <img src="docs/assets/ui-status-window.png" alt="Vulcan status window showing server address, provider, connection health, last action, feature count, and update time" width="54%">
+</p>
+
+<p align="center">
+  <sub>The docked task pane keeps examples and health checks one click away; the status window records the last action, feature count, and errors.</sub>
 </p>
 
 ## Request lifecycle
@@ -506,6 +523,7 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 - The task pane hosts the WPF panel through `SetParent` and stays interactive; the ribbon command falls back to the modal panel if hosting fails.
 - During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
 - Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
+- Refreshed the README media with real SolidWorks 2025 screenshots of the ribbon tab, task pane, and status window, plus command-tour and end-to-end generation GIFs.
 
 ## What's new in 1.2.1
 
@@ -785,7 +803,7 @@ Vulcan/
 │       ├── client-python-beta/   #     PyQt5 client with exec() execution
 │       └── server-python-beta/   #     FastAPI + AsyncOpenAI server
 ├── docs/
-│   └── assets/                   # Vector figures used by all three READMEs
+│   └── assets/                   # Shared figures, screenshots, and GIFs for the three READMEs
 ├── scripts/                      # Maintenance scripts
 └── tools/                        # Documentation and demo tooling
 ```

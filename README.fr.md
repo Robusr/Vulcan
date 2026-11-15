@@ -74,11 +74,11 @@ Ce README se concentre sur `client/` et `server/` à la racine. La piste beta es
 </p>
 
 <p align="center">
-  <img src="docs/assets/vulcan-workflow.gif" alt="Workflow Vulcan 1.2.1 : prompt en chinois, aperçu JSON éditable et arbre de fonctions natif dans SolidWorks" width="100%">
+  <img src="docs/assets/ui-generate-flow.gif" alt="Workflow actuel de Vulcan : choisir l’exemple de cylindre dans l’onglet Vulcan AI, générer l’arbre de fonctions, vérifier le JSON éditable et créer une extrusion native dans SolidWorks" width="100%">
 </p>
 
 <p align="center">
-  <sub>Le workflow livré en 1.2.1 : ouvrez le panneau, configurez le serveur, décrivez la pièce, vérifiez le JSON éditable, puis laissez l’add-in créer des fonctions natives. Capturé depuis l’add-in installé.</sub>
+  <sub>Workflow actuel dans SolidWorks 2025 : choisissez un exemple dans l’onglet Vulcan AI, générez l’arbre de fonctions, vérifiez le JSON éditable, puis laissez l’add-in créer des fonctions natives. Capturé depuis l’add-in installé.</sub>
 </p>
 
 
@@ -112,20 +112,37 @@ Ce README se concentre sur `client/` et `server/` à la racine. La piste beta es
 
 | Couche | Pile technique | Responsabilité |
 |---|---|---|
-| Client | C# / WPF / .NET Framework 4.8 | Onglet `Vulcan AI`, panneau de saisie, réglages DPAPI, aperçu JSON éditable, exécution COM |
-| Transport | HTTP REST / JSON | Point d’accès unique : `POST /api/v1/generate` |
+| Client | C# / WPF / .NET Framework 4.8 | Onglet `Vulcan AI`, volet de tâches, fenêtre d’état, réglages DPAPI, aperçu JSON éditable, exécution COM |
+| Transport | HTTP REST / JSON | `POST /api/v1/generate`, plus le flux SSE `POST /api/v1/generate/stream` |
 | Serveur | Python 3.10+ / Flask 3 | Assemblage du prompt, appel du LLM, validation de l’enveloppe et des paramètres, correspondance des erreurs |
 | Modèle | API compatible OpenAI | Génération de l’arbre de fonctions JSON |
 | Déploiement | Docker, proxy inverse ou serveur dédié | Serveur n’importe où ; client à côté de SolidWorks |
 
-Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les assemblages et les mises en plan, ainsi qu’une barre d’outils et une commande de menu. Le bouton ouvre un panneau WPF modal ; ce n’est pas une application de CAO séparée.
+Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les assemblages et les mises en plan, avec une barre d’outils, des commandes de menu et un volet de tâches ancré. Chaque commande possède sa propre icône. Le volet est le point d’entrée principal ; s’il ne peut pas être créé, l’add-in bascule sur un panneau WPF modal.
 
 <p align="center">
-  <img src="docs/assets/panel.svg" alt="Maquette du panneau de saisie de l’add-in Vulcan" width="76%">
+  <img src="docs/assets/ui-toolbar-ribbon.png" alt="Onglet CommandManager Vulcan AI avec huit commandes et le volet de tâches affichant un prompt de plaque" width="100%">
 </p>
 
 <p align="center">
-  <sub>Maquette de mise en page du panneau de 680 × 520 px. L’interface livrée est en chinois ; le panneau accepte des demandes en langage naturel.</sub>
+  <sub>L’onglet et le groupe de commandes Vulcan AI dans SolidWorks 2025. Chaque commande ouvre le volet, une boîte de dialogue ou une vue d’état.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/assets/ui-command-tour.gif" alt="Visite des commandes : l’exemple de cylindre remplit le prompt, l’exemple de plaque le remplace, puis la commande d’état ouvre la fenêtre d’état" width="100%">
+</p>
+
+<p align="center">
+  <sub>Visite des commandes : un clic remplit un exemple prêt à exécuter, et la commande d’état ouvre une fenêtre avec la santé du serveur et la dernière exécution.</sub>
+</p>
+
+<p align="center">
+  <img src="docs/assets/ui-task-pane.png" alt="Volet de tâches Vulcan ancré : actions rapides pour les exemples, le test de connexion, l’état et les journaux, ainsi que le prompt et le bouton de génération" width="36%">
+  <img src="docs/assets/ui-status-window.png" alt="Fenêtre d’état Vulcan : adresse du serveur, fournisseur, santé de la connexion, dernière action, nombre de fonctions et heure de mise à jour" width="54%">
+</p>
+
+<p align="center">
+  <sub>Le volet garde les exemples et les contrôles de santé à portée de clic ; la fenêtre d’état enregistre la dernière action, le nombre de fonctions et les erreurs.</sub>
 </p>
 
 ## Cycle d’une requête
@@ -506,6 +523,7 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) e
 - Le volet des tâches héberge le panneau WPF via `SetParent` et reste interactif ; la commande du ruban retombe sur le panneau modal si l’hôte échoue.
 - Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
 - Ajout d’une barre d’outils CommandManager Vulcan et d’un onglet de ruban avec une icône par commande (volet, exemples, réglages, test de connexion, état, journaux, à propos), d’une barre d’actions rapides dans le volet et d’une fenêtre d’état affichant la santé du serveur et la dernière exécution.
+- Mise à jour des médias du README avec de vraies captures SolidWorks 2025 (onglet, volet, fenêtre d’état) et deux GIF : visite des commandes et génération de bout en bout.
 
 ## Nouveautés de la 1.2.1
 
@@ -785,7 +803,7 @@ Vulcan/
 │       ├── client-python-beta/   #     Client PyQt5 avec exécution par exec()
 │       └── server-python-beta/   #     Serveur FastAPI + AsyncOpenAI
 ├── docs/
-│   └── assets/                   #   Figures vectorielles communes aux trois README
+│   └── assets/                   #   Figures, captures et GIF communs aux trois README
 ├── scripts/                      # Scripts de maintenance
 └── tools/                        # Outils de documentation et de démonstration
 ```
