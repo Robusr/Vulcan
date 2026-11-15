@@ -1,4 +1,4 @@
-<UserControl
+﻿<UserControl
     x:Class="Vulcan.SolidWorksClient.UI.TaskPanePanel"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -46,6 +46,34 @@
                     Style="{StaticResource IconButton}"
                     ToolTip="配置服务端和模型提供商" />
             </Grid>
+
+            <WrapPanel Margin="0,10,0,0">
+                <Button
+                    Margin="0,0,6,6"
+                    Click="CylinderExample_Click"
+                    Content="圆柱示例"
+                    Style="{StaticResource ChipButton}" />
+                <Button
+                    Margin="0,0,6,6"
+                    Click="PlateExample_Click"
+                    Content="安装板示例"
+                    Style="{StaticResource ChipButton}" />
+                <Button
+                    Margin="0,0,6,6"
+                    Click="TestConnection_Click"
+                    Content="测试连接"
+                    Style="{StaticResource ChipButton}" />
+                <Button
+                    Margin="0,0,6,6"
+                    Click="Status_Click"
+                    Content="运行状态"
+                    Style="{StaticResource ChipButton}" />
+                <Button
+                    Margin="0,0,6,6"
+                    Click="Logs_Click"
+                    Content="日志"
+                    Style="{StaticResource ChipButton}" />
+            </WrapPanel>
 
             <TextBlock
                 Margin="0,12,0,6"

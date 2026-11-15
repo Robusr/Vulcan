@@ -46,6 +46,13 @@ namespace Vulcan.SolidWorksClient.UI
             }
         }
 
+        public void SetPrompt(string prompt)
+        {
+            PromptTextBox.Text = prompt ?? string.Empty;
+            PromptTextBox.CaretIndex = PromptTextBox.Text.Length;
+            PromptTextBox.Focus();
+        }
+
         private void PromptTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             UpdatePlaceholder();
@@ -96,6 +103,7 @@ namespace Vulcan.SolidWorksClient.UI
             if (window.ShowDialog() == true)
             {
                 SetStatus("设置已保存。", StatusKind.Success);
+                VulcanStatus.ReportAction("设置已保存");
             }
         }
 
@@ -145,16 +153,31 @@ namespace Vulcan.SolidWorksClient.UI
                 SetStatus("正在写入 SolidWorks 特征...", StatusKind.Busy);
                 _swModeler.ExecuteModeling(preview.Result, userPrompt);
                 SetStatus("模型生成完成。", StatusKind.Success);
+                VulcanStatus.ReportAction("模型生成完成", CountFeatures(preview.Result));
             }
             catch (Exception ex)
             {
                 Logger.Error("生成失败", ex);
                 SetStatus("生成失败：" + ex.Message, StatusKind.Error);
+                VulcanStatus.ReportAction("生成失败", 0, ex.Message);
             }
             finally
             {
                 SetBusy(false);
             }
+        }
+
+        private static int CountFeatures(ModelData data)
+        {
+            if (data == null)
+            {
+                return 0;
+            }
+            if (data.features != null && data.features.Count > 0)
+            {
+                return data.features.Count;
+            }
+            return string.IsNullOrEmpty(data.feature_type) ? 0 : 1;
         }
 
         private void SetBusy(bool busy)

@@ -1,0 +1,167 @@
+<Window
+    x:Class="Vulcan.SolidWorksClient.UI.StatusWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Vulcan 状态"
+    Width="620"
+    Height="520"
+    MinWidth="560"
+    MinHeight="440"
+    Background="{DynamicResource PageBrush}"
+    FontFamily="Microsoft YaHei UI"
+    ResizeMode="CanResize"
+    SnapsToDevicePixels="True"
+    UseLayoutRounding="True"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Vulcan.SolidWorksClient;component/UI/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="12" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="12" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock
+                FontSize="19"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextPrimaryBrush}"
+                Text="Vulcan 状态" />
+            <TextBlock
+                Margin="0,4,0,0"
+                Style="{StaticResource MutedText}"
+                Text="查看服务端连接、最近一次建模结果和运行环境。" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="服务端连接" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="服务端地址" />
+                            <TextBlock
+                                x:Name="ServerUrlText"
+                                Grid.Column="1"
+                                Style="{StaticResource MutedText}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="提供商 / 模型" />
+                            <TextBlock
+                                x:Name="ProviderText"
+                                Grid.Column="1"
+                                Style="{StaticResource MutedText}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="连接状态" />
+                            <TextBlock
+                                x:Name="HealthText"
+                                Grid.Column="1"
+                                Style="{StaticResource MutedText}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <Button
+                            x:Name="TestButton"
+                            Margin="0,14,0,0"
+                            HorizontalAlignment="Left"
+                            Click="TestButton_Click"
+                            Content="测试连接"
+                            Style="{StaticResource SecondaryButton}" />
+                    </StackPanel>
+                </Border>
+
+                <Border Margin="0,12,0,0" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="最近运行" />
+                        <Grid Margin="0,12,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="最近操作" />
+                            <TextBlock
+                                x:Name="ActionText"
+                                Grid.Column="1"
+                                Style="{StaticResource MutedText}"
+                                TextWrapping="Wrap" />
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="特征数量" />
+                            <TextBlock
+                                x:Name="FeatureCountText"
+                                Grid.Column="1"
+                                Style="{StaticResource MutedText}" />
+                        </Grid>
+                        <Grid Margin="0,8,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="110" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Style="{StaticResource FieldLabel}" Text="更新时间" />
+                            <TextBlock
+                                x:Name="UpdatedText"
+                                Grid.Column="1"
+                                Style="{StaticResource MutedText}" />
+                        </Grid>
+                        <TextBlock
+                            x:Name="ErrorText"
+                            Margin="0,8,0,0"
+                            Foreground="{StaticResource ErrorBrush}"
+                            Style="{StaticResource MutedText}"
+                            Visibility="Collapsed" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Click="OpenLogs_Click"
+                Content="打开日志目录"
+                Style="{StaticResource GhostButton}" />
+            <Button
+                Grid.Column="2"
+                Width="100"
+                Click="Close_Click"
+                Content="关闭"
+                IsCancel="True"
+                Style="{StaticResource PrimaryButton}" />
+        </Grid>
+    </Grid>
+</Window>

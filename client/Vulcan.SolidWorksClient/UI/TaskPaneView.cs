@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using Vulcan.SolidWorksClient.Services;
@@ -38,6 +38,33 @@ namespace Vulcan.SolidWorksClient.UI
                 }
             };
             _resizeTimer.Start();
+        }
+
+        public System.Windows.Threading.Dispatcher PanelDispatcher
+        {
+            get { return _panel.Dispatcher; }
+        }
+
+        public void SetPrompt(string prompt)
+        {
+            RunOnPanelThread(() => _panel.SetPrompt(prompt));
+        }
+
+        public void SetStatus(string message)
+        {
+            RunOnPanelThread(() => _panel.SetStatus(message));
+        }
+
+        private void RunOnPanelThread(Action action)
+        {
+            if (_panel.Dispatcher.CheckAccess())
+            {
+                action();
+            }
+            else
+            {
+                _panel.Dispatcher.BeginInvoke(action);
+            }
         }
 
         protected override void Dispose(bool disposing)

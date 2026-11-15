@@ -505,6 +505,7 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) e
 - Correction des coupes borgnes avec les paramètres bidirectionnels de `FeatureCut4` et une nouvelle tentative dans le sens opposé.
 - Le volet des tâches héberge le panneau WPF via `SetParent` et reste interactif ; la commande du ruban retombe sur le panneau modal si l’hôte échoue.
 - Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
+- Ajout d’une barre d’outils CommandManager Vulcan et d’un onglet de ruban avec une icône par commande (volet, exemples, réglages, test de connexion, état, journaux, à propos), d’une barre d’actions rapides dans le volet et d’une fenêtre d’état affichant la santé du serveur et la dernière exécution.
 
 ## Nouveautés de la 1.2.1
 

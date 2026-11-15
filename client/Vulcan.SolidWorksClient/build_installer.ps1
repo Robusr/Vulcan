@@ -76,6 +76,12 @@ if (Test-Path $icons) {
     New-Item -ItemType Directory -Path $iconDist | Out-Null
     Copy-Item (Join-Path $icons "icon_*.png") $iconDist
     Copy-Item (Join-Path $icons "Vulcan.ico") $iconDist
+    $commandIcons = Join-Path $icons "commands"
+    if (Test-Path $commandIcons) {
+        $commandDist = Join-Path $iconDist "commands"
+        New-Item -ItemType Directory -Path $commandDist | Out-Null
+        Copy-Item (Join-Path $commandIcons "*.png") $commandDist
+    }
 }
 
 $regAsm = Join-Path $env:WINDIR "Microsoft.NET\Framework64\v4.0.30319\RegAsm.exe"

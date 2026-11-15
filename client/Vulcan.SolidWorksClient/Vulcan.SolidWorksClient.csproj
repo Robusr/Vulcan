@@ -101,6 +101,7 @@
     <Compile Include="Services\ModelingEngine.cs" />
     <Compile Include="Services\SettingsStore.cs" />
     <Compile Include="Services\SwModeler.cs" />
+    <Compile Include="Services\VulcanStatus.cs" />
     <Compile Include="UI\MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
@@ -114,6 +115,9 @@
       <DependentUpon>TaskPanePanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\TaskPaneView.cs" />
+    <Compile Include="UI\StatusWindow.xaml.cs">
+      <DependentUpon>StatusWindow.xaml</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -137,6 +141,9 @@
     <None Include="icons\icon_128.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="icons\commands\*.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Page Include="UI\MainWindow.xaml">
@@ -148,6 +155,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="UI\SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="UI\StatusWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

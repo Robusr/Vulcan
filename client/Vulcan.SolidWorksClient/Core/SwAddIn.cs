@@ -5,7 +5,10 @@ using SolidWorks.Interop.swpublished;
 using SolidWorksTools;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -34,7 +37,7 @@ namespace VulcanAddin
         private TaskPaneView _taskPaneControl = null;
 
         public int MainCmdGroupID = 5001;
-        public int[] MainItemIds = new[] { 1002 };
+        public int[] MainItemIds = new[] { 1002, 1003, 1004, 1005, 1006, 1007, 1008, 1009 };
         #endregion
 
         #region 属性封装
@@ -156,43 +159,55 @@ namespace VulcanAddin
                 // 命令项类型：同时显示在菜单和工具栏
                 int menuToolbarType = (int)(swCommandItemType_e.swMenuItem | swCommandItemType_e.swToolbarItem);
 
-                // 添加「打开AI生成窗口」按钮
-                List<int> cmdIndexes = new List<int>();
-                cmdIndexes.Add(mainCmdGroup.AddCommandItem2(
-                    "打开AI生成窗口",
-                    -1,
-                    "打开Vulcan AI建模窗口",
-                    "AI生成",
-                    0,
-                    $"FunctionProxy({MainItemIds[0]})",
-                    $"EnableFunction({MainItemIds[0]})",
-                    MainItemIds[0],
-                    menuToolbarType
-                ));
+                var commandDefinitions = new[]
+                {
+                    new { Id = 1002, Menu = "打开Vulcan面板", Hint = "显示或打开Vulcan AI面板", Label = "面板", Icon = "pane" },
+                    new { Id = 1003, Menu = "圆柱示例", Hint = "填充圆柱建模示例", Label = "圆柱", Icon = "cylinder" },
+                    new { Id = 1004, Menu = "安装板示例", Hint = "填充安装板与四孔示例", Label = "安装板", Icon = "plate" },
+                    new { Id = 1005, Menu = "快速设置", Hint = "配置服务端与模型提供商", Label = "设置", Icon = "settings" },
+                    new { Id = 1006, Menu = "测试连接", Hint = "检查Vulcan服务端连通性", Label = "连接", Icon = "health" },
+                    new { Id = 1007, Menu = "运行状态", Hint = "查看最近操作与连接状态", Label = "状态", Icon = "status" },
+                    new { Id = 1008, Menu = "打开日志", Hint = "打开客户端日志目录", Label = "日志", Icon = "logs" },
+                    new { Id = 1009, Menu = "关于Vulcan", Hint = "查看版本与支持范围", Label = "关于", Icon = "about" }
+                };
 
-                // 启用工具栏和菜单
-                mainCmdGroup.HasToolbar = true;
-                mainCmdGroup.HasMenu = true;
+                // 图标条（20/32/40/64/96/128 六档）：每个命令占据条内一个方格，
+                // ImageListIndex 使用命令序号。主图标使用品牌图标。
+                string[] iconSizes = { "20", "32", "40", "64", "96", "128" };
+                string iconDir = Path.Combine(
+                    Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+                    "icons");
+                List<string> brandIcons = new List<string>();
+                List<string> iconStrips = new List<string>();
+                foreach (string size in iconSizes)
+                {
+                    string brandIcon = Path.Combine(iconDir, "icon_" + size + ".png");
+                    if (File.Exists(brandIcon))
+                    {
+                        brandIcons.Add(brandIcon);
+                    }
+                    string strip = Path.Combine(iconDir, "commands", "strip_" + size + ".png");
+                    if (File.Exists(strip))
+                    {
+                        iconStrips.Add(strip);
+                    }
+                }
 
-                // 绑定品牌图标（20/32/40/64/96/128 六档 PNG，见 SolidWorks API ICommandGroup::IconList）
+                bool iconStripsReady = iconStrips.Count == iconSizes.Length;
                 try
                 {
-                    string iconDir = System.IO.Path.Combine(
-                        System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
-                        "icons");
-                    List<string> iconPaths = new List<string>();
-                    foreach (string size in new[] { "20", "32", "40", "64", "96", "128" })
+                    if (brandIcons.Count > 0)
                     {
-                        string iconPath = System.IO.Path.Combine(iconDir, "icon_" + size + ".png");
-                        if (System.IO.File.Exists(iconPath))
-                        {
-                            iconPaths.Add(iconPath);
-                        }
+                        mainCmdGroup.MainIconList = brandIcons.ToArray();
                     }
-                    if (iconPaths.Count > 0)
+                    if (iconStripsReady)
                     {
-                        mainCmdGroup.IconList = iconPaths.ToArray();
-                        mainCmdGroup.MainIconList = iconPaths.ToArray();
+                        mainCmdGroup.IconList = iconStrips.ToArray();
+                    }
+                    else if (brandIcons.Count > 0)
+                    {
+                        Logger.Warning("命令图标条缺失，回退到品牌图标");
+                        mainCmdGroup.IconList = brandIcons.ToArray();
                     }
                 }
                 catch (Exception iconEx)
@@ -200,39 +215,89 @@ namespace VulcanAddin
                     Logger.Warning("设置插件图标失败", iconEx);
                 }
 
-                mainCmdGroup.Activate();
+                List<int> cmdIndexes = new List<int>();
+                for (int index = 0; index < commandDefinitions.Length; index++)
+                {
+                    var command = commandDefinitions[index];
+                    int imageIndex = iconStripsReady ? index : 0;
+                    cmdIndexes.Add(mainCmdGroup.AddCommandItem2(
+                        command.Menu,
+                        -1,
+                        command.Hint,
+                        command.Label,
+                        imageIndex,
+                        $"FunctionProxy({command.Id})",
+                        $"EnableFunction({command.Id})",
+                        command.Id,
+                        menuToolbarType));
+                }
+
+                // 启用工具栏和菜单
+                mainCmdGroup.HasToolbar = true;
+                mainCmdGroup.HasMenu = true;
                 #endregion
 
-                #region 2. 绑定命令到Ribbon标签页
+                #region 2. 激活命令组并创建 Ribbon 标签页
+                if (!mainCmdGroup.Activate())
+                {
+                    Logger.Warning("Vulcan 命令组激活失败");
+                }
+
                 foreach (int docType in docTypes)
                 {
-                    CommandTab cmdTab = _cmdMgr.GetCommandTab(docType, "Vulcan AI");
-
-                    // ID变更时删除旧标签页
-                    if (cmdTab != null && !hasRegistryData && ignorePrevious)
+                    CommandTab legacyTools = _cmdMgr.GetCommandTab(docType, "Vulcan Tools");
+                    if (legacyTools != null)
                     {
-                        _cmdMgr.RemoveCommandTab(cmdTab);
-                        cmdTab = null;
+                        _cmdMgr.RemoveCommandTab(legacyTools);
                     }
 
-                    // 新建Ribbon标签页
+                    CommandTab cmdTab = _cmdMgr.GetCommandTab(docType, "Vulcan AI");
+                    if (cmdTab != null)
+                    {
+                        try
+                        {
+                            object[] boxes = cmdTab.CommandTabBoxes() as object[];
+                            if (boxes != null)
+                            {
+                                foreach (object box in boxes)
+                                {
+                                    cmdTab.RemoveCommandTabBox(box as CommandTabBox);
+                                }
+                            }
+                            _cmdMgr.RemoveCommandTab(cmdTab);
+                        }
+                        catch (Exception clearEx)
+                        {
+                            Logger.Warning("清理旧 Vulcan AI 标签页失败", clearEx);
+                        }
+                    }
+
+                    cmdTab = _cmdMgr.AddCommandTab(docType, "Vulcan AI");
                     if (cmdTab == null)
                     {
-                        cmdTab = _cmdMgr.AddCommandTab(docType, "Vulcan AI");
-                        CommandTabBox cmdBox = cmdTab.AddCommandTabBox();
-
-                        // 收集命令ID与显示样式
-                        List<int> cmdIDs = new List<int>();
-                        List<int> textDisplayTypes = new List<int>();
-                        foreach (int idx in cmdIndexes)
-                        {
-                            cmdIDs.Add(mainCmdGroup.get_CommandID(idx));
-                            textDisplayTypes.Add((int)swCommandTabButtonTextDisplay_e.swCommandTabButton_TextBelow);
-                        }
-
-                        // 绑定命令到工具栏
-                        cmdBox.AddCommands(cmdIDs.ToArray(), textDisplayTypes.ToArray());
+                        Logger.Warning("创建 Vulcan AI 标签页失败，docType=" + docType);
+                        continue;
                     }
+
+                    CommandTabBox tabBox = cmdTab.AddCommandTabBox();
+                    List<int> tabCommandIds = new List<int>();
+                    List<int> tabTextStyles = new List<int>();
+                    foreach (int cmdIndex in cmdIndexes)
+                    {
+                        tabCommandIds.Add(mainCmdGroup.get_CommandID(cmdIndex));
+                        tabTextStyles.Add((int)swCommandTabButtonTextDisplay_e.swCommandTabButton_TextHorizontal);
+                    }
+
+                    bool added = tabBox.AddCommands(
+                        tabCommandIds.ToArray(),
+                        tabTextStyles.ToArray());
+                    Logger.Info(
+                        "Vulcan AI 标签页 docType=" + docType +
+                        " ids=" + string.Join(",", tabCommandIds) +
+                        " added=" + added);
+
+                    cmdTab.Visible = true;
+                    cmdTab.Active = true;
                 }
                 #endregion
             }
@@ -296,11 +361,17 @@ namespace VulcanAddin
         /// <summary>
         /// 打开AI生成窗口，传递和SwModeler完全兼容的ISldWorks实例
         /// </summary>
-        private void OpenMainWindow()
+        private void OpenMainWindow(string prompt = null)
         {
             if (_taskPaneView != null && _taskPaneControl != null)
             {
                 _taskPaneView.ShowView();
+                if (!string.IsNullOrEmpty(prompt))
+                {
+                    _taskPaneControl.SetPrompt(prompt);
+                    _taskPaneControl.SetStatus("已填入示例，点击开始生成。");
+                    VulcanStatus.ReportAction("已填入示例");
+                }
                 return;
             }
 
@@ -309,31 +380,163 @@ namespace VulcanAddin
                 Logger.Info("正在打开Vulcan AI窗口...");
                 // 传递官方SDK的ISldWorks，和SwModeler完全匹配，无类型冲突
                 var modeler = new SwModeler(_swApp);
-                var mainWindow = new MainWindow(modeler);
-
-                // 绑定SolidWorks主窗口为父窗口
-                IntPtr ownerHwnd = IntPtr.Zero;
-                try
+                ShowWpfDialog(() =>
                 {
-                    Frame frame = _swApp.Frame() as Frame;
-                    if (frame != null)
+                    var mainWindow = new MainWindow(modeler);
+                    if (!string.IsNullOrEmpty(prompt))
                     {
-                        ownerHwnd = new IntPtr(frame.GetHWnd());
+                        mainWindow.SetPrompt(prompt);
                     }
-                }
-                catch (Exception ex)
-                {
-                    Logger.Warning("获取SolidWorks窗口句柄失败", ex);
-                }
-
-                new WindowInteropHelper(mainWindow).Owner = ownerHwnd;
+                    return mainWindow;
+                });
                 Logger.Info("Vulcan AI窗口已打开");
-                mainWindow.ShowDialog();
             }
             catch (Exception ex)
             {
                 Logger.Error("打开Vulcan窗口失败", ex);
                 System.Windows.MessageBox.Show($"打开窗口失败：{ex.Message}", "错误");
+            }
+        }
+
+        private IntPtr GetOwnerHwnd()
+        {
+            try
+            {
+                Frame frame = _swApp.Frame() as Frame;
+                return frame == null ? IntPtr.Zero : new IntPtr(frame.GetHWnd());
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("获取SolidWorks窗口句柄失败", ex);
+                return IntPtr.Zero;
+            }
+        }
+
+        private void OpenSettings()
+        {
+            if (ShowWpfDialog(() => new SettingsWindow()))
+            {
+                ReportStatus("设置已保存。");
+            }
+        }
+
+        private void OpenStatusWindow()
+        {
+            ShowWpfDialog(() => new StatusWindow());
+        }
+
+        private bool ShowWpfDialog(Func<Window> factory)
+        {
+            try
+            {
+                if (_taskPaneControl != null)
+                {
+                    return _taskPaneControl.PanelDispatcher.Invoke(() =>
+                    {
+                        Window window = factory();
+                        new WindowInteropHelper(window).Owner = GetOwnerHwnd();
+                        return window.ShowDialog() == true;
+                    });
+                }
+
+                bool result = false;
+                var thread = new System.Threading.Thread(() =>
+                {
+                    Window window = factory();
+                    new WindowInteropHelper(window).Owner = GetOwnerHwnd();
+                    result = window.ShowDialog() == true;
+                });
+                thread.SetApartmentState(System.Threading.ApartmentState.STA);
+                thread.IsBackground = true;
+                thread.Start();
+                thread.Join();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("打开WPF窗口失败", ex);
+                ReportStatus("打开窗口失败：" + ex.Message);
+                return false;
+            }
+        }
+
+        private void OpenLogFolder()
+        {
+            try
+            {
+                string folder = Path.Combine(
+                    System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop),
+                    "Vulcan_Logs");
+                Directory.CreateDirectory(folder);
+                Process.Start("explorer.exe", folder);
+                VulcanStatus.ReportAction("打开日志目录");
+            }
+            catch (Exception ex)
+            {
+                ReportStatus("无法打开日志目录：" + ex.Message);
+            }
+        }
+
+        private void CheckConnection()
+        {
+            try
+            {
+                string body = Task.Run(() => new ApiClient().CheckHealthAsync())
+                    .GetAwaiter()
+                    .GetResult();
+                VulcanStatus.ReportHealth(true, "连接正常：" + body);
+                ReportStatus("服务端连接正常");
+            }
+            catch (Exception ex)
+            {
+                VulcanStatus.ReportHealth(false, "连接失败：" + ex.Message);
+                ReportStatus("连接失败：" + ex.Message);
+            }
+        }
+
+        private void ShowAbout()
+        {
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            RunOnUiThread(() =>
+            {
+                System.Windows.MessageBox.Show(
+                    "Vulcan AI " + version + "\n\n" +
+                    "用自然语言生成 SolidWorks 参数化特征。\n" +
+                    "支持零件、装配体与工程图操作。\n\n" +
+                    "GPLv3 · https://github.com/Robusr/Vulcan",
+                    "关于 Vulcan",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            });
+        }
+
+        private void RunOnUiThread(Action action)
+        {
+            if (_taskPaneControl != null)
+            {
+                _taskPaneControl.PanelDispatcher.Invoke(action);
+            }
+            else
+            {
+                action();
+            }
+        }
+
+        private void ReportStatus(string message)
+        {
+            Logger.Info(message);
+            VulcanStatus.ReportAction(message);
+            if (_taskPaneView != null && _taskPaneControl != null)
+            {
+                _taskPaneControl.SetStatus(message);
+                _taskPaneView.ShowView();
+            }
+            else
+            {
+                _swApp.SendMsgToUser2(
+                    message,
+                    (int)swMessageBoxIcon_e.swMbInformation,
+                    (int)swMessageBoxBtn_e.swMbOk);
             }
         }
         #endregion
@@ -350,6 +553,27 @@ namespace VulcanAddin
             {
                 case 1002:
                     OpenMainWindow();
+                    break;
+                case 1003:
+                    OpenMainWindow("在前视基准面拉伸一个直径 50、高度 100 的圆柱体");
+                    break;
+                case 1004:
+                    OpenMainWindow("在前视基准面拉伸 200×100×20 的安装板，四角各打一个直径 10mm 的通孔");
+                    break;
+                case 1005:
+                    OpenSettings();
+                    break;
+                case 1006:
+                    CheckConnection();
+                    break;
+                case 1007:
+                    OpenStatusWindow();
+                    break;
+                case 1008:
+                    OpenLogFolder();
+                    break;
+                case 1009:
+                    ShowAbout();
                     break;
                 default:
                     _swApp.SendMsgToUser2($"未知命令ID：{commandId}", (int)swMessageBoxIcon_e.swMbInformation, (int)swMessageBoxBtn_e.swMbOk);

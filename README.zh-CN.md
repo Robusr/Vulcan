@@ -506,6 +506,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 - 修复盲切：使用双向 `FeatureCut4` 参数，并在失败时反向重试。
 - 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；功能区命令在窗格不可用时回退模态面板。
 - 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
+- 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
 
 ## 1.2.1 更新要点
 

@@ -505,6 +505,7 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 - Fixed blind cuts by using bidirectional `FeatureCut4` parameters with an opposite-direction retry.
 - The task pane hosts the WPF panel through `SetParent` and stays interactive; the ribbon command falls back to the modal panel if hosting fails.
 - During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
+- Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
 
 ## What's new in 1.2.1
 
