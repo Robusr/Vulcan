@@ -50,10 +50,10 @@ Vulcan compresses that sequence into one sentence. The name comes from the Roman
 
 The repository contains two generations of the idea:
 
-- **`beta/`** — the original proof of concept. The LLM generated Python code and the client executed it with `exec()`.
-- **`release/`** — the maintained architecture. The LLM returns a typed JSON feature tree and a C# add-in executes it deterministically.
+- **`archive/beta/`** — the original proof of concept. The LLM generated Python code and the client executed it with `exec()`.
+- **`client/` and `server/`** — the maintained architecture. The LLM returns a typed JSON feature tree and a C# add-in executes it deterministically.
 
-This README focuses on `release/`. The Beta track is kept for reference and for the design story.
+This README focuses on `client/` and `server/`. The beta track is archived under `archive/beta/` for reference and design history.
 
 ## What it does
 
@@ -319,7 +319,7 @@ The Rebuild track treats the LLM as a **schema-driven parameterizer**. The model
 
 General models fail at CAD not because they lack intelligence, but because they lack context. They do not know the difference between a front plane and a top plane, or that a cut's Z coordinate must fall inside the base thickness.
 
-Vulcan supplies that context through [`system_prompt.py`](release/server/prompts/system_prompt.py): plane-to-axis mappings, feature schemas, shape-specific fields, output discipline, and an anti-overlap rule for multi-feature models.
+Vulcan supplies that context through [`system_prompt.py`](server/prompts/system_prompt.py): plane-to-axis mappings, feature schemas, shape-specific fields, output discipline, and an anti-overlap rule for multi-feature models.
 
 ### API first, UI fallback second
 
@@ -329,7 +329,7 @@ The fallback is pragmatic, not elegant. Keep SolidWorks focused while a model is
 
 ## Prompt engineering
 
-The system prompt lives in [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py) and is versioned with `PROMPT_VERSION = "2.4.0"` (about 300 lines). It encodes five things:
+The system prompt lives in [`server/prompts/system_prompt.py`](server/prompts/system_prompt.py) and is versioned with `PROMPT_VERSION = "2.4.0"` (about 300 lines). It encodes five things:
 
 1. **Output discipline.** JSON only — no markdown, no prose, no code fences.
 2. **Coordinate rules.** Per-plane axis mappings, with a worked example for a 200 × 100 × 20 base and four holes.
@@ -360,7 +360,7 @@ cd Vulcan
 ### 2. Start the server
 
 ```bash
-cd release/server
+cd server
 
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
@@ -378,7 +378,7 @@ The server binds `127.0.0.1:5000` by default and keeps debug mode off unless `FL
 ### 3. Or run it with Docker
 
 ```bash
-cd release/server
+cd server
 docker build -t vulcan-server .
 docker run --rm -p 5000:5000 --env-file .env vulcan-server
 ```
@@ -399,7 +399,7 @@ The response is the feature tree itself, not a wrapper. If `VULCAN_API_TOKEN` is
 
 **Option B — build from source.**
 
-1. Open `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` in Visual Studio 2022.
+1. Open `client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` in Visual Studio 2022.
 2. Restore NuGet packages (the client uses `Newtonsoft.Json`).
 3. The project references the SolidWorks interop assemblies in `ReferenceDLL/`. Replace those files if your SolidWorks version differs.
 4. Build and register, then open the **设置** dialog and enter your server URL, for example `https://vulcan.example.com`, plus `VULCAN_API_TOKEN` if the server requires one. The equivalent Windows environment variables (`VULCAN_SERVER_URL`, `VULCAN_API_TOKEN`) still work and act as a fallback when the settings dialog is empty.
@@ -549,7 +549,7 @@ Silent uninstall:
 The server suite uses Flask's test client and a mocked LLM client. The client build and installer are covered by the GitHub Actions workflows.
 
 ```bash
-cd release/server
+cd server
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 pip-audit -r requirements.txt
@@ -631,8 +631,8 @@ Non-loopback hosts must use HTTPS unless `VULCAN_ALLOW_INSECURE=true` is set for
 
 ### Tuning
 
-- `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` in [`llm_client.py`](release/server/services/llm_client.py) control the model call.
-- `LLM_TIMEOUT = 30` in [`config.py`](release/server/config.py) controls the server-side request timeout.
+- `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` in [`llm_client.py`](server/services/llm_client.py) control the model call.
+- `LLM_TIMEOUT = 30` in [`config.py`](server/config.py) controls the server-side request timeout.
 - `ApiClient` uses a 30-second client timeout. If you raise one timeout, raise the other as well.
 
 ## API reference
@@ -705,37 +705,37 @@ Vulcan/
 ├── README.zh-CN.md               # 简体中文
 ├── README.fr.md                  # Français
 ├── SECURITY.md                   # Security policy and key rotation
-├── scripts/                      # Maintenance scripts
+├── pyproject.toml                # Ruff, Black, and mypy configuration
+├── client/                       # Active C# / WPF client
+│   └── Vulcan.SolidWorksClient/
+│       ├── Core/                 #   SwAddIn — COM registration and lifecycle
+│       ├── Models/               #   ModelData — request/response types
+│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger
+│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow (WPF)
+│       ├── ReferenceDLL/         #   SolidWorks interop assemblies
+│       ├── Vulcan Setup/         #   Inno Setup installer
+│       └── packaging/            #   install/uninstall scripts and build_installer.ps1
+├── server/                       # Active Flask server
+│   ├── app.py                    #   Flask entry point
+│   ├── config.py                 #   Environment configuration
+│   ├── .env.example              #   Provider, auth, and server template
+│   ├── Dockerfile                #   python:3.11-slim + gunicorn image
+│   ├── prompts/                  #   Versioned system prompt
+│   ├── services/                 #   LLM client and feature validator
+│   ├── tests/                    #   pytest suite
+│   └── utils/                    #   Logging, rate limiting, exceptions
+├── archive/                      # Historical code kept for reference
+│   └── beta/                     #   Legacy code-generation track
+│       ├── client-csharp-beta/   #     Early command-group / ribbon prototype
+│       ├── client-python-beta/   #     PyQt5 client with exec() execution
+│       └── server-python-beta/   #     FastAPI + AsyncOpenAI server
 ├── docs/
 │   └── assets/                   # Vector figures used by all three READMEs
-│
-├── beta/                         # Legacy code-generation track
-│   ├── client-csharp-beta/       #   Early command-group / ribbon prototype
-│   ├── client-python-beta/       #   PyQt5 client with exec() execution
-│   └── server-python-beta/       #   FastAPI + AsyncOpenAI server
-│
-└── release/                      # Active JSON-contract track
-    ├── client/
-    │   └── Vulcan.SolidWorksClient/
-    │       ├── Core/             #   SwAddIn — COM registration and lifecycle
-    │       ├── Models/           #   ModelData — request/response types
-    │       ├── Services/         #   ApiClient, SwModeler, SettingsStore, Logger
-    │       ├── UI/               #   MainWindow, SettingsWindow, PreviewWindow (WPF)
-    │       ├── ReferenceDLL/     #   SolidWorks interop assemblies
-    │       ├── Vulcan Setup/     #   Inno Setup installer
-    │       └── packaging/        #   install/uninstall scripts and build_installer.ps1
-    └── server/
-        ├── app.py                #   Flask entry point
-        ├── config.py             #   Environment configuration
-        ├── .env.example          #   Provider, auth, and server template
-        ├── Dockerfile            #   python:3.11-slim + gunicorn image
-        ├── prompts/              #   Versioned system prompt
-        ├── services/             #   LLM client and feature validator
-        ├── tests/                #   pytest suite
-        └── utils/                #   Logging, rate limiting, exceptions
+├── scripts/                      # Maintenance scripts
+└── tools/                        # Documentation and demo tooling
 ```
 
-**Repository notes.** The release client compiles `Core/SwAddIn.cs`. The `beta/` track is kept for reference and is not maintained. Build artifacts, logs, `.env` files, and the installer payload are ignored by git.
+**Repository notes.** The maintained client compiles `Core/SwAddIn.cs`. The beta track is archived under `archive/beta/` and is not maintained. Build artifacts, logs, `.env` files, and the installer payload are ignored by git.
 
 ## Compatibility and current scope
 

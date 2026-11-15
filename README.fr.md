@@ -50,10 +50,10 @@ Vulcan compresse cette séquence en une phrase. Le nom vient de Vulcain, dieu ro
 
 Le dépôt contient deux générations de l’idée :
 
-- **`beta/`** — la preuve de concept d’origine. Le LLM générait du code Python, que le client exécutait avec `exec()`.
-- **`release/`** — l’architecture maintenue. Le LLM renvoie un arbre de fonctions JSON typé, exécuté de manière déterministe par un add-in C#.
+- **`archive/beta/`** — la preuve de concept d’origine. Le LLM générait du code Python, que le client exécutait avec `exec()`.
+- **`client/` et `server/`** — l’architecture maintenue. Le LLM renvoie un arbre de fonctions JSON typé, exécuté de manière déterministe par un add-in C#.
 
-Ce README se concentre sur `release/`. La piste Beta est conservée comme référence et comme récit de conception.
+Ce README se concentre sur `client/` et `server/` à la racine. La piste beta est archivée sous `archive/beta/` comme référence et récit de conception.
 
 ## Ce qu’il fait
 
@@ -319,7 +319,7 @@ La piste Rebuild traite le LLM comme un **paramétreur guidé par un schéma**. 
 
 Les modèles généralistes échouent en CAO non par manque d’intelligence, mais par manque de contexte. Ils ne connaissent pas la différence entre un plan de face et un plan de dessus, ni le fait qu’une coordonnée Z de coupe doit rester dans l’épaisseur de la base.
 
-Vulcan fournit ce contexte via [`system_prompt.py`](release/server/prompts/system_prompt.py) : correspondances plan-axes, schémas de fonctions, champs propres aux formes, discipline de sortie et règle anti-chevauchement pour les modèles multi-fonctions.
+Vulcan fournit ce contexte via [`system_prompt.py`](server/prompts/system_prompt.py) : correspondances plan-axes, schémas de fonctions, champs propres aux formes, discipline de sortie et règle anti-chevauchement pour les modèles multi-fonctions.
 
 ### API d’abord, interface en repli
 
@@ -329,7 +329,7 @@ Le repli est pragmatique, pas élégant. Gardez SolidWorks au premier plan penda
 
 ## Ingénierie du prompt
 
-Le prompt système se trouve dans [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py) et est versionné par `PROMPT_VERSION = "2.4.0"` (environ 300 lignes). Il encode cinq éléments :
+Le prompt système se trouve dans [`server/prompts/system_prompt.py`](server/prompts/system_prompt.py) et est versionné par `PROMPT_VERSION = "2.4.0"` (environ 300 lignes). Il encode cinq éléments :
 
 1. **Discipline de sortie.** JSON uniquement — pas de Markdown, pas de prose, pas de balises de code.
 2. **Règles de coordonnées.** Correspondances axe-plan, avec un exemple travaillé pour une base de 200 × 100 × 20 et quatre trous.
@@ -360,7 +360,7 @@ cd Vulcan
 ### 2. Démarrer le serveur
 
 ```bash
-cd release/server
+cd server
 
 python -m venv venv
 source venv/bin/activate   # Windows : venv\Scripts\activate
@@ -378,7 +378,7 @@ Le serveur écoute `127.0.0.1:5000` par défaut et laisse le mode debug désacti
 ### 3. Ou lancer avec Docker
 
 ```bash
-cd release/server
+cd server
 docker build -t vulcan-server .
 docker run --rm -p 5000:5000 --env-file .env vulcan-server
 ```
@@ -399,7 +399,7 @@ La réponse est l’arbre de fonctions lui-même, sans enveloppe supplémentaire
 
 **Option B — compilation depuis les sources.**
 
-1. Ouvrez `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` dans Visual Studio 2022.
+1. Ouvrez `client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` dans Visual Studio 2022.
 2. Restaurez les paquets NuGet (le client utilise `Newtonsoft.Json`).
 3. Le projet référence les assemblys d’interopérabilité SolidWorks dans `ReferenceDLL/`. Remplacez ces fichiers si votre version de SolidWorks diffère.
 4. Après la compilation et l’enregistrement, ouvrez la boîte de dialogue **设置** et saisissez l’URL de votre serveur, par exemple `https://vulcan.example.com`, ainsi que `VULCAN_API_TOKEN` si le serveur l’exige. Les variables d’environnement équivalentes (`VULCAN_SERVER_URL`, `VULCAN_API_TOKEN`) restent valables et servent de repli lorsque la boîte de dialogue est vide.
@@ -549,7 +549,7 @@ Désinstallation silencieuse :
 La suite serveur utilise le client de test Flask et un client LLM simulé. La compilation du client et l’installateur sont couverts par les workflows GitHub Actions.
 
 ```bash
-cd release/server
+cd server
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 pip-audit -r requirements.txt
@@ -631,8 +631,8 @@ Les hôtes non locaux doivent utiliser HTTPS, sauf si `VULCAN_ALLOW_INSECURE=tru
 
 ### Réglages
 
-- `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` dans [`llm_client.py`](release/server/services/llm_client.py) contrôlent l’appel au modèle.
-- `LLM_TIMEOUT = 30` dans [`config.py`](release/server/config.py) contrôle le délai côté serveur.
+- `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` dans [`llm_client.py`](server/services/llm_client.py) contrôlent l’appel au modèle.
+- `LLM_TIMEOUT = 30` dans [`config.py`](server/config.py) contrôle le délai côté serveur.
 - `ApiClient` utilise un délai de 30 secondes. Si vous augmentez l’un, augmentez l’autre.
 
 ## Référence API
@@ -705,37 +705,37 @@ Vulcan/
 ├── README.zh-CN.md               # Chinois simplifié
 ├── README.fr.md                  # Français
 ├── SECURITY.md                   # Politique de sécurité et rotation des clés
-├── scripts/                      # Scripts de maintenance
+├── pyproject.toml                # Configuration Ruff, Black et mypy
+├── client/                       # Client C# / WPF actif
+│   └── Vulcan.SolidWorksClient/
+│       ├── Core/                 #   SwAddIn — enregistrement COM et cycle de vie
+│       ├── Models/               #   ModelData — types de requête et réponse
+│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger
+│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow (WPF)
+│       ├── ReferenceDLL/         #   Assemblys d’interopérabilité SolidWorks
+│       ├── Vulcan Setup/         #   Installateur Inno Setup
+│       └── packaging/            #   scripts install/uninstall et build_installer.ps1
+├── server/                       # Serveur Flask actif
+│   ├── app.py                    #   Point d’entrée Flask
+│   ├── config.py                 #   Configuration par environnement
+│   ├── .env.example              #   Modèle fournisseur, authentification et serveur
+│   ├── Dockerfile                #   Image python:3.11-slim + gunicorn
+│   ├── prompts/                  #   Prompt système versionné
+│   ├── services/                 #   Client LLM et validateur de fonctions
+│   ├── tests/                    #   Suite pytest
+│   └── utils/                    #   Journalisation, limitation de débit et exceptions
+├── archive/                      # Code historique conservé pour référence
+│   └── beta/                     #   Ancienne piste de génération de code
+│       ├── client-csharp-beta/   #     Prototype d’onglet et de groupes de commandes
+│       ├── client-python-beta/   #     Client PyQt5 avec exécution par exec()
+│       └── server-python-beta/   #     Serveur FastAPI + AsyncOpenAI
 ├── docs/
-│   └── assets/                   # Figures vectorielles communes aux trois README
-│
-├── beta/                         # Ancienne piste de génération de code
-│   ├── client-csharp-beta/       #   Prototype d’onglet et de groupes de commandes
-│   ├── client-python-beta/       #   Client PyQt5 avec exécution par exec()
-│   └── server-python-beta/       #   Serveur FastAPI + AsyncOpenAI
-│
-└── release/                      # Piste active du contrat JSON
-    ├── client/
-    │   └── Vulcan.SolidWorksClient/
-    │       ├── Core/             #   SwAddIn — enregistrement COM et cycle de vie
-    │       ├── Models/           #   ModelData — types de requête et réponse
-    │       ├── Services/         #   ApiClient, SwModeler, SettingsStore, Logger
-    │       ├── UI/               #   MainWindow, SettingsWindow, PreviewWindow (WPF)
-    │       ├── ReferenceDLL/     #   Assemblys d’interopérabilité SolidWorks
-    │       ├── Vulcan Setup/     #   Installateur Inno Setup
-    │       └── packaging/        #   scripts install/uninstall et build_installer.ps1
-    └── server/
-        ├── app.py                #   Point d’entrée Flask
-        ├── config.py             #   Configuration par environnement
-        ├── .env.example          #   Modèle fournisseur, authentification et serveur
-        ├── Dockerfile            #   Image python:3.11-slim + gunicorn
-        ├── prompts/              #   Prompt système versionné
-        ├── services/             #   Client LLM et validateur de fonctions
-        ├── tests/                #   Suite pytest
-        └── utils/                #   Journalisation, limitation de débit et exceptions
+│   └── assets/                   #   Figures vectorielles communes aux trois README
+├── scripts/                      # Scripts de maintenance
+└── tools/                        # Outils de documentation et de démonstration
 ```
 
-**Notes sur le dépôt.** Le client release compile `Core/SwAddIn.cs`. La piste `beta/` est conservée pour référence et n’est plus maintenue. Les artefacts de build, journaux, fichiers `.env` et le payload de l’installateur ne sont pas suivis par Git.
+**Notes sur le dépôt.** Le client maintenu compile `Core/SwAddIn.cs`. La piste beta est archivée sous `archive/beta/` et n’est plus maintenue. Les artefacts de build, journaux, fichiers `.env` et le payload de l’installateur ne sont pas suivis par Git.
 
 ## Compatibilité et périmètre actuel
 
