@@ -5,9 +5,15 @@
 *.log.*
 __pycache__/
 **/__pycache__/
+*.pyc
 .venv/
 venv/
 .pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.git/
 tests/
 Dockerfile
 .dockerignore

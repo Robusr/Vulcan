@@ -23,6 +23,7 @@ namespace Vulcan.SolidWorksClient.Services
         private bool _isFourHoleRequest = false;
         private string _lastCreatedFeatureName = null;
         private readonly Dictionary<string, string> _featureNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly List<string> _createdFeatureNames = new List<string>();
 
         // 支持的草图形状映射
         private readonly HashSet<string> _supportedShapes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -46,6 +47,9 @@ namespace Vulcan.SolidWorksClient.Services
                 _baseWidthMm = 0;
                 _currentFeatureIndex = 0;
                 _cutFeatureIndex = 0;
+                _lastCreatedFeatureName = null;
+                _featureNameMap.Clear();
+                _createdFeatureNames.Clear();
                 _isFourHoleRequest = IsFourHoleRequest(userRequest);
 
                 if (modelData == null) throw new ArgumentNullException(nameof(modelData), "云端返回的模型参数为空");
@@ -84,7 +88,12 @@ namespace Vulcan.SolidWorksClient.Services
             catch (Exception ex)
             {
                 Logger.Error("建模执行失败", ex);
-                throw;
+                string partial = _createdFeatureNames.Count == 0
+                    ? "尚未创建任何特征。"
+                    : $"已创建 {_createdFeatureNames.Count} 个特征：{string.Join("、", _createdFeatureNames)}。";
+                throw new InvalidOperationException(
+                    $"建模在第 {Math.Max(1, _currentFeatureIndex)} 个特征处中止。{partial}请检查特征树后重试。",
+                    ex);
             }
         }
 
@@ -94,6 +103,7 @@ namespace Vulcan.SolidWorksClient.Services
             if (!string.IsNullOrEmpty(featureName)) Logger.Info($"开始执行特征：{featureName}");
 
             string normalizedType = featureType.ToLower().Trim();
+            _lastCreatedFeatureName = null;
             if (normalizedType == "cut" || normalizedType == "hole")
             {
                 _cutFeatureIndex++;
@@ -154,10 +164,14 @@ namespace Vulcan.SolidWorksClient.Services
                     break;
             }
 
-            if (!string.IsNullOrEmpty(_lastCreatedFeatureName) && !string.IsNullOrEmpty(featureName))
+            if (!string.IsNullOrEmpty(_lastCreatedFeatureName))
             {
-                _featureNameMap[featureName] = _lastCreatedFeatureName;
-                Logger.Info($"特征名称映射：{featureName} -> {_lastCreatedFeatureName}");
+                _createdFeatureNames.Add(_lastCreatedFeatureName);
+                if (!string.IsNullOrEmpty(featureName))
+                {
+                    _featureNameMap[featureName] = _lastCreatedFeatureName;
+                    Logger.Info($"特征名称映射：{featureName} -> {_lastCreatedFeatureName}");
+                }
             }
         }
         #endregion
@@ -234,7 +248,7 @@ namespace Vulcan.SolidWorksClient.Services
             catch (Exception ex1)
             {
                 Logger.Warning("纯API拉伸失败，切换到兜底方案", ex1);
-                ExecuteExtrusionFallback(depthMm, false);
+                ExecuteExtrusionFallback(depthMm, false, false);
             }
         }
         #endregion
@@ -327,7 +341,7 @@ namespace Vulcan.SolidWorksClient.Services
             catch (Exception ex1)
             {
                 Logger.Warning("纯API切除失败，切换到兜底方案", ex1);
-                ExecuteExtrusionFallback(depthMm, true);
+                ExecuteExtrusionFallback(depthMm, true, throughAll);
             }
         }
         #endregion
@@ -335,23 +349,30 @@ namespace Vulcan.SolidWorksClient.Services
         #region 核心工具：坐标计算
         private (double centerXM, double centerYM) GetSketchCoordinate(Dictionary<string, object> parameters, bool useAutoHolePosition)
         {
-            // 自动四角孔位逻辑：仅用户明确要求时触发
-            if (useAutoHolePosition && _baseLengthMm > 0 && _baseWidthMm > 0)
+            // 自动四角孔位逻辑：只对圆形切除和明确请求生效。
+            string shape = GetString(parameters, "shape", "circle").ToLowerInvariant();
+            double diameterMm = GetDouble(parameters, "diameter", 10.0);
+            double marginMm = Math.Max(10.0, diameterMm / 2.0 + 2.0);
+            bool autoPositionFits = shape == "circle"
+                && _baseLengthMm > 2.0 * marginMm + diameterMm
+                && _baseWidthMm > 2.0 * marginMm + diameterMm;
+
+            if (useAutoHolePosition && autoPositionFits)
             {
                 int holeIndex = _cutFeatureIndex - 1;
                 var holePositions = new List<Tuple<double, double>>()
                 {
-                    Tuple.Create(_baseLengthMm/2 - 10, _baseWidthMm/2 - 10),  // 右上
-                    Tuple.Create(_baseLengthMm/2 - 10, -_baseWidthMm/2 + 10), // 右下
-                    Tuple.Create(-_baseLengthMm/2 + 10, _baseWidthMm/2 - 10), // 左上
-                    Tuple.Create(-_baseLengthMm/2 + 10, -_baseWidthMm/2 + 10) // 左下
+                    Tuple.Create(_baseLengthMm / 2.0 - marginMm, _baseWidthMm / 2.0 - marginMm),
+                    Tuple.Create(_baseLengthMm / 2.0 - marginMm, -_baseWidthMm / 2.0 + marginMm),
+                    Tuple.Create(-_baseLengthMm / 2.0 + marginMm, _baseWidthMm / 2.0 - marginMm),
+                    Tuple.Create(-_baseLengthMm / 2.0 + marginMm, -_baseWidthMm / 2.0 + marginMm)
                 };
 
                 if (holeIndex >= 0 && holeIndex < holePositions.Count)
                 {
                     double centerXMm = holePositions[holeIndex].Item1;
                     double centerYMm = holePositions[holeIndex].Item2;
-                    Logger.Info($"用户明确要求四角孔，自动分配坐标：({centerXMm}, {centerYMm})mm");
+                    Logger.Info($"四角孔自动坐标：({centerXMm}, {centerYMm})mm，边距={marginMm}mm");
                     return (centerXMm / 1000.0, centerYMm / 1000.0);
                 }
             }
@@ -397,6 +418,8 @@ namespace Vulcan.SolidWorksClient.Services
                     DrawSlot(parameters, centerXM, centerYM);
                     break;
             }
+
+            TryAddProfileDimensions(shape, parameters, centerXM, centerYM);
 
             _activeModel.ClearSelection2(true);
             _sketchManager.InsertSketch(true);
@@ -500,6 +523,482 @@ namespace Vulcan.SolidWorksClient.Services
 
             Logger.Info($"已绘制直槽口草图，长度：{lengthMm}mm，宽度：{widthMm}mm");
         }
+
+        #region 草图参数化：驱动尺寸与几何关系
+        private void TryAddProfileDimensions(
+            string shape,
+            Dictionary<string, object> parameters,
+            double centerXM,
+            double centerYM)
+        {
+            try
+            {
+                Sketch sketch = _activeModel.SketchManager.ActiveSketch;
+                if (sketch == null)
+                {
+                    Logger.Info("草图参数化：当前没有活动草图，跳过尺寸");
+                    return;
+                }
+
+                object[] segments = sketch.GetSketchSegments() as object[];
+                if (segments == null || segments.Length == 0)
+                {
+                    return;
+                }
+
+                switch ((shape ?? string.Empty).ToLowerInvariant())
+                {
+                    case "circle":
+                        DimensionCircle(segments, parameters, centerXM, centerYM);
+                        break;
+                    case "rectangle":
+                        DimensionRectangle(segments, parameters, centerXM, centerYM);
+                        break;
+                    case "polygon":
+                        DimensionPolygon(segments, parameters, centerXM, centerYM);
+                        break;
+                    case "slot":
+                        DimensionSlot(sketch, segments, parameters, centerXM, centerYM);
+                        break;
+                    default:
+                        Logger.Info($"草图参数化：{shape} 暂不添加驱动尺寸");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("草图参数化标注失败，已跳过", ex);
+            }
+            finally
+            {
+                _activeModel.ClearSelection2(true);
+            }
+        }
+
+        private void DimensionCircle(
+            object[] segments,
+            Dictionary<string, object> parameters,
+            double centerXM,
+            double centerYM)
+        {
+            SketchSegment circle = null;
+            foreach (object item in segments)
+            {
+                SketchSegment segment = item as SketchSegment;
+                if (segment == null)
+                {
+                    continue;
+                }
+                Curve curve = segment.GetCurve() as Curve;
+                if (curve != null && curve.IsCircle())
+                {
+                    circle = segment;
+                    break;
+                }
+            }
+            if (circle == null)
+            {
+                return;
+            }
+
+            double diameterM = GetDouble(parameters, "diameter", 50.0) / 1000.0;
+            if (diameterM <= 0)
+            {
+                return;
+            }
+
+            SelectSegment(circle);
+            DisplayDimension dimension = _activeModel.AddDimension2(
+                centerXM + diameterM / 2.0 + 0.02,
+                centerYM + diameterM / 2.0 + 0.02,
+                0) as DisplayDimension;
+            ApplyDimensionValue(dimension, diameterM);
+        }
+
+        private void DimensionRectangle(
+            object[] segments,
+            Dictionary<string, object> parameters,
+            double centerXM,
+            double centerYM)
+        {
+            double lengthM = GetDouble(parameters, "length", 100.0) / 1000.0;
+            double widthM = GetDouble(parameters, "width", 50.0) / 1000.0;
+            if (lengthM <= 0 || widthM <= 0)
+            {
+                return;
+            }
+
+            var lines = new List<SketchSegment>();
+            foreach (object item in segments)
+            {
+                SketchSegment segment = item as SketchSegment;
+                if (segment == null)
+                {
+                    continue;
+                }
+                Curve curve = segment.GetCurve() as Curve;
+                if (curve != null && curve.IsLine())
+                {
+                    lines.Add(segment);
+                }
+            }
+            if (lines.Count < 2)
+            {
+                return;
+            }
+
+            SketchSegment horizontal = null;
+            SketchSegment vertical = null;
+            if (Math.Abs(lengthM - widthM) < 1e-9)
+            {
+                horizontal = lines[0];
+                vertical = lines[1];
+            }
+            else
+            {
+                foreach (SketchSegment line in lines)
+                {
+                    double length = line.GetLength();
+                    if (horizontal == null && Math.Abs(length - lengthM) < 1e-6)
+                    {
+                        horizontal = line;
+                    }
+                    else if (vertical == null && Math.Abs(length - widthM) < 1e-6)
+                    {
+                        vertical = line;
+                    }
+                }
+            }
+            if (horizontal == null || vertical == null)
+            {
+                Logger.Info("草图参数化：无法区分矩形的长边与宽边，跳过尺寸");
+                return;
+            }
+
+            SelectSegment(horizontal);
+            DisplayDimension lengthDimension = _activeModel.AddDimension2(
+                centerXM,
+                centerYM - widthM / 2.0 - 0.015,
+                0) as DisplayDimension;
+            ApplyDimensionValue(lengthDimension, lengthM);
+
+            SelectSegment(vertical);
+            DisplayDimension widthDimension = _activeModel.AddDimension2(
+                centerXM - lengthM / 2.0 - 0.015,
+                centerYM,
+                0) as DisplayDimension;
+            ApplyDimensionValue(widthDimension, widthM);
+        }
+
+        private void DimensionPolygon(
+            object[] segments,
+            Dictionary<string, object> parameters,
+            double centerXM,
+            double centerYM)
+        {
+            SketchSegment edge = null;
+            foreach (object item in segments)
+            {
+                SketchSegment segment = item as SketchSegment;
+                if (segment == null)
+                {
+                    continue;
+                }
+                Curve curve = segment.GetCurve() as Curve;
+                if (curve != null && curve.IsLine())
+                {
+                    edge = segment;
+                    break;
+                }
+            }
+            if (edge == null)
+            {
+                return;
+            }
+
+            int sides = (int)GetDouble(parameters, "sides", 6);
+            sides = sides < 3 ? 3 : sides > 100 ? 100 : sides;
+            double radiusM = GetDouble(parameters, "diameter", 50.0) / 2000.0;
+            if (radiusM <= 0)
+            {
+                return;
+            }
+
+            double sideLengthM = 2.0 * radiusM * Math.Sin(Math.PI / sides);
+            SelectSegment(edge);
+            DisplayDimension dimension = _activeModel.AddDimension2(
+                centerXM,
+                centerYM + radiusM + 0.025,
+                0) as DisplayDimension;
+            ApplyDimensionValue(dimension, sideLengthM);
+        }
+
+        private void DimensionSlot(
+            Sketch sketch,
+            object[] segments,
+            Dictionary<string, object> parameters,
+            double centerXM,
+            double centerYM)
+        {
+            double lengthM = GetDouble(parameters, "length", 100.0) / 1000.0;
+            double widthM = GetDouble(parameters, "width", 20.0) / 1000.0;
+            double radiusM = widthM / 2.0;
+            if (lengthM <= widthM || radiusM <= 0)
+            {
+                return;
+            }
+
+            var arcs = new List<SketchSegment>();
+            var lines = new List<SketchSegment>();
+            foreach (object item in segments)
+            {
+                SketchSegment segment = item as SketchSegment;
+                if (segment == null)
+                {
+                    continue;
+                }
+                Curve curve = segment.GetCurve() as Curve;
+                if (curve == null)
+                {
+                    continue;
+                }
+                if (curve.IsCircle())
+                {
+                    arcs.Add(segment);
+                }
+                else if (curve.IsLine())
+                {
+                    lines.Add(segment);
+                }
+            }
+
+            if (arcs.Count < 2 || lines.Count < 2)
+            {
+                return;
+            }
+
+            double arcCenterX1 = centerXM - lengthM / 2.0 + radiusM;
+            double arcCenterX2 = centerXM + lengthM / 2.0 - radiusM;
+
+            SelectSegment(arcs[0]);
+            DisplayDimension radiusDimension = _activeModel.AddDimension2(
+                arcCenterX1 - radiusM - 0.02,
+                centerYM,
+                0) as DisplayDimension;
+            ApplyDimensionValue(radiusDimension, radiusM);
+
+            AddSlotLengthDimension(arcs[0], arcs[1], centerXM, centerYM, radiusM, lengthM, widthM);
+
+            foreach (SketchSegment line in lines)
+            {
+                TryAddSketchRelation("sgHORIZONTAL", line, null, "槽口直线水平");
+            }
+
+            AddCoincidentJunctions(sketch, centerYM, radiusM, arcCenterX1, arcCenterX2);
+        }
+
+        private void AddCoincidentJunctions(
+            Sketch sketch,
+            double centerYM,
+            double radiusM,
+            double arcCenterX1,
+            double arcCenterX2)
+        {
+            object[] points = sketch.GetSketchPoints2() as object[];
+            if (points == null)
+            {
+                return;
+            }
+
+            var junctions = new[]
+            {
+                new[] { arcCenterX1, centerYM + radiusM },
+                new[] { arcCenterX1, centerYM - radiusM },
+                new[] { arcCenterX2, centerYM + radiusM },
+                new[] { arcCenterX2, centerYM - radiusM }
+            };
+
+            foreach (double[] junction in junctions)
+            {
+                var matches = new List<SketchPoint>();
+                foreach (object item in points)
+                {
+                    SketchPoint point = item as SketchPoint;
+                    if (point == null)
+                    {
+                        continue;
+                    }
+                    if (Math.Abs(point.X - junction[0]) < 1e-6 &&
+                        Math.Abs(point.Y - junction[1]) < 1e-6)
+                    {
+                        matches.Add(point);
+                        if (matches.Count == 2)
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                if (matches.Count < 2)
+                {
+                    continue;
+                }
+
+                _activeModel.ClearSelection2(true);
+                (matches[0] as Entity)?.Select4(true, null);
+                (matches[1] as Entity)?.Select4(true, null);
+                try
+                {
+                    _activeModel.AddRelation("sgCOINCIDENT");
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning("槽口端点重合关系添加失败", ex);
+                }
+            }
+        }
+
+        private bool TryAddSketchRelation(
+            string relation,
+            SketchSegment first,
+            SketchSegment second,
+            string description)
+        {
+            try
+            {
+                if (first == null)
+                {
+                    return false;
+                }
+                _activeModel.ClearSelection2(true);
+                if (!first.Select4(false, null))
+                {
+                    return false;
+                }
+                if (second != null && !second.Select4(true, null))
+                {
+                    _activeModel.ClearSelection2(true);
+                    return false;
+                }
+                _activeModel.AddRelation(relation);
+                _activeModel.ClearSelection2(true);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning($"草图关系添加失败：{description}", ex);
+                _activeModel.ClearSelection2(true);
+                return false;
+            }
+        }
+
+        private void AddSlotLengthDimension(
+            SketchSegment firstArc,
+            SketchSegment secondArc,
+            double centerXM,
+            double centerYM,
+            double radiusM,
+            double lengthM,
+            double widthM)
+        {
+            try
+            {
+                SelectSegment(firstArc);
+                if (!secondArc.Select4(true, null))
+                {
+                    return;
+                }
+
+                DisplayDimension displayDimension = _activeModel.SketchManager.AddAlongXDimension(
+                    centerXM,
+                    centerYM + radiusM + 0.035,
+                    0);
+                Dimension dimension = displayDimension == null
+                    ? null
+                    : displayDimension.GetDimension() as Dimension;
+                if (dimension == null)
+                {
+                    return;
+                }
+
+                double measured = dimension.SystemValue;
+                double centerDistance = lengthM - widthM;
+                double gap = centerDistance - widthM;
+                if (Math.Abs(measured - centerDistance) < 1e-4)
+                {
+                    ApplyDimensionValue(displayDimension, centerDistance);
+                }
+                else if (Math.Abs(measured - gap) < 1e-4)
+                {
+                    ApplyDimensionValue(displayDimension, gap);
+                }
+                else
+                {
+                    Logger.Info(
+                        $"槽口长度尺寸测量值 {measured * 1000:0.###}mm 未匹配中心距或间隙，保留测量值");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("槽口长度尺寸添加失败", ex);
+            }
+            finally
+            {
+                _activeModel.ClearSelection2(true);
+            }
+        }
+
+        private void AddLineLengthDimension(
+            SketchSegment segment,
+            double placementX,
+            double placementY,
+            double lengthM)
+        {
+            if (segment == null || lengthM <= 0)
+            {
+                return;
+            }
+
+            try
+            {
+                SelectSegment(segment);
+                DisplayDimension dimension = _activeModel.AddDimension2(
+                    placementX,
+                    placementY,
+                    0) as DisplayDimension;
+                ApplyDimensionValue(dimension, lengthM);
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("草图线段长度尺寸添加失败", ex);
+            }
+        }
+
+        private void SelectSegment(SketchSegment segment)
+        {
+            _activeModel.ClearSelection2(true);
+            segment.Select4(false, null);
+        }
+
+        private void ApplyDimensionValue(DisplayDimension displayDimension, double valueMeters)
+        {
+            if (displayDimension == null || valueMeters <= 0)
+            {
+                return;
+            }
+
+            Dimension dimension = displayDimension.GetDimension() as Dimension;
+            if (dimension == null)
+            {
+                return;
+            }
+
+            dimension.SetSystemValue3(
+                valueMeters,
+                (int)swSetValueInConfiguration_e.swSetValue_InThisConfiguration,
+                null);
+        }
+        #endregion
         #endregion
 
 
@@ -611,6 +1110,8 @@ namespace Vulcan.SolidWorksClient.Services
                 case "slot": DrawSlot(parameters, centerXM, centerYM); break;
             }
 
+            TryAddProfileDimensions(shape, parameters, centerXM, centerYM);
+
             SketchSegment axisSegment = axis == "x"
                 ? _sketchManager.CreateCenterLine(-1, 0, 0, 1, 0, 0)
                 : _sketchManager.CreateCenterLine(0, -1, 0, 0, 1, 0);
@@ -671,6 +1172,14 @@ namespace Vulcan.SolidWorksClient.Services
             if (!SelectEdgeAlongAxis(direction, 1))
             {
                 throw new InvalidOperationException($"线性阵列：找不到沿 {direction} 方向的边作为方向参考");
+            }
+            if (count2 > 1 && spacing2Mm > 0)
+            {
+                string secondDirection = GetPerpendicularDirection(direction);
+                if (!SelectEdgeAlongAxis(secondDirection, 2))
+                {
+                    throw new InvalidOperationException($"线性阵列：找不到沿 {secondDirection} 方向的边作为第二方向参考");
+                }
             }
 
             Feature pattern = _activeModel.FeatureManager.FeatureLinearPattern5(
@@ -1000,13 +1509,21 @@ namespace Vulcan.SolidWorksClient.Services
             bool outward = GetBool(parameters, "outward", false);
             string removeFaces = GetString(parameters, "remove_faces", "top").ToLowerInvariant();
 
+            string before = GetLastSolidFeatureName();
+
             _activeModel.ClearSelection2(true);
             if (removeFaces != "none" && !SelectFaceByNormal(removeFaces, 1))
             {
                 Logger.Warning($"抽壳：未找到 {removeFaces} 方向的面，将创建封闭抽壳");
             }
             _activeModel.InsertFeatureShell(thicknessMm / 1000.0, outward);
-            _lastCreatedFeatureName = GetLastSolidFeatureName();
+
+            string after = GetLastSolidFeatureName();
+            if (string.IsNullOrEmpty(after) || after == before)
+            {
+                throw new InvalidOperationException("抽壳创建失败：特征树没有新增抽壳特征");
+            }
+            _lastCreatedFeatureName = after;
             Logger.Info($"抽壳创建完成：壁厚={thicknessMm}mm，移除面={removeFaces}");
         }
 
@@ -1022,7 +1539,8 @@ namespace Vulcan.SolidWorksClient.Services
             Feature draft = null;
             bool success = false;
             string[] directionModes = new[] { "plane", "face" };
-            int[] propTypes = new[] { 0, 1, 4 };
+            int preferredPropagation = Math.Max(0, Math.Min(4, (int)GetDouble(parameters, "propagation", 0)));
+            int[] propTypes = BuildPropagationOrder(preferredPropagation);
             int[] faceMarks = new[] { 2, 1 };
 
             foreach (string directionMode in directionModes)
@@ -1073,6 +1591,19 @@ namespace Vulcan.SolidWorksClient.Services
             }
             _lastCreatedFeatureName = draft.Name;
             Logger.Info($"拔模创建完成：角度={angleDeg}度，面={faces}，中性面={neutral}");
+        }
+
+        private static int[] BuildPropagationOrder(int preferred)
+        {
+            var values = new List<int> { preferred };
+            foreach (int candidate in new[] { 0, 1, 4 })
+            {
+                if (!values.Contains(candidate))
+                {
+                    values.Add(candidate);
+                }
+            }
+            return values.ToArray();
         }
 
         private void CreateSweepFeature(Dictionary<string, object> parameters)
@@ -1129,7 +1660,8 @@ namespace Vulcan.SolidWorksClient.Services
             }
             else
             {
-                _sketchManager.CreateLine(ox, oy, 0, ox, oy + lengthM, 0);
+                SketchSegment pathLine = _sketchManager.CreateLine(ox, oy, 0, ox, oy + lengthM, 0);
+                AddLineLengthDimension(pathLine, ox + 0.02, oy + lengthM / 2.0, lengthM);
             }
 
             _activeModel.ClearSelection2(true);
@@ -1208,13 +1740,16 @@ namespace Vulcan.SolidWorksClient.Services
             double ox = startXMm / 1000.0;
             double oy = startYMm / 1000.0;
             double lengthM = lengthMm / 1000.0;
+            SketchSegment ribLine;
             if (direction == "x")
             {
-                _sketchManager.CreateLine(ox, oy, 0, ox + lengthM, oy, 0);
+                ribLine = _sketchManager.CreateLine(ox, oy, 0, ox + lengthM, oy, 0);
+                AddLineLengthDimension(ribLine, ox + lengthM / 2.0, oy + 0.02, lengthM);
             }
             else
             {
-                _sketchManager.CreateLine(ox, oy, 0, ox, oy + lengthM, 0);
+                ribLine = _sketchManager.CreateLine(ox, oy, 0, ox, oy + lengthM, 0);
+                AddLineLengthDimension(ribLine, ox + 0.02, oy + lengthM / 2.0, lengthM);
             }
             Logger.Info($"筋草图线段：起点=({startXMm},{startYMm})，方向={direction}，长度={lengthMm}mm");
             _activeModel.ClearSelection2(true);
@@ -1290,7 +1825,7 @@ namespace Vulcan.SolidWorksClient.Services
             while (feature != null)
             {
                 string type = feature.GetTypeName2();
-                if (type != "RefPlane" && type != "ProfileFeature" && type != "OriginProfileFeature")
+                if (type != "RefPlane" && type != "RefAxis" && type != "RefPoint" && type != "RefCurve" && type != "RefSurface" && type != "ProfileFeature" && type != "OriginProfileFeature")
                 {
                     last = feature.Name;
                 }
@@ -1325,6 +1860,19 @@ namespace Vulcan.SolidWorksClient.Services
                 return result;
             }
             return null;
+        }
+
+        private static string GetPerpendicularDirection(string direction)
+        {
+            if (direction == "x")
+            {
+                return "y";
+            }
+            if (direction == "y")
+            {
+                return "x";
+            }
+            return "x";
         }
 
         private bool SelectEdgeAlongAxis(string axis, int mark)
@@ -1495,8 +2043,13 @@ namespace Vulcan.SolidWorksClient.Services
         #endregion
 
         #region 兜底方案（键盘模拟，100%生效）
-        private void ExecuteExtrusionFallback(double depthMm, bool isCut)
+        private void ExecuteExtrusionFallback(double depthMm, bool isCut, bool throughAll)
         {
+            if (isCut && !throughAll)
+            {
+                throw new InvalidOperationException("API 盲切失败，已停止自动兜底以免切穿实体。请手动完成切除。");
+            }
+
             try
             {
                 Logger.Info("正在执行【全自动键盘兜底方案】");
@@ -1617,29 +2170,38 @@ namespace Vulcan.SolidWorksClient.Services
             }
 
             if (userRequest.Contains("四角") ||
-                userRequest.Contains("4个") ||
-                userRequest.Contains("四个") ||
+                userRequest.Contains("四个角") ||
+                userRequest.Contains("4个角") ||
+                userRequest.Contains("四通孔") ||
+                userRequest.Contains("四个通孔") ||
                 userRequest.Contains("4通孔"))
             {
                 return true;
             }
 
             return userRequest.IndexOf("four corner", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   userRequest.IndexOf("four corners", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    userRequest.IndexOf("4 corner", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    userRequest.IndexOf("four holes", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                   userRequest.IndexOf("four through holes", StringComparison.OrdinalIgnoreCase) >= 0 ||
                    userRequest.IndexOf("4 holes", StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private void EnsureActivePartDocument()
         {
             _activeModel = _swApp.ActiveDoc as ModelDoc2;
-            if (_activeModel != null)
+            if (_activeModel == null)
             {
-                Logger.Info("使用当前激活的SolidWorks零件文档");
-                return;
+                throw new InvalidOperationException("请先在 SolidWorks 中新建或打开一个零件文档。");
             }
-            _activeModel = null;
-            Logger.Warning("当前无激活的SolidWorks文档，提示用户手动打开");
+
+            if (!(_activeModel is PartDoc))
+            {
+                _activeModel = null;
+                throw new InvalidOperationException("当前文档不是零件文档。Vulcan 目前只支持零件，请切换到零件后重试。");
+            }
+
+            Logger.Info("使用当前激活的零件文档");
         }
 
         private Feature FindPlaneFeature(string targetPlane)

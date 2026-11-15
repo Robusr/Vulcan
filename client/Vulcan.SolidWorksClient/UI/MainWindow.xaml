@@ -4,153 +4,246 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="Vulcan AI For SolidWorks"
-    Width="520"
-    Height="320"
-    Background="#F1F5F9"
+    Title="Vulcan AI"
+    Width="680"
+    Height="520"
+    MinWidth="600"
+    MinHeight="460"
+    Background="{DynamicResource PageBrush}"
     FontFamily="Microsoft YaHei UI"
-    ResizeMode="NoResize"
+    ResizeMode="CanResize"
+    SnapsToDevicePixels="True"
+    UseLayoutRounding="True"
     WindowStartupLocation="CenterOwner"
+    PreviewKeyDown="Window_PreviewKeyDown"
     mc:Ignorable="d">
 
     <Window.Resources>
-        <LinearGradientBrush x:Key="AccentBrush" StartPoint="0,0" EndPoint="1,1">
-            <GradientStop Offset="0" Color="#EA580C" />
-            <GradientStop Offset="1" Color="#F97316" />
-        </LinearGradientBrush>
-
-        <Style x:Key="AccentButton" TargetType="Button">
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontWeight" Value="Bold" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="bd"
-                            Background="{StaticResource AccentBrush}"
-                            CornerRadius="8">
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Opacity" Value="0.92" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bd" Property="Opacity" Value="0.82" />
-                            </Trigger>
-                            <Trigger Property="IsEnabled" Value="False">
-                                <Setter TargetName="bd" Property="Opacity" Value="0.55" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-
-        <Style x:Key="GhostButton" TargetType="Button">
-            <Setter Property="Foreground" Value="#475569" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border
-                            x:Name="bd"
-                            Padding="12,4"
-                            Background="#FFFFFF"
-                            BorderBrush="#CBD5E1"
-                            BorderThickness="1"
-                            CornerRadius="6">
-                            <ContentPresenter
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center" />
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#F8FAFC" />
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#E2E8F0" />
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Vulcan.SolidWorksClient;component/UI/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Window.Resources>
 
-    <Grid Margin="18">
+    <Grid Margin="24">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="18" />
             <RowDefinition Height="*" />
+            <RowDefinition Height="14" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="8" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!--  标题  -->
-        <TextBlock
-            Grid.Row="0"
-            Margin="0,0,0,10"
-            VerticalAlignment="Center"
-            FontSize="15"
-            FontWeight="Bold"
-            Foreground="#0F172A"
-            Text="输入建模需求" />
+        <!--  Header  -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="12" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
 
-        <!--  输入卡片  -->
-        <Border
-            Grid.Row="1"
-            Margin="0,0,0,12"
-            Padding="10"
-            Background="#FFFFFF"
-            BorderBrush="#CBD5E1"
-            BorderThickness="1"
-            CornerRadius="8">
-            <TextBox
-                x:Name="PromptTextBox"
-                AcceptsReturn="True"
-                Background="Transparent"
-                BorderThickness="0"
-                FontSize="12.5"
-                Foreground="#0F172A"
-                GotFocus="PromptTextBox_GotFocus"
-                LostFocus="PromptTextBox_LostFocus"
-                Text="例如：在前视基准面拉伸一个直径50，高度100圆柱体"
-                TextWrapping="Wrap"
-                ToolTip="例如：在前视基准面拉伸一个直径50，高度100圆柱体"
-                VerticalScrollBarVisibility="Auto" />
+            <Border
+                Width="44"
+                Height="44"
+                Background="{StaticResource BrandGradient}"
+                CornerRadius="12">
+                <Grid>
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontFamily="Segoe UI Semibold"
+                        FontSize="21"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        Text="V" />
+                    <Ellipse
+                        Width="6"
+                        Height="6"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Top"
+                        Margin="0,7,7,0"
+                        Fill="{StaticResource AccentBrush}" />
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Column="2" VerticalAlignment="Center">
+                <TextBlock
+                    FontSize="18"
+                    FontWeight="Bold"
+                    Foreground="{StaticResource TextPrimaryBrush}"
+                    Text="Vulcan AI" />
+                <TextBlock
+                    Margin="0,3,0,0"
+                    Style="{StaticResource MutedText}"
+                    Text="用自然语言生成参数化 SolidWorks 特征" />
+            </StackPanel>
+
+            <Button
+                x:Name="SettingsBtn"
+                Grid.Column="3"
+                AutomationProperties.Name="设置"
+                Click="SettingsBtn_Click"
+                Content="&#xE713;"
+                Style="{StaticResource IconButton}"
+                ToolTip="配置服务端、Token 和模型提供商" />
+        </Grid>
+
+        <!--  Prompt card  -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorder}">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="12" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="14" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="描述你的零件" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Style="{StaticResource MutedText}"
+                            Text="包含基准面、形状、尺寸和特征顺序，模型会返回可编辑的 JSON。" />
+                    </StackPanel>
+                    <TextBlock
+                        x:Name="CharCountText"
+                        Grid.Column="1"
+                        VerticalAlignment="Top"
+                        Style="{StaticResource CaptionText}"
+                        Text="0 / 4000" />
+                </Grid>
+
+                <Grid Grid.Row="2">
+                    <TextBox
+                        x:Name="PromptTextBox"
+                        MinHeight="150"
+                        AutomationProperties.Name="建模需求"
+                        AcceptsReturn="True"
+                        Background="#FBFDFF"
+                        FontSize="13.5"
+                        MaxLength="4000"
+                        Style="{StaticResource RoundedTextBox}"
+                        TextChanged="PromptTextBox_TextChanged"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto" />
+                    <TextBlock
+                        x:Name="PlaceholderText"
+                        Margin="13,11,13,11"
+                        VerticalAlignment="Top"
+                        IsHitTestVisible="False"
+                        FontSize="13.5"
+                        Foreground="{StaticResource TextMutedBrush}"
+                        Text="例如：在前视基准面拉伸一个直径 50、高度 100 的圆柱体"
+                        TextWrapping="Wrap" />
+                </Grid>
+
+                <WrapPanel
+                    x:Name="ExamplePanel"
+                    Grid.Row="4"
+                    Orientation="Horizontal">
+                    <Button
+                        AutomationProperties.Name="圆柱示例"
+                        Click="ExampleChip_Click"
+                        Content="圆柱示例"
+                        Style="{StaticResource ChipButton}"
+                        Tag="在前视基准面拉伸一个直径 50、高度 100 的圆柱体" />
+                    <Button
+                        AutomationProperties.Name="安装板示例"
+                        Click="ExampleChip_Click"
+                        Content="安装板示例"
+                        Style="{StaticResource ChipButton}"
+                        Tag="在前视基准面拉伸 200×100×20 的安装板，四角各打一个直径 10mm 的通孔" />
+                    <Button
+                        AutomationProperties.Name="圆角示例"
+                        Click="ExampleChip_Click"
+                        Content="圆角示例"
+                        Style="{StaticResource ChipButton}"
+                        Tag="给当前零件的所有边添加 3mm 圆角" />
+                </WrapPanel>
+
+                <Grid Grid.Row="6">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button
+                        x:Name="GenerateBtn"
+                        AutomationProperties.Name="开始生成"
+                        Click="GenerateBtn_Click"
+                        Content="开始生成"
+                        Style="{StaticResource PrimaryButton}" />
+                    <TextBlock
+                        Grid.Column="1"
+                        Margin="12,0,0,0"
+                        VerticalAlignment="Center"
+                        Style="{StaticResource CaptionText}"
+                        Text="Ctrl + Enter" />
+                </Grid>
+            </Grid>
         </Border>
 
-        <!--  生成按钮  -->
-        <Button
-            x:Name="GenerateBtn"
-            Grid.Row="2"
-            Height="42"
-            Margin="0,0,0,10"
-            Click="GenerateBtn_Click"
-            Content="开始生成"
-            Style="{StaticResource AccentButton}" />
+        <!--  Status  -->
+        <Border
+            x:Name="StatusBanner"
+            Grid.Row="4"
+            Background="{StaticResource SuccessBgBrush}"
+            BorderBrush="{StaticResource SuccessBorderBrush}"
+            Style="{StaticResource StatusBanner}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock
+                    x:Name="StatusIcon"
+                    Margin="0,1,8,0"
+                    VerticalAlignment="Top"
+                    FontFamily="Segoe MDL2 Assets"
+                    FontSize="14"
+                    Foreground="{StaticResource SuccessBrush}"
+                    Text="&#xE73E;" />
+                <TextBlock
+                    x:Name="StatusText"
+                    VerticalAlignment="Center"
+                    FontSize="12"
+                    Foreground="{StaticResource SuccessBrush}"
+                    Text="就绪"
+                    TextWrapping="Wrap" />
+            </StackPanel>
+        </Border>
 
-        <!--  状态行  -->
-        <StackPanel
-            Grid.Row="3"
-            Orientation="Horizontal">
-            <Ellipse
-                Width="8"
-                Height="8"
-                Margin="0,0,6,0"
-                VerticalAlignment="Center"
-                Fill="#10B981" />
+        <ProgressBar
+            x:Name="BusyBar"
+            Grid.Row="5"
+            Height="3"
+            Margin="0,8,0,0"
+            Background="Transparent"
+            BorderThickness="0"
+            Foreground="{StaticResource AccentBrush}"
+            IsIndeterminate="True"
+            Visibility="Collapsed" />
+
+        <Grid Grid.Row="7">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <TextBlock
-                x:Name="StatusText"
-                VerticalAlignment="Center"
-                FontSize="12"
-                Foreground="#64748B"
-                Text="就绪" />
-        </StackPanel>
+                Style="{StaticResource CaptionText}"
+                Text="支持拉伸、切除、旋转、阵列、镜像、抽壳、拔模、扫掠、放样和筋" />
+            <TextBlock
+                Grid.Column="1"
+                Style="{StaticResource CaptionText}"
+                Text="Vulcan 1.2.1" />
+        </Grid>
     </Grid>
 </Window>

@@ -27,9 +27,13 @@ New-Item -ItemType Directory -Path $dist | Out-Null
 
 $payload = @(
     "Vulcan.SolidWorksClient.dll",
-    "Vulcan.SolidWorksClient.tlb",
     "Newtonsoft.Json.dll",
     "solidworkstools.dll"
+)
+
+# RegAsm /codebase does not need the type library, so keep it optional.
+$optionalPayload = @(
+    "Vulcan.SolidWorksClient.tlb"
 )
 
 $interop = @(
@@ -40,8 +44,18 @@ $interop = @(
 
 foreach ($file in $payload) {
     $source = Join-Path $release $file
+    if (-not (Test-Path $source)) {
+        throw "Missing required build output: $source"
+    }
+    Copy-Item $source $dist
+}
+
+foreach ($file in $optionalPayload) {
+    $source = Join-Path $release $file
     if (Test-Path $source) {
         Copy-Item $source $dist
+    } else {
+        Write-Warning "Optional payload missing, continuing without it: $file"
     }
 }
 

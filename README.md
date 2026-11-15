@@ -125,7 +125,7 @@ The add-in registers a `Vulcan AI` ribbon tab for parts, assemblies, and drawing
 </p>
 
 <p align="center">
-  <sub>Layout mockup of the 520 × 320 prompt panel. The shipped UI is Chinese; the panel accepts natural-language requests.</sub>
+  <sub>Layout mockup of the 680 × 520 prompt panel. The shipped UI is Chinese; the panel accepts natural-language requests.</sub>
 </p>
 
 ## Request lifecycle
@@ -442,11 +442,11 @@ This section maps every entity you touch, from the installer to the feature tree
 |---|---|---|
 | `Vulcan AI` ribbon tab | CommandManager, last tab | Hosts the **打开AI生成窗口** command |
 | `AI生成` toolbar button | Left toolbar | Opens the same modal panel |
-| `Vulcan AI For SolidWorks` window | Center of SolidWorks | 520 × 320 prompt panel |
+| `Vulcan AI` window | Center of SolidWorks | Resizable 680 × 520 prompt panel with examples and a status banner |
 
 ### 3. Configure the server
 
-Click **设置** (top-right of the panel). The dialog contains five fields and four buttons.
+Click the gear button (top-right of the panel). The dialog contains two grouped sections, five fields, and four buttons.
 
 | Field | Meaning |
 |---|---|
@@ -469,11 +469,11 @@ Type a request into the white input card, for example `在前视基准面拉伸�
 
 ### 5. Review and edit the JSON
 
-The **检查并编辑建模参数** window shows the original request, an editable JSON editor, and two buttons.
+The **检查并编辑建模参数** window shows the original request, a JSON editor with live validation, and the 格式化, 恢复原始, 执行建模, and 取消 buttons.
 
 | Entity | Behavior |
 |---|---|
-| JSON editor | Accepts edits; must keep `feature_type` (or `features[]`) and a `params` object |
+| JSON editor | Dark editor with live validation; must keep `feature_type` (or `features[]`) and a valid `params` object |
 | 执行建模 | Validates the edited JSON, closes the preview, and runs the modeler |
 | 取消 | Closes the preview; the document is untouched |
 
@@ -485,6 +485,14 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 
 - Added native `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` features.
 - Raised the prompt contract to `PROMPT_VERSION = "2.4.0"` and updated the English, Chinese, and French documentation.
+- Refreshed the add-in UI with a shared theme, a resizable prompt panel with examples, a dark JSON editor with live validation, and a grouped settings dialog with masked secrets.
+- Edited JSON is now validated client-side against the same rules as the server before SolidWorks is touched.
+- Fixed draft `propagation`, blind-cut fallback, four-hole coordinate heuristics, part-document checks, shell verification, repeated-run feature naming, and the second direction of linear patterns.
+- The server now rejects responses that mix `feature_type` with `features`, and validates simple geometry against the base block: hole bounds, fillet and chamfer size, shell thickness, and pattern extent.
+- The client reports how many features were created when a run aborts, and Release builds no longer require an elevated COM registration step.
+- Rate-limit state is bounded, an optional trusted-proxy mode fixes client IPs behind a reverse proxy, and CI now runs ruff, Black, mypy, and the client validator tests.
+- Sketches now carry driving dimensions: circle diameter, rectangle length and width, polygon side length, slot radius and center-distance, and line length for rib and sweep paths. Profile position still comes from coordinates, and ellipse profiles stay geometry-only.
+- Verified against SolidWorks 2025 SP0 with an automated COM smoke run (`tools/SolidWorksVerify`): requested sizes appear as dimensions and editing a diameter rebuilds the body.
 
 ## What's new in 1.2.1
 
@@ -546,13 +554,25 @@ Silent uninstall:
 
 ## Testing
 
-The server suite uses Flask's test client and a mocked LLM client. The client build and installer are covered by the GitHub Actions workflows.
+The server suite uses Flask's test client and a mocked LLM client. The client has a dependency-free validator test runner, and the build and installer are covered by the GitHub Actions workflows.
 
 ```bash
 cd server
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 pip-audit -r requirements.txt
+```
+
+```bat
+msbuild client\tests\Vulcan.Client.Tests\Vulcan.Client.Tests.csproj /p:Configuration=Release /p:Platform=x64
+client\tests\Vulcan.Client.Tests\bin\x64\Release\Vulcan.Client.Tests.exe
+```
+
+An optional SolidWorks smoke run exercises the real modeler. It requires SolidWorks 2025 on the machine, closes the documents it creates, and restores the prompt preferences it changes:
+
+```bat
+msbuild tools\SolidWorksVerify\SwVerify.csproj /p:Configuration=Release /p:Platform=x64
+tools\SolidWorksVerify\bin\SwVerify.exe
 ```
 
 ## Configuration
@@ -569,6 +589,8 @@ PORT="5000"
 FLASK_ENV="production"
 VULCAN_API_TOKEN=""
 VULCAN_RATE_LIMIT_PER_MINUTE="60"
+VULCAN_RATE_LIMIT_MAX_KEYS="10000"
+VULCAN_TRUST_PROXY="false"
 MAX_PROMPT_LENGTH="4000"
 LLM_TIMEOUT="30"
 LOG_LEVEL="INFO"
@@ -587,6 +609,8 @@ The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. The c
 | `FLASK_ENV` | `production` | Set to `development` to enable Flask debug mode |
 | `VULCAN_API_TOKEN` | none | Optional bearer token required from clients |
 | `VULCAN_RATE_LIMIT_PER_MINUTE` | `60` | Per-IP limit for the generate endpoint; `0` disables it |
+| `VULCAN_RATE_LIMIT_MAX_KEYS` | `10000` | Upper bound on tracked client keys; oldest keys are evicted first |
+| `VULCAN_TRUST_PROXY` | `false` | Trust one reverse-proxy hop for `X-Forwarded-For` and `X-Forwarded-Proto` |
 | `MAX_PROMPT_LENGTH` | `4000` | Maximum prompt length in characters |
 | `LLM_TIMEOUT` | `30` | Upstream request timeout in seconds |
 | `LOG_LEVEL` | `INFO` | Log level; prompts are logged by length only at INFO |
@@ -633,7 +657,7 @@ Non-loopback hosts must use HTTPS unless `VULCAN_ALLOW_INSECURE=true` is set for
 
 - `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` in [`llm_client.py`](server/services/llm_client.py) control the model call.
 - `LLM_TIMEOUT = 30` in [`config.py`](server/config.py) controls the server-side request timeout.
-- `ApiClient` uses a 30-second client timeout. If you raise one timeout, raise the other as well.
+- `ApiClient` uses a 60-second client timeout so the server can wait out a slow model response. Keep it above `LLM_TIMEOUT`.
 
 ## API reference
 
@@ -710,11 +734,13 @@ Vulcan/
 │   └── Vulcan.SolidWorksClient/
 │       ├── Core/                 #   SwAddIn — COM registration and lifecycle
 │       ├── Models/               #   ModelData — request/response types
-│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger
-│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow (WPF)
+│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger, validator
+│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow, Theme.xaml
 │       ├── ReferenceDLL/         #   SolidWorks interop assemblies
 │       ├── Vulcan Setup/         #   Inno Setup installer
 │       └── packaging/            #   install/uninstall scripts and build_installer.ps1
+├── client/tests/                 #   Dependency-free validator test runner (CI)
+│   └── Vulcan.Client.Tests/
 ├── server/                       # Active Flask server
 │   ├── app.py                    #   Flask entry point
 │   ├── config.py                 #   Environment configuration

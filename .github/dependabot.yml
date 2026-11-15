@@ -4,6 +4,10 @@ updates:
     directory: /server
     schedule:
       interval: weekly
+  - package-ecosystem: pip
+    directory: /tools
+    schedule:
+      interval: weekly
   - package-ecosystem: nuget
     directory: /client/Vulcan.SolidWorksClient
     schedule:

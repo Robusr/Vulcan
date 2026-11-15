@@ -16,9 +16,7 @@ def setup_logger(name="vulcan_server"):
     logger.setLevel(getattr(logging, Config.LOG_LEVEL, logging.INFO))
     logger.propagate = False
 
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    )
+    formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 
     console = logging.StreamHandler(sys.stdout)
     console.setFormatter(formatter)

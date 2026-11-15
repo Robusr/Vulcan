@@ -12,6 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt -i "$PIP_INDEX_URL"
 
 COPY . .
 
+# Run as an unprivileged user; logs stay writable inside the app directory.
+RUN useradd --create-home --uid 10001 vulcan \
+    && chown -R vulcan:vulcan /app
+USER vulcan
+
 ENV HOST=0.0.0.0 \
     PORT=5000 \
     FLASK_ENV=production

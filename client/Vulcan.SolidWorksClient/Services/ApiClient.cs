@@ -50,7 +50,7 @@ namespace Vulcan.SolidWorksClient.Services
 
             _httpClient = new HttpClient
             {
-                Timeout = TimeSpan.FromSeconds(30)
+                Timeout = TimeSpan.FromSeconds(60)
             };
             _httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
             if (!string.IsNullOrWhiteSpace(token))

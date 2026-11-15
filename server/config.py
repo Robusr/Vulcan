@@ -27,7 +27,14 @@ class Config:
     # Access control
     API_TOKEN = os.getenv("VULCAN_API_TOKEN")
     RATE_LIMIT_PER_MINUTE = _int_env("VULCAN_RATE_LIMIT_PER_MINUTE", 60)
+    RATE_LIMIT_MAX_KEYS = _int_env("VULCAN_RATE_LIMIT_MAX_KEYS", 10000)
     MAX_PROMPT_LENGTH = _int_env("MAX_PROMPT_LENGTH", 4000)
+    # Trust one reverse proxy hop for client IP and scheme (X-Forwarded-For/Proto).
+    TRUST_PROXY = os.getenv("VULCAN_TRUST_PROXY", "false").strip().lower() in {
+        "true",
+        "1",
+        "yes",
+    }
 
     # Logging
     LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -40,8 +47,8 @@ class Config:
     LLM_TIMEOUT = _int_env("LLM_TIMEOUT", 30)
 
     # BYOK: let each client override key/base URL/model per request.
-    ALLOW_CUSTOM_LLM_BASE_URL = os.getenv(
-        "VULCAN_ALLOW_CUSTOM_LLM_BASE_URL", "true"
-    ).strip().lower() == "true"
+    ALLOW_CUSTOM_LLM_BASE_URL = (
+        os.getenv("VULCAN_ALLOW_CUSTOM_LLM_BASE_URL", "true").strip().lower() == "true"
+    )
     MAX_LLM_API_KEY_LENGTH = _int_env("MAX_LLM_API_KEY_LENGTH", 512)
     MAX_LLM_BASE_URL_LENGTH = _int_env("MAX_LLM_BASE_URL_LENGTH", 512)

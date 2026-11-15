@@ -4,7 +4,6 @@ from app import app, llm_client, rate_limiter
 from config import Config
 from utils.exceptions import APIConnectionError, LLMResponseError
 
-
 VALID_TREE = {
     "feature_type": "extrude",
     "name": "Cylinder",
@@ -144,3 +143,12 @@ def test_rate_limit(client, monkeypatch):
 
     assert first.status_code == 200
     assert second.status_code == 429
+
+
+def test_conflicting_envelope(client, monkeypatch):
+    conflicting = dict(VALID_TREE)
+    conflicting["features"] = [VALID_TREE]
+    monkeypatch.setattr(llm_client, "call_model", lambda prompt, **kwargs: conflicting)
+    response = client.post("/api/v1/generate", json={"prompt": "a plate"})
+    assert response.status_code == 400
+    assert "不能同时包含" in response.get_json()["message"]

@@ -285,3 +285,109 @@ def test_rib_direction_validation():
         "params": {"thickness": 3, "length": 30, "direction": "z"},
     }
     assert any("direction" in error for error in validate_feature(feature))
+
+
+def plate_tree(extra_features):
+    return {"model_name": "Plate", "features": [plate_feature()] + extra_features}
+
+
+def test_cut_center_outside_base():
+    tree = plate_tree(
+        [
+            {
+                "feature_type": "cut",
+                "params": {
+                    "plane": "前视基准面",
+                    "shape": "circle",
+                    "diameter": 10,
+                    "through_all": True,
+                    "center_x": 99,
+                    "center_y": 0,
+                },
+            }
+        ]
+    )
+    assert any("超出基体范围" in error for error in validate_feature_tree(tree))
+
+
+def test_cut_center_inside_base():
+    tree = plate_tree(
+        [
+            {
+                "feature_type": "cut",
+                "params": {
+                    "plane": "前视基准面",
+                    "shape": "circle",
+                    "diameter": 10,
+                    "through_all": True,
+                    "center_x": 90,
+                    "center_y": 40,
+                },
+            }
+        ]
+    )
+    assert validate_feature_tree(tree) == []
+
+
+def test_top_plane_cut_bounded_by_depth():
+    tree = plate_tree(
+        [
+            {
+                "feature_type": "cut",
+                "params": {
+                    "plane": "上视基准面",
+                    "shape": "circle",
+                    "diameter": 10,
+                    "through_all": True,
+                    "center_x": 90,
+                    "center_y": 15,
+                },
+            }
+        ]
+    )
+    assert any("超出基体范围" in error for error in validate_feature_tree(tree))
+
+
+def test_fillet_radius_too_large_for_base():
+    tree = plate_tree([{"feature_type": "fillet", "params": {"radius": 11}}])
+    assert any("圆角半径" in error for error in validate_feature_tree(tree))
+
+
+def test_chamfer_distance_too_large_for_base():
+    tree = plate_tree([{"feature_type": "chamfer", "params": {"distance": 11}}])
+    assert any("倒角距离" in error for error in validate_feature_tree(tree))
+
+
+def test_shell_thickness_too_large_for_base():
+    tree = plate_tree([{"feature_type": "shell", "params": {"thickness": 10}}])
+    assert any("抽壳壁厚" in error for error in validate_feature_tree(tree))
+
+
+def test_linear_pattern_extent_within_base():
+    tree = plate_tree(
+        [
+            {
+                "feature_type": "linear_pattern",
+                "params": {"direction": "x", "count": 3, "spacing": 80},
+            }
+        ]
+    )
+    assert validate_feature_tree(tree) == []
+
+
+def test_linear_pattern_extent_exceeds_base():
+    tree = plate_tree(
+        [
+            {
+                "feature_type": "linear_pattern",
+                "params": {"direction": "x", "count": 3, "spacing": 120},
+            }
+        ]
+    )
+    assert any("阵列范围" in error for error in validate_feature_tree(tree))
+
+
+def test_both_envelopes_rejected():
+    model = plate_feature()
+    model["features"] = [plate_feature()]
+    assert any("不能同时包含" in error for error in validate_feature_tree(model))

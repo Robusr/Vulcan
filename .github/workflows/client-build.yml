@@ -15,3 +15,7 @@ jobs:
         run: nuget restore client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln
       - name: Build x64 Release
         run: msbuild client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln /p:Configuration=Release /p:Platform=x64 /v:minimal
+      - name: Build client validator tests
+        run: msbuild client/tests/Vulcan.Client.Tests/Vulcan.Client.Tests.csproj /p:Configuration=Release /p:Platform=x64 /v:minimal
+      - name: Run client validator tests
+        run: client/tests/Vulcan.Client.Tests/bin/x64/Release/Vulcan.Client.Tests.exe

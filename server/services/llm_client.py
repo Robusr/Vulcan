@@ -112,4 +112,4 @@ class LLMClient:
                     return json.loads(cleaned[start : end + 1])
                 except json.JSONDecodeError as exc:
                     raise LLMResponseError("无法解析模型返回的JSON格式") from exc
-            raise LLMResponseError("无法解析模型返回的JSON格式")
+            raise LLMResponseError("无法解析模型返回的JSON格式") from None

@@ -7,6 +7,7 @@ Frames are expected as frame_01.png ... frame_NN.png in capture order. Each
 frame gets a caption bar drawn at the bottom. Captions can be supplied with
 --captions "text1|text2|..." or default to the built-in workflow labels.
 """
+
 import argparse
 import glob
 import os

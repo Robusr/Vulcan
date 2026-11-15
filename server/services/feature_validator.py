@@ -54,9 +54,7 @@ def _number(params, key, errors, minimum=None, maximum=None, required=True):
 
 
 def _integer(params, key, errors, minimum=None, maximum=None, required=True):
-    value = _number(
-        params, key, errors, minimum=minimum, maximum=maximum, required=required
-    )
+    value = _number(params, key, errors, minimum=minimum, maximum=maximum, required=required)
     if value is not None and int(value) != value:
         errors.append(f"{key} 必须是整数")
     return value
@@ -288,18 +286,139 @@ def validate_feature(feature, prefix=""):
     return [prefix + error for error in errors]
 
 
+PLANE_ALIASES = {
+    "front": "front",
+    "face": "front",
+    "前视": "front",
+    "前视基准面": "front",
+    "top": "top",
+    "dessus": "top",
+    "上视": "top",
+    "上视基准面": "top",
+    "right": "right",
+    "droite": "right",
+    "右视": "right",
+    "右视基准面": "right",
+}
+
+
+def _plane_key(value):
+    if not isinstance(value, str):
+        return None
+    return PLANE_ALIASES.get(value.strip().lower())
+
+
+def _number_value(value):
+    return value if _is_number(value) else None
+
+
+def _find_base_block(features):
+    for index, feature in enumerate(features):
+        if not isinstance(feature, dict):
+            continue
+        if str(feature.get("feature_type", "")).strip().lower() != "extrude":
+            continue
+        params = feature.get("params")
+        if not isinstance(params, dict):
+            continue
+        if str(params.get("shape", "")).strip().lower() != "rectangle":
+            continue
+        length = _number_value(params.get("length"))
+        width = _number_value(params.get("width"))
+        depth = _number_value(params.get("depth"))
+        if length is None or width is None or depth is None:
+            continue
+        return index, _plane_key(params.get("plane")), length, width, depth
+    return None
+
+
+def _validate_geometry(features, errors):
+    """Check features against the base block so broken geometry is rejected early."""
+    base = _find_base_block(features)
+    if base is None:
+        return
+
+    base_index, base_plane, length, width, depth = base
+    min_dim = min(length, width, depth)
+    tolerance = 1e-6
+
+    for index, feature in enumerate(features):
+        if not isinstance(feature, dict):
+            continue
+        feature_type = str(feature.get("feature_type", "")).strip().lower()
+        params = feature.get("params")
+        if not isinstance(params, dict):
+            continue
+        prefix = f"features[{index}]: "
+
+        if feature_type in {"cut", "hole"} and index > base_index:
+            bounds = _cut_bounds(base_plane, _plane_key(params.get("plane")), length, width, depth)
+            diameter = _number_value(params.get("diameter"))
+            center_x = _number_value(params.get("center_x"))
+            center_y = _number_value(params.get("center_y"))
+            if bounds and diameter is not None and center_x is not None and center_y is not None:
+                half_width, half_height = bounds
+                radius = diameter / 2.0
+                if (
+                    abs(center_x) + radius > half_width + tolerance
+                    or abs(center_y) + radius > half_height + tolerance
+                ):
+                    errors.append(prefix + "孔中心超出基体范围")
+
+        if feature_type == "fillet":
+            radius = _number_value(params.get("radius"))
+            if radius is not None and radius > min_dim / 2.0 + tolerance:
+                errors.append(prefix + "圆角半径超过基体最小尺寸的一半")
+
+        if feature_type == "chamfer":
+            distance = _number_value(params.get("distance"))
+            if distance is not None and distance > min_dim / 2.0 + tolerance:
+                errors.append(prefix + "倒角距离超过基体最小尺寸的一半")
+
+        if feature_type == "shell":
+            thickness = _number_value(params.get("thickness"))
+            if thickness is not None and thickness * 2.0 >= min_dim - tolerance:
+                errors.append(prefix + "抽壳壁厚达到或超过基体最小尺寸的一半")
+
+        if feature_type == "linear_pattern" and base_plane == "front":
+            direction = str(params.get("direction", "")).strip().lower()
+            count = _number_value(params.get("count"))
+            spacing = _number_value(params.get("spacing"))
+            if direction in {"x", "y"} and count is not None and spacing is not None:
+                extent = (count - 1) * spacing
+                limit = length if direction == "x" else width
+                if extent > limit + tolerance:
+                    errors.append(prefix + "阵列范围超出基体尺寸")
+
+
+def _cut_bounds(base_plane, cut_plane, length, width, depth):
+    if base_plane != "front":
+        return None
+    if cut_plane == "front":
+        return length / 2.0, width / 2.0
+    if cut_plane == "top":
+        return length / 2.0, depth / 2.0
+    if cut_plane == "right":
+        return width / 2.0, depth / 2.0
+    return None
+
+
 def validate_feature_tree(model_data):
     """Return a list of validation errors. Empty list means valid."""
     if not isinstance(model_data, dict):
         return ["响应必须是 JSON 对象"]
 
     features = model_data.get("features")
+    if features is not None and model_data.get("feature_type") is not None:
+        return ["响应不能同时包含 feature_type 和 features"]
     if features is not None:
         if not isinstance(features, list) or not features:
             return ["features 必须是非空数组"]
         errors = []
         for index, feature in enumerate(features):
             errors.extend(validate_feature(feature, f"features[{index}]: "))
+        if not errors:
+            _validate_geometry(features, errors)
         return errors
 
     if model_data.get("feature_type") is not None:

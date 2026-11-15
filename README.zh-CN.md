@@ -125,7 +125,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <sub>520 × 320 提示面板的布局示意。实际交付界面为中文；面板接受自然语言需求。</sub>
+  <sub>680 × 520 提示面板的布局示意。实际交付界面为中文；面板接受自然语言需求。</sub>
 </p>
 
 ## 请求生命周期
@@ -442,11 +442,11 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 |---|---|---|
 | `Vulcan AI` 功能区标签 | CommandManager 最后一个标签 | 承载“打开AI生成窗口”命令 |
 | `AI生成` 工具栏按钮 | 左侧工具栏 | 打开同一个模态面板 |
-| `Vulcan AI For SolidWorks` 窗口 | SolidWorks 中央 | 520 × 320 提示面板 |
+| `Vulcan AI` 窗口 | SolidWorks 中央 | 可缩放的 680 × 520 提示面板，含示例和状态提示条 |
 
 ### 3. 配置服务端
 
-点击面板右上角的**设置**，对话框包含五个输入项和四个按钮。
+点击面板右上角的齿轮按钮，对话框分为两个分组，包含五个输入项和四个按钮。
 
 | 输入项 | 含义 |
 |---|---|
@@ -469,11 +469,11 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 ### 5. 检查并编辑 JSON
 
-**检查并编辑建模参数**窗口展示原始需求、可编辑 JSON 编辑器和两个按钮。
+**检查并编辑建模参数**窗口展示原始需求、带实时校验的 JSON 编辑器，以及格式化、恢复原始、执行建模和取消按钮。
 
 | 实体 | 行为 |
 |---|---|
-| JSON 编辑器 | 可直接修改；必须保留 `feature_type`（或 `features[]`）与 `params` 对象 |
+| JSON 编辑器 | 深色编辑器，实时校验；必须保留 `feature_type`（或 `features[]`）与合法的 `params` 对象 |
 | 执行建模 | 校验修改后的 JSON，关闭预览并调用建模器 |
 | 取消 | 关闭预览，文档保持不变 |
 
@@ -485,6 +485,14 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 - 新增原生 `linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib` 特征。
 - 提示词契约升级到 `PROMPT_VERSION = "2.4.0"`，英文、中文、法文文档同步更新。
+- 重做插件界面：共享主题、可缩放的提示面板（含示例与状态提示条）、带实时校验的深色 JSON 编辑器，以及分组显示、密钥默认掩码的设置对话框。
+- 编辑后的 JSON 会在写入 SolidWorks 之前，按与服务端一致的规则在前端校验。
+- 修复拔模 `propagation`、盲切兜底、四角孔坐标启发式、零件文档检查、抽壳结果校验、重复运行的 Feature 名称映射，以及线性阵列第二方向。
+- 服务端拒绝同时包含 `feature_type` 与 `features` 的响应，并基于基体做简单几何校验：孔位范围、圆角与倒角尺寸、抽壳壁厚、阵列范围。
+- 建模中止时客户端会报告已创建的特征数量；Release 构建不再需要管理员权限执行 COM 注册。
+- 限流状态加入数量上限，新增可选可信代理模式修复反向代理下的客户端 IP，CI 加入 ruff、Black、mypy 和客户端校验器测试。
+- 草图现在带驱动尺寸：圆直径、矩形长宽、多边形边长、槽口半径与中心距，以及筋和扫掠路径的线段长度。轮廓位置仍由坐标决定，椭圆轮廓暂只保留几何。
+- 已在 SolidWorks 2025 SP0 上用自动化 COM 冒烟验证（`tools/SolidWorksVerify`）：请求尺寸会写为驱动尺寸，修改直径后重建几何同步更新。
 
 ## 1.2.1 更新要点
 
@@ -546,13 +554,25 @@ Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 ## 测试
 
-服务端测试使用 Flask 测试客户端和模拟的大模型客户端。客户端构建与安装包由 GitHub Actions 工作流覆盖。
+服务端测试使用 Flask 测试客户端和模拟的大模型客户端。客户端带有无额外依赖的校验器测试程序，构建与安装包由 GitHub Actions 工作流覆盖。
 
 ```bash
 cd server
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 pip-audit -r requirements.txt
+```
+
+```bat
+msbuild client\tests\Vulcan.Client.Tests\Vulcan.Client.Tests.csproj /p:Configuration=Release /p:Platform=x64
+client\tests\Vulcan.Client.Tests\bin\x64\Release\Vulcan.Client.Tests.exe
+```
+
+可选的 SolidWorks 冒烟验证会运行真实建模器。它要求本机安装 SolidWorks 2025，会自动关闭自己创建的文档，并恢复修改过的提示偏好：
+
+```bat
+msbuild tools\SolidWorksVerify\SwVerify.csproj /p:Configuration=Release /p:Platform=x64
+tools\SolidWorksVerify\bin\SwVerify.exe
 ```
 
 ## 配置说明
@@ -569,6 +589,8 @@ PORT="5000"
 FLASK_ENV="production"
 VULCAN_API_TOKEN=""
 VULCAN_RATE_LIMIT_PER_MINUTE="60"
+VULCAN_RATE_LIMIT_MAX_KEYS="10000"
+VULCAN_TRUST_PROXY="false"
 MAX_PROMPT_LENGTH="4000"
 LLM_TIMEOUT="30"
 LOG_LEVEL="INFO"
@@ -587,6 +609,8 @@ LOG_FILE="vulcan_server.log"
 | `FLASK_ENV` | `production` | 设为 `development` 才开启 Flask 调试模式 |
 | `VULCAN_API_TOKEN` | 无 | 可选的客户端 Bearer Token |
 | `VULCAN_RATE_LIMIT_PER_MINUTE` | `60` | 生成接口的每 IP 每分钟限额；`0` 表示关闭 |
+| `VULCAN_RATE_LIMIT_MAX_KEYS` | `10000` | 限流状态跟踪的客户端数量上限，超出后先淘汰最旧记录 |
+| `VULCAN_TRUST_PROXY` | `false` | 信任一跳反向代理的 `X-Forwarded-For` 与 `X-Forwarded-Proto` |
 | `MAX_PROMPT_LENGTH` | `4000` | 提示词最大字符数 |
 | `LLM_TIMEOUT` | `30` | 上游请求超时秒数 |
 | `LOG_LEVEL` | `INFO` | 日志级别；INFO 只记录提示词长度 |
@@ -633,7 +657,7 @@ setx VULCAN_API_TOKEN "your-shared-token"
 
 - [`llm_client.py`](server/services/llm_client.py) 中的 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048` 控制模型调用。
 - [`config.py`](server/config.py) 中的 `LLM_TIMEOUT = 30` 控制服务端请求超时。
-- `ApiClient` 使用 30 秒客户端超时。如果提高其中一个，请同步提高另一个。
+- `ApiClient` 使用 60 秒客户端超时，确保服务端能等完较慢的模型响应。请保持它大于 `LLM_TIMEOUT`。
 
 ## API 参考
 
@@ -710,11 +734,13 @@ Vulcan/
 │   └── Vulcan.SolidWorksClient/
 │       ├── Core/                 #   SwAddIn——COM 注册与生命周期
 │       ├── Models/               #   ModelData——请求/响应类型
-│       ├── Services/             #   ApiClient、SwModeler、SettingsStore、Logger
-│       ├── UI/                   #   MainWindow、SettingsWindow、PreviewWindow（WPF）
+│       ├── Services/             #   ApiClient、SwModeler、SettingsStore、Logger、校验器
+│       ├── UI/                   #   MainWindow、SettingsWindow、PreviewWindow、Theme.xaml
 │       ├── ReferenceDLL/         #   SolidWorks 互操作程序集
 │       ├── Vulcan Setup/         #   Inno Setup 安装包
 │       └── packaging/            #   install/uninstall 脚本与 build_installer.ps1
+├── client/tests/                 #   无额外依赖的校验器测试程序（CI）
+│   └── Vulcan.Client.Tests/
 ├── server/                       # 当前 Flask 服务端
 │   ├── app.py                    #   Flask 入口
 │   ├── config.py                 #   环境配置

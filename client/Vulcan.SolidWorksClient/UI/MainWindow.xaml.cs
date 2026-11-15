@@ -1,6 +1,12 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Vulcan.SolidWorksClient.Models;
 using Vulcan.SolidWorksClient.Services;
 
 namespace Vulcan.SolidWorksClient.UI
@@ -8,107 +14,215 @@ namespace Vulcan.SolidWorksClient.UI
     public partial class MainWindow : Window
     {
         private readonly SwModeler _swModeler;
-        private readonly string _defaultPromptText = "例如：在前视基准面拉伸一个直径50，高度100圆柱体";
+        private bool _isBusy;
 
         public MainWindow(SwModeler swModeler)
         {
             InitializeComponent();
             _swModeler = swModeler ?? throw new ArgumentNullException(nameof(swModeler));
-            AddSettingsButton();
+            LoadWindowIcon();
+            UpdatePlaceholder();
+            UpdateCharCount();
+            SetStatus("就绪", StatusKind.Ready);
         }
 
-        private void AddSettingsButton()
+        private void LoadWindowIcon()
         {
-            var root = Content as Grid;
-            if (root == null)
+            try
+            {
+                string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+                if (string.IsNullOrEmpty(assemblyDirectory))
+                {
+                    return;
+                }
+                string iconPath = Path.Combine(assemblyDirectory, "icons", "Vulcan.ico");
+                if (File.Exists(iconPath))
+                {
+                    Icon = BitmapFrame.Create(new Uri(iconPath, UriKind.Absolute));
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        private void PromptTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            UpdatePlaceholder();
+            UpdateCharCount();
+        }
+
+        private void UpdatePlaceholder()
+        {
+            PlaceholderText.Visibility = string.IsNullOrEmpty(PromptTextBox.Text)
+                ? Visibility.Visible
+                : Visibility.Collapsed;
+        }
+
+        private void UpdateCharCount()
+        {
+            int length = PromptTextBox.Text == null ? 0 : PromptTextBox.Text.Length;
+            CharCountText.Text = length + " / 4000";
+            if (length >= 3900)
+            {
+                CharCountText.Foreground = (Brush)FindResource("ErrorBrush");
+            }
+            else if (length >= 3500)
+            {
+                CharCountText.Foreground = (Brush)FindResource("BusyBrush");
+            }
+            else
+            {
+                CharCountText.Foreground = (Brush)FindResource("TextMutedBrush");
+            }
+        }
+
+        private void ExampleChip_Click(object sender, RoutedEventArgs e)
+        {
+            var button = sender as System.Windows.Controls.Button;
+            string text = button == null ? null : button.Tag as string;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+            PromptTextBox.Text = text;
+            PromptTextBox.CaretIndex = text.Length;
+            PromptTextBox.Focus();
+        }
+
+        private void SettingsBtn_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new SettingsWindow { Owner = this };
+            if (window.ShowDialog() == true)
+            {
+                SetStatus("设置已保存。", StatusKind.Success);
+            }
+        }
+
+        private async void GenerateBtn_Click(object sender, RoutedEventArgs e)
+        {
+            if (_isBusy)
             {
                 return;
             }
 
-            var settingsButton = new Button
+            string userPrompt = (PromptTextBox.Text ?? string.Empty).Trim();
+            if (string.IsNullOrEmpty(userPrompt))
             {
-                Content = "设置",
-                MinWidth = 64,
-                Height = 28,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(0),
-                ToolTip = "配置服务端、Token 和 LLM API Key",
-                Style = TryFindResource("GhostButton") as Style
-            };
-            settingsButton.Click += (s, e) =>
-            {
-                var window = new SettingsWindow { Owner = this };
-                if (window.ShowDialog() == true)
-                {
-                    StatusText.Text = "设置已保存";
-                }
-            };
-            Grid.SetRow(settingsButton, 0);
-            root.Children.Add(settingsButton);
-        }
-
-        #region 占位符焦点事件
-        private void PromptTextBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            if (PromptTextBox.Text.Trim() == _defaultPromptText)
-            {
-                PromptTextBox.Text = string.Empty;
+                SetStatus("请先输入建模需求。", StatusKind.Error);
+                PromptTextBox.Focus();
+                return;
             }
-        }
 
-        private void PromptTextBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(PromptTextBox.Text))
-            {
-                PromptTextBox.Text = _defaultPromptText;
-            }
-        }
-        #endregion
+            SetBusy(true);
+            SetStatus("正在请求模型生成参数...", StatusKind.Busy);
 
-        #region 生成按钮点击事件
-        private async void GenerateBtn_Click(object sender, RoutedEventArgs e)
-        {
             try
             {
-                string userPrompt = PromptTextBox.Text.Trim();
-                if (string.IsNullOrEmpty(userPrompt) || userPrompt == _defaultPromptText)
+                var apiClient = new ApiClient();
+                ModelData modelData = await apiClient.GenerateModelAsync(userPrompt);
+                var validationErrors = FeatureTreeValidator.Validate(modelData);
+                if (validationErrors.Count > 0)
                 {
-                    MessageBox.Show("请输入建模需求", "提示", MessageBoxButton.OK, MessageBoxImage.Information);
+                    Logger.Warning(
+                        "模型返回参数未通过客户端校验: " + string.Join("; ", validationErrors.Take(3)),
+                        null);
+                    SetStatus(
+                        "模型返回参数无效：" + string.Join("；", validationErrors.Take(3)),
+                        StatusKind.Error);
                     return;
                 }
-
-                GenerateBtn.IsEnabled = false;
-                GenerateBtn.Content = "正在生成模型...";
-                StatusText.Text = "正在请求云端生成参数...";
-
-                var apiClient = new ApiClient();
-                var modelData = await apiClient.GenerateModelAsync(userPrompt);
 
                 var preview = new PreviewWindow(modelData, userPrompt) { Owner = this };
                 if (preview.ShowDialog() != true || preview.Result == null)
                 {
-                    StatusText.Text = "已取消执行";
+                    SetStatus("已取消执行。", StatusKind.Ready);
                     return;
                 }
 
-                StatusText.Text = "正在执行建模...";
+                SetStatus("正在写入 SolidWorks 特征...", StatusKind.Busy);
                 _swModeler.ExecuteModeling(preview.Result, userPrompt);
-
-                StatusText.Text = "模型生成完成！";
-                MessageBox.Show("模型生成完成！", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+                SetStatus("模型生成完成。", StatusKind.Success);
             }
             catch (Exception ex)
             {
-                StatusText.Text = "生成失败";
-                MessageBox.Show($"生成失败：{ex.Message}", "错误", MessageBoxButton.OK, MessageBoxImage.Error);
+                Logger.Error("生成失败", ex);
+                SetStatus("生成失败：" + ex.Message, StatusKind.Error);
             }
             finally
             {
-                GenerateBtn.IsEnabled = true;
-                GenerateBtn.Content = "开始生成";
+                SetBusy(false);
             }
         }
-        #endregion
+
+        private void SetBusy(bool busy)
+        {
+            _isBusy = busy;
+            GenerateBtn.IsEnabled = !busy;
+            GenerateBtn.Content = busy ? "正在生成..." : "开始生成";
+            BusyBar.Visibility = busy ? Visibility.Visible : Visibility.Collapsed;
+            PromptTextBox.IsEnabled = !busy;
+            ExamplePanel.IsEnabled = !busy;
+            SettingsBtn.IsEnabled = !busy;
+        }
+
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control)
+            {
+                e.Handled = true;
+                if (!_isBusy)
+                {
+                    GenerateBtn_Click(GenerateBtn, new RoutedEventArgs());
+                }
+            }
+        }
+
+        private void SetStatus(string message, StatusKind kind)
+        {
+            string icon;
+            string backgroundKey;
+            string borderKey;
+            string foregroundKey;
+
+            switch (kind)
+            {
+                case StatusKind.Busy:
+                    icon = "";
+                    backgroundKey = "BusyBgBrush";
+                    borderKey = "BusyBorderBrush";
+                    foregroundKey = "BusyBrush";
+                    break;
+                case StatusKind.Error:
+                    icon = "";
+                    backgroundKey = "ErrorBgBrush";
+                    borderKey = "ErrorBorderBrush";
+                    foregroundKey = "ErrorBrush";
+                    break;
+                case StatusKind.Success:
+                case StatusKind.Ready:
+                default:
+                    icon = "";
+                    backgroundKey = "SuccessBgBrush";
+                    borderKey = "SuccessBorderBrush";
+                    foregroundKey = "SuccessBrush";
+                    break;
+            }
+
+            StatusIcon.Text = icon;
+            StatusText.Text = message;
+            StatusBanner.Background = (Brush)FindResource(backgroundKey);
+            StatusBanner.BorderBrush = (Brush)FindResource(borderKey);
+            StatusIcon.Foreground = (Brush)FindResource(foregroundKey);
+            StatusText.Foreground = (Brush)FindResource(foregroundKey);
+        }
+
+        private enum StatusKind
+        {
+            Ready,
+            Busy,
+            Success,
+            Error
+        }
     }
 }

@@ -6,6 +6,12 @@ extend-exclude = ["server/tests/fixtures"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+[tool.ruff.lint.isort]
+known-first-party = ["app", "config", "prompts", "services", "utils"]
+
+[tool.ruff.lint.per-file-ignores]
+"server/prompts/system_prompt.py" = ["E501"]
+
 [tool.black]
 line-length = 100
 target-version = ["py310"]

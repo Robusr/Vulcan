@@ -1,0 +1,269 @@
+<Window
+    x:Class="Vulcan.SolidWorksClient.UI.SettingsWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Vulcan 设置"
+    Width="720"
+    Height="640"
+    MinWidth="640"
+    MinHeight="560"
+    Background="{DynamicResource PageBrush}"
+    FontFamily="Microsoft YaHei UI"
+    ResizeMode="CanResize"
+    SnapsToDevicePixels="True"
+    UseLayoutRounding="True"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Vulcan.SolidWorksClient;component/UI/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
+
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="16" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock
+                FontSize="20"
+                FontWeight="Bold"
+                Foreground="{StaticResource TextPrimaryBrush}"
+                Text="Vulcan 设置" />
+            <TextBlock
+                Margin="0,6,0,0"
+                Style="{StaticResource MutedText}"
+                Text="配置 Vulcan 服务端和模型提供商。设置只保存在当前 Windows 用户下。" />
+        </StackPanel>
+
+        <ScrollViewer
+            Grid.Row="2"
+            Padding="0,0,4,0"
+            VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <Border Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="服务端连接" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Style="{StaticResource MutedText}"
+                            Text="Vulcan 服务端地址和可选的访问令牌。" />
+
+                        <TextBlock
+                            Margin="0,16,0,6"
+                            Style="{StaticResource FieldLabel}"
+                            Text="服务端地址" />
+                        <TextBox
+                            x:Name="ServerUrlTextBox"
+                            Height="38"
+                            AutomationProperties.Name="服务端地址"
+                            Style="{StaticResource RoundedTextBox}"
+                            ToolTip="例如 http://127.0.0.1:5000" />
+
+                        <TextBlock
+                            Margin="0,12,0,6"
+                            Style="{StaticResource FieldLabel}"
+                            Text="服务端 Token" />
+                        <Border Style="{StaticResource InputBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox
+                                    x:Name="ServerTokenPasswordBox"
+                                    Height="32"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontSize="13"
+                                    Padding="0"
+                                    PasswordChanged="ServerTokenPasswordBox_PasswordChanged"
+                                    VerticalContentAlignment="Center" />
+                                <TextBox
+                                    x:Name="ServerTokenTextBox"
+                                    Height="32"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontSize="13"
+                                    Padding="0"
+                                    TextChanged="ServerTokenTextBox_TextChanged"
+                                    VerticalContentAlignment="Center"
+                                    Visibility="Collapsed" />
+                                <Button
+                                    x:Name="ShowServerTokenBtn"
+                                    Grid.Column="1"
+                                    Margin="8,0,0,0"
+                                    MinHeight="24"
+                                    Padding="6,2"
+                                    Click="ShowServerTokenBtn_Click"
+                                    Content="显示"
+                                    FontSize="11"
+                                    Foreground="{StaticResource AccentDarkBrush}"
+                                    Style="{StaticResource GhostButton}" />
+                            </Grid>
+                        </Border>
+
+                        <StackPanel
+                            Margin="0,12,0,0"
+                            Orientation="Horizontal">
+                            <Button
+                                x:Name="TestConnectionBtn"
+                                Click="TestConnectionBtn_Click"
+                                Content="测试连接"
+                                Style="{StaticResource SecondaryButton}" />
+                            <TextBlock
+                                x:Name="TestStatusText"
+                                Margin="10,0,0,0"
+                                VerticalAlignment="Center"
+                                Style="{StaticResource CaptionText}" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Margin="0,14,0,0" Style="{StaticResource CardBorder}">
+                    <StackPanel>
+                        <TextBlock Style="{StaticResource SectionTitle}" Text="模型提供商" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            Style="{StaticResource MutedText}"
+                            Text="留空则使用服务端环境变量中的默认配置。" />
+
+                        <TextBlock
+                            Margin="0,16,0,6"
+                            Style="{StaticResource FieldLabel}"
+                            Text="LLM API Key" />
+                        <Border Style="{StaticResource InputBorder}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <PasswordBox
+                                    x:Name="LlmApiKeyPasswordBox"
+                                    Height="32"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontSize="13"
+                                    Padding="0"
+                                    PasswordChanged="LlmApiKeyPasswordBox_PasswordChanged"
+                                    VerticalContentAlignment="Center" />
+                                <TextBox
+                                    x:Name="LlmApiKeyTextBox"
+                                    Height="32"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    FontSize="13"
+                                    Padding="0"
+                                    TextChanged="LlmApiKeyTextBox_TextChanged"
+                                    VerticalContentAlignment="Center"
+                                    Visibility="Collapsed" />
+                                <Button
+                                    x:Name="ShowLlmKeyBtn"
+                                    Grid.Column="1"
+                                    Margin="8,0,0,0"
+                                    MinHeight="24"
+                                    Padding="6,2"
+                                    Click="ShowLlmKeyBtn_Click"
+                                    Content="显示"
+                                    FontSize="11"
+                                    Foreground="{StaticResource AccentDarkBrush}"
+                                    Style="{StaticResource GhostButton}" />
+                            </Grid>
+                        </Border>
+
+                        <TextBlock
+                            Margin="0,12,0,6"
+                            Style="{StaticResource FieldLabel}"
+                            Text="LLM Base URL" />
+                        <TextBox
+                            x:Name="LlmBaseUrlTextBox"
+                            Height="38"
+                            AutomationProperties.Name="LLM Base URL"
+                            Style="{StaticResource RoundedTextBox}"
+                            ToolTip="例如 https://api.openai.com/v1" />
+
+                        <TextBlock
+                            Margin="0,12,0,6"
+                            Style="{StaticResource FieldLabel}"
+                            Text="模型名称" />
+                        <TextBox
+                            x:Name="LlmModelTextBox"
+                            Height="38"
+                            AutomationProperties.Name="模型名称"
+                            Style="{StaticResource RoundedTextBox}"
+                            ToolTip="例如 gpt-4o-mini" />
+                    </StackPanel>
+                </Border>
+
+                <Border
+                    Margin="0,14,0,0"
+                    Padding="14"
+                    Background="{StaticResource AccentSoftBrush}"
+                    BorderBrush="{StaticResource BusyBorderBrush}"
+                    Style="{StaticResource CardBorder}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock
+                            Margin="0,1,10,0"
+                            FontFamily="Segoe MDL2 Assets"
+                            FontSize="16"
+                            Foreground="{StaticResource AccentDarkBrush}"
+                            Text="&#xE72E;" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Style="{StaticResource MutedText}"
+                            Text="LLM API Key 会随生成请求发送到你的 Vulcan 服务端，仅在请求期间使用，不写入日志。密钥通过 Windows DPAPI 加密保存。建议使用 HTTPS 连接非本机服务端。" />
+                    </Grid>
+                </Border>
+            </StackPanel>
+        </ScrollViewer>
+
+        <Grid Grid.Row="4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button
+                Click="OpenLogsBtn_Click"
+                Content="打开日志目录"
+                Style="{StaticResource GhostButton}" />
+            <TextBlock
+                x:Name="SaveStatusText"
+                Grid.Column="1"
+                Margin="12,0,0,0"
+                VerticalAlignment="Center"
+                Style="{StaticResource CaptionText}"
+                Text="设置保存在 %APPDATA%\Vulcan\settings.json" />
+            <StackPanel
+                Grid.Column="2"
+                Orientation="Horizontal">
+                <Button
+                    Margin="0,0,10,0"
+                    Click="CancelBtn_Click"
+                    Content="取消"
+                    IsCancel="True"
+                    Style="{StaticResource SecondaryButton}" />
+                <Button
+                    Width="110"
+                    Click="SaveBtn_Click"
+                    Content="保存"
+                    IsDefault="True"
+                    Style="{StaticResource PrimaryButton}" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>

@@ -4,6 +4,7 @@ import hmac
 
 from flask import Flask, jsonify, request
 from werkzeug.exceptions import RequestEntityTooLarge
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 from config import Config
 from services.feature_validator import validate_feature_tree
@@ -15,9 +16,11 @@ from utils.rate_limit import RateLimiter
 logger = setup_logger(__name__)
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 64 * 1024
+if Config.TRUST_PROXY:
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
 
 llm_client = LLMClient()
-rate_limiter = RateLimiter(Config.RATE_LIMIT_PER_MINUTE, 60)
+rate_limiter = RateLimiter(Config.RATE_LIMIT_PER_MINUTE, 60, Config.RATE_LIMIT_MAX_KEYS)
 
 
 def _error(message, status):
@@ -69,9 +72,7 @@ def generate_model():
         if not user_prompt:
             return _error("prompt不能为空", 400)
         if len(user_prompt) > Config.MAX_PROMPT_LENGTH:
-            return _error(
-                f"prompt长度不能超过{Config.MAX_PROMPT_LENGTH}个字符", 400
-            )
+            return _error(f"prompt长度不能超过{Config.MAX_PROMPT_LENGTH}个字符", 400)
 
         # 2. Ask the LLM for a feature tree. Per-request BYOK overrides come
         #    from headers the client plugin sends (its own key/base URL/model).
@@ -111,7 +112,5 @@ def generate_model():
 
 if __name__ == "__main__":
     if not Config.API_TOKEN:
-        logger.warning(
-            "VULCAN_API_TOKEN 未设置，服务端未启用鉴权。不要将服务暴露到公网。"
-        )
+        logger.warning("VULCAN_API_TOKEN 未设置，服务端未启用鉴权。不要将服务暴露到公网。")
     app.run(host=Config.HOST, port=Config.PORT, debug=Config.DEBUG)

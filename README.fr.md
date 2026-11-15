@@ -125,7 +125,7 @@ Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les
 </p>
 
 <p align="center">
-  <sub>Maquette de mise en page du panneau de 520 × 320 px. L’interface livrée est en chinois ; le panneau accepte des demandes en langage naturel.</sub>
+  <sub>Maquette de mise en page du panneau de 680 × 520 px. L’interface livrée est en chinois ; le panneau accepte des demandes en langage naturel.</sub>
 </p>
 
 ## Cycle d’une requête
@@ -442,11 +442,11 @@ Cette section décrit chaque élément manipulé, de l’installateur à l’arb
 |---|---|---|
 | Onglet `Vulcan AI` | CommandManager, dernier onglet | Héberge la commande **打开AI生成窗口** |
 | Bouton `AI生成` | Barre d’outils de gauche | Ouvre le même panneau modal |
-| Fenêtre `Vulcan AI For SolidWorks` | Centre de SolidWorks | Panneau de 520 × 320 |
+| Fenêtre `Vulcan AI` | Centre de SolidWorks | Panneau redimensionnable de 680 × 520 avec exemples et bandeau d’état |
 
 ### 3. Configurer le serveur
 
-Cliquez sur **设置** (en haut à droite du panneau). La boîte de dialogue contient cinq champs et quatre boutons.
+Cliquez sur le bouton engrenage (en haut à droite du panneau). La boîte de dialogue est divisée en deux sections, avec cinq champs et quatre boutons.
 
 | Champ | Signification |
 |---|---|
@@ -469,11 +469,11 @@ Saisissez une demande dans la carte blanche, par exemple `在前视基准面拉�
 
 ### 5. Vérifier et modifier le JSON
 
-La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON et deux boutons.
+La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON avec validation en direct et les boutons 格式化, 恢复原始, 执行建模 et 取消.
 
 | Élément | Comportement |
 |---|---|
-| Éditeur JSON | Accepte les modifications ; conservez `feature_type` (ou `features[]`) et un objet `params` |
+| Éditeur JSON | Éditeur sombre avec validation en direct ; conservez `feature_type` (ou `features[]`) et un objet `params` valide |
 | 执行建模 | Valide le JSON, ferme l’aperçu et lance le modeleur |
 | 取消 | Ferme l’aperçu ; le document reste intact |
 
@@ -485,6 +485,14 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) e
 
 - Ajout des fonctions natives `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib`.
 - Contrat du prompt passé à `PROMPT_VERSION = "2.4.0"` et documentation anglaise, chinoise et française mise à jour.
+- Refonte de l’interface : thème partagé, panneau redimensionnable avec exemples, éditeur JSON sombre avec validation en direct et boîte de réglages groupée avec secrets masqués.
+- Le JSON modifié est validé côté client selon les mêmes règles que le serveur avant d’être appliqué à SolidWorks.
+- Correction de `propagation` pour le dépouille, du repli sur les coupes borgnes, de l’heuristique des quatre trous, du contrôle du document pièce, de la vérification du coque, du mapping des noms de fonctions entre deux exécutions et de la seconde direction des motifs linéaires.
+- Le serveur rejette les réponses mélangeant `feature_type` et `features` et valide la géométrie simple par rapport au bloc de base : limites des trous, taille des congés et chanfreins, épaisseur de coque et étendue des motifs.
+- En cas d’échec, le client indique combien de fonctions ont été créées ; les builds Release ne nécessitent plus d’enregistrement COM élevé.
+- L’état de limitation est borné, un mode proxy de confiance optionnel corrige l’IP client, et la CI exécute désormais ruff, Black, mypy et les tests de validation du client.
+- Les esquisses portent désormais des cotes pilotantes : diamètre de cercle, longueur et largeur de rectangle, côté de polygone, rayon et entraxe de lumière, et longueur de ligne pour les nervures et trajectoires de balayage. La position du profil reste définie par les coordonnées, et les ellipses restent purement géométriques.
+- Vérifié sous SolidWorks 2025 SP0 avec une exécution COM automatisée (`tools/SolidWorksVerify`) : les cotes demandées sont créées et la modification d’un diamètre reconstruit le corps.
 
 ## Nouveautés de la 1.2.1
 
@@ -546,13 +554,25 @@ Désinstallation silencieuse :
 
 ## Tests
 
-La suite serveur utilise le client de test Flask et un client LLM simulé. La compilation du client et l’installateur sont couverts par les workflows GitHub Actions.
+La suite serveur utilise le client de test Flask et un client LLM simulé. Le client dispose d’un lanceur de tests de validation sans dépendance, et la compilation ainsi que l’installateur sont couverts par les workflows GitHub Actions.
 
 ```bash
 cd server
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 pip-audit -r requirements.txt
+```
+
+```bat
+msbuild client\tests\Vulcan.Client.Tests\Vulcan.Client.Tests.csproj /p:Configuration=Release /p:Platform=x64
+client\tests\Vulcan.Client.Tests\bin\x64\Release\Vulcan.Client.Tests.exe
+```
+
+Une exécution de fumée SolidWorks optionnelle utilise le vrai modeleur. Elle nécessite SolidWorks 2025, ferme les documents qu’elle crée et restaure les préférences de boîte de dialogue qu’elle modifie :
+
+```bat
+msbuild tools\SolidWorksVerify\SwVerify.csproj /p:Configuration=Release /p:Platform=x64
+tools\SolidWorksVerify\bin\SwVerify.exe
 ```
 
 ## Configuration
@@ -569,6 +589,8 @@ PORT="5000"
 FLASK_ENV="production"
 VULCAN_API_TOKEN=""
 VULCAN_RATE_LIMIT_PER_MINUTE="60"
+VULCAN_RATE_LIMIT_MAX_KEYS="10000"
+VULCAN_TRUST_PROXY="false"
 MAX_PROMPT_LENGTH="4000"
 LLM_TIMEOUT="30"
 LOG_LEVEL="INFO"
@@ -587,6 +609,8 @@ Les noms `QINIU_*` sont historiques : le premier déploiement utilisait Qiniu Cl
 | `FLASK_ENV` | `production` | Définissez `development` pour activer le mode debug Flask |
 | `VULCAN_API_TOKEN` | aucune | Jeton Bearer optionnel exigé des clients |
 | `VULCAN_RATE_LIMIT_PER_MINUTE` | `60` | Limite par IP pour l’endpoint de génération ; `0` la désactive |
+| `VULCAN_RATE_LIMIT_MAX_KEYS` | `10000` | Nombre maximal de clés suivies ; les plus anciennes sont évincées |
+| `VULCAN_TRUST_PROXY` | `false` | Fait confiance à un saut de proxy pour `X-Forwarded-For` et `X-Forwarded-Proto` |
 | `MAX_PROMPT_LENGTH` | `4000` | Longueur maximale du prompt en caractères |
 | `LLM_TIMEOUT` | `30` | Délai d’expiration de l’appel au fournisseur en secondes |
 | `LOG_LEVEL` | `INFO` | Niveau de journalisation ; les prompts ne sont journalisés qu’en longueur à INFO |
@@ -633,7 +657,7 @@ Les hôtes non locaux doivent utiliser HTTPS, sauf si `VULCAN_ALLOW_INSECURE=tru
 
 - `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` dans [`llm_client.py`](server/services/llm_client.py) contrôlent l’appel au modèle.
 - `LLM_TIMEOUT = 30` dans [`config.py`](server/config.py) contrôle le délai côté serveur.
-- `ApiClient` utilise un délai de 30 secondes. Si vous augmentez l’un, augmentez l’autre.
+- `ApiClient` utilise un délai client de 60 secondes pour laisser le serveur attendre une réponse lente du modèle. Gardez-le au-dessus de `LLM_TIMEOUT`.
 
 ## Référence API
 
@@ -710,11 +734,13 @@ Vulcan/
 │   └── Vulcan.SolidWorksClient/
 │       ├── Core/                 #   SwAddIn — enregistrement COM et cycle de vie
 │       ├── Models/               #   ModelData — types de requête et réponse
-│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger
-│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow (WPF)
+│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger, validateur
+│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow, Theme.xaml
 │       ├── ReferenceDLL/         #   Assemblys d’interopérabilité SolidWorks
 │       ├── Vulcan Setup/         #   Installateur Inno Setup
 │       └── packaging/            #   scripts install/uninstall et build_installer.ps1
+├── client/tests/                 #   Lanceur de tests de validation sans dépendance (CI)
+│   └── Vulcan.Client.Tests/
 ├── server/                       # Serveur Flask actif
 │   ├── app.py                    #   Point d’entrée Flask
 │   ├── config.py                 #   Configuration par environnement
