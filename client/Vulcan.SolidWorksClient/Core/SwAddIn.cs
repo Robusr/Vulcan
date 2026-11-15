@@ -23,7 +23,15 @@ namespace VulcanAddin
         private ICommandManager _cmdMgr = null;
         private int _addinCookieID;
 
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern IntPtr SetParent(IntPtr child, IntPtr parent);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        private static extern bool MoveWindow(IntPtr hwnd, int x, int y, int width, int height, bool repaint);
+
         private Window _aiMainWindow = null;
+        private TaskpaneView _taskPaneView = null;
+        private TaskPaneView _taskPaneControl = null;
 
         public int MainCmdGroupID = 5001;
         public int[] MainItemIds = new[] { 1002 };
@@ -49,8 +57,9 @@ namespace VulcanAddin
                 _swApp.SetAddinCallbackInfo(0, this, _addinCookieID);
                 _cmdMgr = _swApp.GetCommandManager(_addinCookieID);
 
-                // 创建工具栏
+                // 创建工具栏与任务窗格
                 CreateBasicCommandManager();
+                CreateTaskPane();
 
                 return true;
             }
@@ -68,9 +77,20 @@ namespace VulcanAddin
         {
             try
             {
-                // 关闭AI窗口
+                // 关闭AI窗口与任务窗格
                 _aiMainWindow?.Close();
                 _aiMainWindow = null;
+                try
+                {
+                    _taskPaneView?.DeleteView();
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning("删除任务窗格失败", ex);
+                }
+                _taskPaneControl?.Dispose();
+                _taskPaneControl = null;
+                _taskPaneView = null;
 
                 // 释放COM对象
                 if (_cmdMgr != null)
@@ -223,12 +243,67 @@ namespace VulcanAddin
         }
         #endregion
 
+        private void CreateTaskPane()
+        {
+            try
+            {
+                string iconPath = System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) ?? string.Empty,
+                    "icons",
+                    "icon_32.png");
+                _taskPaneView = _swApp.CreateTaskpaneView2(iconPath, "Vulcan AI");
+                if (_taskPaneView == null)
+                {
+                    Logger.Warning("任务窗格创建失败，使用模态面板作为回退");
+                    return;
+                }
+
+                _taskPaneControl = new TaskPaneView(new SwModeler(_swApp));
+                _taskPaneControl.CreateControl();
+                IntPtr handle = _taskPaneControl.Handle;
+                IntPtr paneHandle = new IntPtr(_taskPaneView.GetTaskpaneViewWnd());
+                IntPtr previousParent = SetParent(handle, paneHandle);
+                bool shown;
+                if (previousParent != IntPtr.Zero)
+                {
+                    MoveWindow(handle, 0, 0, 320, 700, true);
+                    shown = true;
+                }
+                else
+                {
+                    shown = IntPtr.Size == 8
+                        ? _taskPaneView.DisplayWindowFromHandlex64(handle.ToInt64())
+                        : _taskPaneView.DisplayWindowFromHandle(handle.ToInt32());
+                }
+                if (!shown)
+                {
+                    Logger.Warning("任务窗格无法承载面板，使用模态面板作为回退");
+                }
+                else
+                {
+                    Logger.Info("任务窗格已创建");
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("创建任务窗格失败", ex);
+                _taskPaneView = null;
+                _taskPaneControl = null;
+            }
+        }
+
         #region 核心功能：打开AI生成窗口
         /// <summary>
         /// 打开AI生成窗口，传递和SwModeler完全兼容的ISldWorks实例
         /// </summary>
         private void OpenMainWindow()
         {
+            if (_taskPaneView != null && _taskPaneControl != null)
+            {
+                _taskPaneView.ShowView();
+                return;
+            }
+
             try
             {
                 Logger.Info("正在打开Vulcan AI窗口...");

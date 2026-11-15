@@ -87,3 +87,21 @@ def test_missing_configuration_raises_connection_error(monkeypatch):
     monkeypatch.setattr(Config, "QINIU_API_KEY", None)
     with pytest.raises(APIConnectionError):
         LLMClient().call_model("no key")
+
+
+def test_explicit_language_selects_prompt(client):
+    with requests_mock.Mocker() as mock:
+        mock.post(CHAT_URL, json=payload('{"feature_type":"extrude"}'))
+        client.call_model("Créez une plaque", language="fr")
+
+    body = mock.last_request.json()
+    assert "Tu es" in body["messages"][0]["content"]
+
+
+def test_language_is_detected_from_the_prompt(client):
+    with requests_mock.Mocker() as mock:
+        mock.post(CHAT_URL, json=payload('{"feature_type":"extrude"}'))
+        client.call_model("在前视基准面拉伸一个圆柱")
+
+    body = mock.last_request.json()
+    assert "你是" in body["messages"][0]["content"]

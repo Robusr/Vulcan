@@ -1,0 +1,83 @@
+<UserControl
+    x:Class="Vulcan.SolidWorksClient.UI.TaskPanePanel"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Background="{DynamicResource PageBrush}"
+    FontFamily="Microsoft YaHei UI"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Vulcan.SolidWorksClient;component/UI/Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
+
+    <ScrollViewer
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <StackPanel>
+                    <TextBlock
+                        FontSize="15"
+                        FontWeight="Bold"
+                        Foreground="{StaticResource TextPrimaryBrush}"
+                        Text="Vulcan AI" />
+                    <TextBlock
+                        Margin="0,2,0,0"
+                        Style="{StaticResource CaptionText}"
+                        Text="自然语言生成 SolidWorks 特征"
+                        TextWrapping="Wrap" />
+                </StackPanel>
+                <Button
+                    x:Name="SettingsBtn"
+                    Grid.Column="1"
+                    AutomationProperties.Name="设置"
+                    Click="SettingsBtn_Click"
+                    Content="&#xE713;"
+                    Style="{StaticResource IconButton}"
+                    ToolTip="配置服务端和模型提供商" />
+            </Grid>
+
+            <TextBlock
+                Margin="0,12,0,6"
+                Style="{StaticResource FieldLabel}"
+                Text="建模需求" />
+
+            <TextBox
+                x:Name="PromptTextBox"
+                Height="170"
+                AcceptsReturn="True"
+                AutomationProperties.Name="建模需求"
+                Background="{StaticResource CardBrush}"
+                FontSize="12.5"
+                Style="{StaticResource RoundedTextBox}"
+                TextWrapping="Wrap"
+                VerticalContentAlignment="Top"
+                VerticalScrollBarVisibility="Auto" />
+
+            <Button
+                x:Name="GenerateBtn"
+                Margin="0,10,0,0"
+                MinHeight="36"
+                Click="GenerateBtn_Click"
+                Content="开始生成"
+                Style="{StaticResource PrimaryButton}" />
+
+            <TextBlock
+                x:Name="StatusText"
+                Margin="0,8,0,0"
+                Style="{StaticResource CaptionText}"
+                Text="就绪"
+                TextWrapping="Wrap" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

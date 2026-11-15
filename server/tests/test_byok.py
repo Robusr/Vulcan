@@ -46,12 +46,14 @@ def client():
 def test_app_forwards_byok_headers(client, monkeypatch):
     captured = {}
 
-    def fake_call(prompt, api_key=None, base_url=None, model=None):
+    def fake_call(prompt, api_key=None, base_url=None, model=None, language=None, provider=None):
         captured.update(
             prompt=prompt,
             api_key=api_key,
             base_url=base_url,
             model=model,
+            language=language,
+            provider=provider,
         )
         return VALID_TREE
 
@@ -71,20 +73,34 @@ def test_app_forwards_byok_headers(client, monkeypatch):
         "api_key": "user-key",
         "base_url": USER_BASE,
         "model": "user-model",
+        "language": None,
+        "provider": None,
     }
 
 
 def test_app_without_byok_headers_passes_none(client, monkeypatch):
     captured = {}
 
-    def fake_call(prompt, api_key=None, base_url=None, model=None):
-        captured.update(api_key=api_key, base_url=base_url, model=model)
+    def fake_call(prompt, api_key=None, base_url=None, model=None, language=None, provider=None):
+        captured.update(
+            api_key=api_key,
+            base_url=base_url,
+            model=model,
+            language=language,
+            provider=provider,
+        )
         return VALID_TREE
 
     monkeypatch.setattr(llm_client, "call_model", fake_call)
     response = client.post("/api/v1/generate", json={"prompt": "a plate"})
     assert response.status_code == 200
-    assert captured == {"api_key": None, "base_url": None, "model": None}
+    assert captured == {
+        "api_key": None,
+        "base_url": None,
+        "model": None,
+        "language": None,
+        "provider": None,
+    }
 
 
 def make_client(monkeypatch, allow_custom=True):

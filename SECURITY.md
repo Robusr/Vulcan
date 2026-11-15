@@ -10,6 +10,7 @@ Please do not open a public issue for security problems. Report them privately t
 - The repository previously tracked `.env` files in the root, `client/`, `rebuild/server/`, and the archived beta track, plus a server log. They have been removed from the tracked tree. Treat any key that appeared in git history as compromised: revoke it at the provider first, then purge history with `scripts/purge_secrets.sh`, force-push, and audit provider usage.
 - The server logs prompt lengths instead of prompt bodies at INFO level. Set `LOG_LEVEL=DEBUG` only for local debugging.
 - Bring-your-own-key settings live in `%APPDATA%\Vulcan\settings.json`. `ServerToken` and `LlmApiKey` are encrypted with Windows DPAPI under the current Windows user, so the file must not be copied between machines or accounts and must never be committed. The key is forwarded to the configured Vulcan server as `X-LLM-API-Key` for a single request and is not logged by the server.
+- `insert_component` accepts only `.sldprt` and `.sldasm` paths from the model, but it runs with the signed-in Windows user's file permissions. Review assembly requests before executing them on a shared workstation.
 - Set `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` on a shared server to prevent clients from redirecting prompts and keys to an arbitrary provider endpoint.
 
 ## Deployment

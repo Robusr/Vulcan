@@ -42,6 +42,20 @@ namespace SwVerify
                 failures += RunScenario(template, "revolve", Revolve(), "旋转矩形轮廓");
                 failures += RunScenario(template, "ellipse", Ellipse(), "椭圆拉伸");
                 failures += RunScenario(template, "sweep-line", SweepLine(), "圆形轮廓扫掠直线路径");
+                failures += RunScenario(template, "blind-cut", BlindCut(), "盲切一个深度8mm的孔");
+                failures += RunScenario(template, "counterbore", Counterbore(), "沉孔");
+                failures += RunScenario(template, "countersink", Countersink(), "埋头孔");
+                failures += RunScenario(template, "hole-array", HoleArray(), "孔阵列");
+                string drawingTemplate = ResolveTemplate("*.drwdot");
+                if (drawingTemplate != null)
+                {
+                    failures += RunDrawingNote(drawingTemplate);
+                }
+                string assemblyTemplate = ResolveTemplate("*.asmdot");
+                if (assemblyTemplate != null)
+                {
+                    failures += RunAssemblyInsert(template, assemblyTemplate);
+                }
             }
             catch (Exception ex)
             {
@@ -522,6 +536,235 @@ namespace SwVerify
                 "path_plane", "右视基准面",
                 "path_shape", "line",
                 "path_length", 40.0));
+        }
+
+        private static ModelData BlindCut()
+        {
+            return new ModelData
+            {
+                features = new List<FeatureItem>
+                {
+                    new FeatureItem { feature_type = "extrude", @params = P(
+                        "plane", "前视基准面", "shape", "rectangle",
+                        "length", 100.0, "width", 60.0, "depth", 20.0) },
+                    new FeatureItem { feature_type = "cut", @params = P(
+                        "plane", "前视基准面", "shape", "circle",
+                        "diameter", 10.0, "depth", 8.0,
+                        "center_x", 0.0, "center_y", 0.0) }
+                }
+            };
+        }
+
+        private static string ResolveTemplate(string pattern)
+        {
+            string programData = System.Environment.GetFolderPath(
+                System.Environment.SpecialFolder.CommonApplicationData);
+            string templates = System.IO.Path.Combine(
+                programData, "SolidWorks", "SOLIDWORKS 2025", "templates");
+            if (!System.IO.Directory.Exists(templates))
+            {
+                return null;
+            }
+
+            string[] files = System.IO.Directory.GetFiles(templates, pattern);
+            if (files.Length == 0)
+            {
+                return null;
+            }
+            Array.Sort(files);
+            foreach (string file in files)
+            {
+                if (System.IO.Path.GetFileName(file).StartsWith("gb_", StringComparison.OrdinalIgnoreCase))
+                {
+                    return file;
+                }
+            }
+            return files[0];
+        }
+
+        private static int RunDrawingNote(string drawingTemplate)
+        {
+            Console.WriteLine("=== SCENARIO drawing-note ===");
+            ModelDoc2 doc = null;
+            try
+            {
+                doc = _swApp.NewDocument(drawingTemplate, 0, 0, 0) as ModelDoc2;
+                if (doc == null)
+                {
+                    Console.WriteLine("FAIL drawing-note: NewDocument returned null");
+                    return 1;
+                }
+
+                int baseline = SheetAnnotationCount(doc);
+                new SwModeler(_swApp).ExecuteModeling(
+                    Feature("note", P("text", "Vulcan annotation", "x", 20.0, "y", 20.0, "height", 5.0)),
+                    "工程图注释");
+
+                int after = SheetAnnotationCount(doc);
+                Console.WriteLine("  sheet annotations: " + baseline + " -> " + after);
+                bool ok = after > baseline;
+                Console.WriteLine(ok ? "PASS drawing-note" : "FAIL drawing-note: no annotation created");
+                return ok ? 0 : 1;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FAIL drawing-note: " + ex.Message);
+                return 1;
+            }
+            finally
+            {
+                if (doc != null)
+                {
+                    try { _swApp.QuitDoc(doc.GetTitle()); } catch { }
+                }
+            }
+        }
+
+        private static int RunAssemblyInsert(string partTemplate, string assemblyTemplate)
+        {
+            Console.WriteLine("=== SCENARIO assembly-insert ===");
+            string tempPart = System.IO.Path.Combine(
+                System.IO.Path.GetTempPath(), "vulcan_verify_component.SLDPRT");
+            ModelDoc2 part = null;
+            ModelDoc2 assemblyDoc = null;
+            try
+            {
+                part = _swApp.NewDocument(partTemplate, 0, 0, 0) as ModelDoc2;
+                if (part == null)
+                {
+                    Console.WriteLine("FAIL assembly-insert: part document failed");
+                    return 1;
+                }
+
+                new SwModeler(_swApp).ExecuteModeling(
+                    Feature("extrude", P(
+                        "plane", "前视基准面", "shape", "circle",
+                        "diameter", 30.0, "depth", 10.0)),
+                    "");
+
+                int saveErrors = 0;
+                int saveWarnings = 0;
+                if (!part.SaveAs4(tempPart, 0, 1, ref saveErrors, ref saveWarnings))
+                {
+                    Console.WriteLine("FAIL assembly-insert: SaveAs4 failed (" + saveErrors + ")");
+                    return 1;
+                }
+                _swApp.QuitDoc(part.GetTitle());
+                part = null;
+
+                assemblyDoc = _swApp.NewDocument(assemblyTemplate, 0, 0, 0) as ModelDoc2;
+                if (assemblyDoc == null)
+                {
+                    Console.WriteLine("FAIL assembly-insert: assembly document failed");
+                    return 1;
+                }
+
+                new SwModeler(_swApp).ExecuteModeling(
+                    Feature("insert_component", P("path", tempPart, "fixed", true)),
+                    "插入零部件");
+
+                var assembly = assemblyDoc as AssemblyDoc;
+                int components = assembly == null ? -1 : assembly.GetComponentCount(false);
+                Console.WriteLine("  components: " + components);
+                bool ok = components >= 1;
+                Console.WriteLine(ok ? "PASS assembly-insert" : "FAIL assembly-insert: no component");
+                return ok ? 0 : 1;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("FAIL assembly-insert: " + ex.Message);
+                return 1;
+            }
+            finally
+            {
+                if (part != null)
+                {
+                    try { _swApp.QuitDoc(part.GetTitle()); } catch { }
+                }
+                if (assemblyDoc != null)
+                {
+                    try { _swApp.QuitDoc(assemblyDoc.GetTitle()); } catch { }
+                }
+                try { System.IO.File.Delete(tempPart); } catch { }
+            }
+        }
+
+        private static int SheetAnnotationCount(ModelDoc2 doc)
+        {
+            var drawing = doc as DrawingDoc;
+            if (drawing == null)
+            {
+                return 0;
+            }
+            object[] views = drawing.GetViews() as object[];
+            if (views == null || views.Length == 0)
+            {
+                return 0;
+            }
+            object[] group = views[0] as object[];
+            object entry = group != null && group.Length > 0 ? group[0] : views[0];
+            View view = entry as View;
+            return view == null ? 0 : view.GetAnnotationCount();
+        }
+
+        private static ModelData Counterbore()
+        {
+            return new ModelData
+            {
+                features = new List<FeatureItem>
+                {
+                    new FeatureItem { feature_type = "extrude", @params = P(
+                        "plane", "前视基准面", "shape", "rectangle",
+                        "length", 100.0, "width", 60.0, "depth", 20.0) },
+                    new FeatureItem { feature_type = "counterbore", @params = P(
+                        "plane", "前视基准面",
+                        "hole_diameter", 6.0,
+                        "counterbore_diameter", 11.0,
+                        "counterbore_depth", 6.0,
+                        "through_all", true) }
+                }
+            };
+        }
+
+        private static ModelData Countersink()
+        {
+            return new ModelData
+            {
+                features = new List<FeatureItem>
+                {
+                    new FeatureItem { feature_type = "extrude", @params = P(
+                        "plane", "前视基准面", "shape", "rectangle",
+                        "length", 100.0, "width", 60.0, "depth", 20.0) },
+                    new FeatureItem { feature_type = "countersink", @params = P(
+                        "plane", "前视基准面",
+                        "hole_diameter", 6.0,
+                        "countersink_diameter", 12.0,
+                        "countersink_angle", 90.0,
+                        "through_all", true) }
+                }
+            };
+        }
+
+        private static ModelData HoleArray()
+        {
+            return new ModelData
+            {
+                features = new List<FeatureItem>
+                {
+                    new FeatureItem { feature_type = "extrude", @params = P(
+                        "plane", "前视基准面", "shape", "rectangle",
+                        "length", 100.0, "width", 60.0, "depth", 20.0) },
+                    new FeatureItem { feature_type = "hole_array", @params = P(
+                        "plane", "前视基准面",
+                        "diameter", 6.0,
+                        "count", 4.0,
+                        "spacing", 15.0,
+                        "direction", "x",
+                        "through_all", true,
+                        "center_x", -22.5,
+                        "center_y", 0.0) }
+                }
+            };
         }
 
         private static ModelData Feature(string type, Dictionary<string, object> parameters)

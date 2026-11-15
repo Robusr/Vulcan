@@ -220,6 +220,11 @@ Un seul des quatre trous est représenté. La réponse complète répète la fon
 | `sweep` | Balaye un profil circulaire le long d’un chemin. | `diameter`, `path_length` ; en option `path_plane`, `path_shape` |
 | `loft` | Crée un lissage entre deux profils. | `height`, `profile1`, `profile2` ; en option `plane` |
 | `rib` | Insère une nervure à partir d’une esquisse ouverte. | `thickness`, `length` ; en option `plane`, `center_x`, `center_y`, `draft_angle`, `two_sided` |
+| `counterbore` | Coupe un lamage. | `hole_diameter`, `counterbore_diameter` (plus grand), `counterbore_depth` ; `depth` ou `through_all` |
+| `countersink` | Coupe une fraisure. | `hole_diameter`, `countersink_diameter` (plus grand), `countersink_angle` en option ; `depth` ou `through_all` |
+| `hole_array` | Coupe une rangée de trous identiques. | `diameter`, `count`, `spacing` ; `direction`, `angle` en option ; `depth` ou `through_all` |
+| `note` | Ajoute une annotation de mise en plan. Mise en plan uniquement. | `text` ; `x`, `y`, `height` en option |
+| `insert_component` | Insère une pièce ou un sous-assemblage. Assemblage uniquement. | `path` (`.sldprt` ou `.sldasm`) ; `x`, `y`, `z`, `fixed` en option |
 
 ### Schéma des fonctions
 
@@ -329,13 +334,13 @@ Le repli est pragmatique, pas élégant. Gardez SolidWorks au premier plan penda
 
 ## Ingénierie du prompt
 
-Le prompt système se trouve dans [`server/prompts/system_prompt.py`](server/prompts/system_prompt.py) et est versionné par `PROMPT_VERSION = "2.4.0"` (environ 300 lignes). Il encode cinq éléments :
+Les prompts se trouvent dans [`server/prompts/`](server/prompts/) et sont versionnés par `PROMPT_VERSION = "3.0.0"`. Les prompts chinois, anglais et français sont natifs, pas traduits à l’exécution ; le serveur choisit selon le champ `language` optionnel (`zh`, `en` ou `fr`) ou détecte la langue du texte. Chaque prompt encode cinq éléments :
 
 1. **Discipline de sortie.** JSON uniquement — pas de Markdown, pas de prose, pas de balises de code.
 2. **Règles de coordonnées.** Correspondances axe-plan, avec un exemple travaillé pour une base de 200 × 100 × 20 et quatre trous.
 3. **Schéma des fonctions.** Champs requis et optionnels pour `extrude`, `cut`, `revolve`, `fillet` et `chamfer`, plus les paramètres propres aux formes.
 4. **Contrainte anti-chevauchement.** Plusieurs fonctions identiques doivent utiliser des coordonnées distinctes ; jamais empilées à l’origine.
-5. **Vocabulaire des plans.** Le modèle doit produire des noms de plans chinois tels que `前视基准面`, `上视基准面` et `右视基准面`.
+5. **Vocabulaire des plans.** Chaque prompt produit les noms que le client résout sur toute interface SolidWorks : chinois `前视基准面` / `上视基准面` / `右视基准面`, anglais `front` / `top` / `right`, français `front` / `dessus` / `droite`.
 
 Le prompt est délibérément séparé de la logique métier pour pouvoir être itéré sans toucher au serveur. L’appel utilise une température basse, car la tâche récompense la cohérence, pas la créativité.
 
@@ -446,7 +451,7 @@ Cette section décrit chaque élément manipulé, de l’installateur à l’arb
 
 ### 3. Configurer le serveur
 
-Cliquez sur le bouton engrenage (en haut à droite du panneau). La boîte de dialogue est divisée en deux sections, avec cinq champs et quatre boutons.
+Cliquez sur le bouton engrenage (en haut à droite du panneau). La boîte de dialogue est divisée en deux sections, avec six champs et quatre boutons.
 
 | Champ | Signification |
 |---|---|
@@ -493,6 +498,13 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse) e
 - L’état de limitation est borné, un mode proxy de confiance optionnel corrige l’IP client, et la CI exécute désormais ruff, Black, mypy et les tests de validation du client.
 - Les esquisses portent désormais des cotes pilotantes : diamètre de cercle, longueur et largeur de rectangle, côté de polygone, rayon et entraxe de lumière, et longueur de ligne pour les nervures et trajectoires de balayage. La position du profil reste définie par les coordonnées, et les ellipses restent purement géométriques.
 - Vérifié sous SolidWorks 2025 SP0 avec une exécution COM automatisée (`tools/SolidWorksVerify`) : les cotes demandées sont créées et la modification d’un diamètre reconstruit le corps.
+- Ajout des fonctions de trou `counterbore`, `countersink` et `hole_array`, de `insert_component` pour les assemblages et de `note` pour les mises en plan.
+- Prompts natifs anglais et français, champ `language` optionnel, adaptateurs `openai` et `anthropic`, endpoint SSE avec progression côté client.
+- Extraction de `ModelingEngine` derrière l’interface `IFeatureBackend` : la CI client vérifie l’ordre, la résolution des graines et les échecs partiels avec un backend simulé.
+- Ajout d’un volet des tâches ; la commande du ruban ouvre le volet et retombe sur la fenêtre modale s’il est indisponible.
+- Correction des coupes borgnes avec les paramètres bidirectionnels de `FeatureCut4` et une nouvelle tentative dans le sens opposé.
+- Le volet des tâches héberge le panneau WPF via `SetParent` et reste interactif ; la commande du ruban retombe sur le panneau modal si l’hôte échoue.
+- Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
 
 ## Nouveautés de la 1.2.1
 
@@ -583,6 +595,7 @@ tools\SolidWorksVerify\bin\SwVerify.exe
 QINIU_API_KEY="sk-xxxxxxxxxxxxxxxx"
 QINIU_BASE_URL="https://api.openai.com/v1"
 QINIU_MODEL="gpt-4o-mini"
+LLM_PROVIDER="openai"
 
 HOST="127.0.0.1"
 PORT="5000"
@@ -604,6 +617,7 @@ Les noms `QINIU_*` sont historiques : le premier déploiement utilisait Qiniu Cl
 | `QINIU_API_KEY` | aucune | Clé API du fournisseur |
 | `QINIU_BASE_URL` | aucune | URL de base compatible OpenAI |
 | `QINIU_MODEL` | `gpt-oss-120b` | Nom du modèle |
+| `LLM_PROVIDER` | `openai` | Famille de fournisseur : `openai` (chat completions) ou `anthropic` (Messages API) |
 | `HOST` | `127.0.0.1` | Adresse d’écoute ; n’utilisez `0.0.0.0` que derrière un proxy inverse de confiance |
 | `PORT` | `5000` | Port du serveur |
 | `FLASK_ENV` | `production` | Définissez `development` pour activer le mode debug Flask |
@@ -625,6 +639,7 @@ Les noms `QINIU_*` sont historiques : le premier déploiement utilisait Qiniu Cl
 | Qwen (mode compatible DashScope) | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
 | Ollama | `http://localhost:11434/v1` | un modèle servi localement |
 | vLLM | `http://localhost:8000/v1` | votre modèle servi |
+| Anthropic | `https://api.anthropic.com/v1` avec le fournisseur `anthropic` | `claude-opus-5-5` |
 
 Utilisez un modèle fort en suivi d’instructions et fiable en sortie JSON. Les modèles faibles produisent les échecs classiques : balises Markdown, prose avant le JSON ou coordonnées qui se chevauchent.
 
@@ -638,6 +653,7 @@ L’add-in se configure dans sa propre boîte de dialogue : cliquez sur **设置
 | Jeton du serveur | Correspond à `VULCAN_API_TOKEN` lorsque le serveur exige un jeton Bearer |
 | Clé API LLM | Votre propre clé de fournisseur ; laissez vide pour utiliser celle du serveur |
 | URL de base LLM | URL de base compatible OpenAI de votre fournisseur |
+| Fournisseur | `openai` ou `anthropic` ; détermine le format de requête envoyé au fournisseur |
 | Modèle | Nom du modèle, par exemple `gpt-4o-mini` |
 
 La boîte de dialogue propose aussi **测试连接** (test de santé), **打开日志目录** (ouvrir le dossier des journaux) et **保存** (enregistrer). Les réglages sont écrits dans `%APPDATA%\Vulcan\settings.json` ; `ServerToken` et `LlmApiKey` sont chiffrés par Windows DPAPI pour l’utilisateur courant, donc le fichier n’est pas portable d’une machine ou d’un compte à l’autre et ne doit jamais être versionné.
@@ -719,6 +735,18 @@ Les erreurs utilisent une petite enveloppe :
 
 Les en-têtes absents retombent sur `QINIU_*`. Les valeurs sont limitées en longueur, l’URL de base doit commencer par `http` ou `https`, et ni les clés ni les prompts ne sont écrits dans le journal du serveur.
 
+### `POST /api/v1/generate/stream`
+
+Même corps de requête et mêmes en-têtes que `/api/v1/generate`. La réponse est `text/event-stream` ; chaque événement est une ligne `data:` contenant un objet JSON.
+
+| Événement | Charge utile |
+|---|---|
+| `delta` | `{"type":"delta","text":"..."}` pour chaque fragment du fournisseur |
+| `result` | `{"type":"result","data":{...}}` avec l’arbre de fonctions validé |
+| `error` | `{"type":"error","message":"...","status":400}` si la requête ou la sortie est invalide |
+
+Le serveur accumule le texte, analyse le JSON et applique la même validation que l’endpoint non streamé.
+
 **Sécurité.** Le serveur prend en charge un jeton Bearer optionnel et une limitation par IP. Il ne termine pas TLS et n’a pas de comptes utilisateurs. Gardez `HOST=127.0.0.1` ou placez-le derrière un proxy inverse TLS, définissez `VULCAN_API_TOKEN`, et n’activez jamais le mode debug Flask en production.
 
 ## Structure du projet
@@ -746,7 +774,7 @@ Vulcan/
 │   ├── config.py                 #   Configuration par environnement
 │   ├── .env.example              #   Modèle fournisseur, authentification et serveur
 │   ├── Dockerfile                #   Image python:3.11-slim + gunicorn
-│   ├── prompts/                  #   Prompt système versionné
+│   ├── prompts/                  #   Prompts système zh/en/fr versionnés
 │   ├── services/                 #   Client LLM et validateur de fonctions
 │   ├── tests/                    #   Suite pytest
 │   └── utils/                    #   Journalisation, limitation de débit et exceptions
@@ -770,7 +798,7 @@ Vulcan/
 | SolidWorks | Construit et testé avec SolidWorks 2025 (`FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, `InsertFeatureChamfer`). Les versions antérieures peuvent nécessiter des ajustements de paramètres ou le repli interface ; elles ne font pas partie de la matrice testée. |
 | Plateforme client | Windows uniquement, x64, .NET Framework 4.8. |
 | Plateforme serveur | Python 3.10–3.11 ; local, Docker ou sans interface. |
-| Types de fonctions | `extrude`, `cut`, `revolve`, `fillet`, `chamfer`, `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib` sont implémentés. |
+| Types de fonctions | `extrude`, `cut`, `revolve`, `fillet`, `chamfer`, `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, `rib`, `counterbore`, `countersink`, `hole_array`, `note` et `insert_component` sont implémentés. |
 | Plans | Le modeleur route les plans de face, de dessus et de droite et résout les noms chinois, anglais et français. |
 | Validation | Le serveur contrôle l’enveloppe et valide les paramètres des fonctions ; la désérialisation et les valeurs par défaut sont dans le client C#. |
 | Authentification | Jeton Bearer optionnel (`VULCAN_API_TOKEN`) et limitation par IP. TLS et comptes utilisateurs restent du ressort d’un proxy inverse. |
@@ -807,17 +835,17 @@ Les journaux serveur sont écrits dans `vulcan_server.log` dans le répertoire d
 - [x] Fonctions révolution, congé et chanfrein.
 - [x] Fonctions balayage, lissage et nervure.
 - [x] Répétitions linéaires/circulaires et symétrie.
-- [ ] Assistant de perçage et améliorations des tableaux de trous.
-- [ ] Prompts système natifs en anglais et en français, pas seulement le comportement multilingue du modèle.
-- [ ] Adaptateurs de fournisseurs et réponses en flux.
+- [x] Assistant de perçage et améliorations des tableaux de trous.
+- [x] Prompts système natifs en anglais et en français, pas seulement le comportement multilingue du modèle.
+- [x] Adaptateurs de fournisseurs et réponses en flux.
 - [x] Authentification Bearer optionnelle et limitation par IP.
 - [x] Réglages de fournisseur avec clé personnelle, chiffrée localement par Windows DPAPI.
 - [x] Aperçu JSON éditable avant exécution.
 - [x] Scripts d’installation et de désinstallation silencieux et auto-élevés.
 - [x] Tests de régression des prompts et workflow CI Python.
-- [ ] Couche COM simulée pour la CI client.
-- [ ] Interface en volet des tâches au lieu d’un panneau modal.
-- [ ] Opérations au niveau assemblage et annotations de mise en plan.
+- [x] Couche COM simulée pour la CI client.
+- [x] Interface en volet des tâches au lieu d’un panneau modal.
+- [x] Opérations au niveau assemblage et annotations de mise en plan.
 
 ## Contribuer
 

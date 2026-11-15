@@ -152,3 +152,28 @@ def test_conflicting_envelope(client, monkeypatch):
     response = client.post("/api/v1/generate", json={"prompt": "a plate"})
     assert response.status_code == 400
     assert "不能同时包含" in response.get_json()["message"]
+
+
+def test_language_forwarded(client, monkeypatch):
+    captured = {}
+
+    def fake(prompt, **kwargs):
+        captured.update(kwargs)
+        return VALID_TREE
+
+    monkeypatch.setattr(llm_client, "call_model", fake)
+    response = client.post(
+        "/api/v1/generate",
+        json={"prompt": "a plate", "language": "fr"},
+    )
+    assert response.status_code == 200
+    assert captured["language"] == "fr"
+
+
+def test_invalid_language_rejected(client):
+    response = client.post(
+        "/api/v1/generate",
+        json={"prompt": "a plate", "language": "de"},
+    )
+    assert response.status_code == 400
+    assert "language" in response.get_json()["message"]

@@ -28,6 +28,12 @@ namespace Vulcan.SolidWorksClient.UI
             LlmApiKeyTextBox.Text = LlmApiKeyPasswordBox.Password;
             LlmBaseUrlTextBox.Text = settings.LlmBaseUrl ?? string.Empty;
             LlmModelTextBox.Text = settings.LlmModel ?? string.Empty;
+            LoadProviders();
+            string provider = settings.LlmProvider ?? "openai";
+            if (LlmProviderComboBox.Items.Contains(provider))
+            {
+                LlmProviderComboBox.SelectedItem = provider;
+            }
         }
 
         private void ServerTokenPasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
@@ -129,7 +135,8 @@ namespace Vulcan.SolidWorksClient.UI
                     ServerToken = ServerTokenPasswordBox.Password,
                     LlmApiKey = LlmApiKeyPasswordBox.Password,
                     LlmBaseUrl = llmBaseUrl,
-                    LlmModel = LlmModelTextBox.Text.Trim()
+                    LlmModel = LlmModelTextBox.Text.Trim(),
+                    LlmProvider = LlmProviderComboBox.SelectedItem as string
                 });
                 DialogResult = true;
             }
@@ -186,6 +193,13 @@ namespace Vulcan.SolidWorksClient.UI
         private void CancelBtn_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
+        }
+
+        private void LoadProviders()
+        {
+            LlmProviderComboBox.Items.Clear();
+            LlmProviderComboBox.Items.Add("openai");
+            LlmProviderComboBox.Items.Add("anthropic");
         }
 
         private static bool ValidateServerUrl(string serverUrl, out string error)

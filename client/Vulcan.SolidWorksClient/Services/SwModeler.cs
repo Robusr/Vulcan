@@ -9,7 +9,7 @@ using Vulcan.SolidWorksClient.Services;
 
 namespace Vulcan.SolidWorksClient.Services
 {
-    public class SwModeler
+    public class SwModeler : IFeatureBackend
     {
         private readonly ISldWorks _swApp;
         private ModelDoc2 _activeModel;
@@ -21,9 +21,9 @@ namespace Vulcan.SolidWorksClient.Services
         private int _currentFeatureIndex = 0;
         private int _cutFeatureIndex = 0;
         private bool _isFourHoleRequest = false;
+        private bool _inputDimPromptWasOn = false;
+        private bool _inputDimPromptCaptured = false;
         private string _lastCreatedFeatureName = null;
-        private readonly Dictionary<string, string> _featureNameMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private readonly List<string> _createdFeatureNames = new List<string>();
 
         // 支持的草图形状映射
         private readonly HashSet<string> _supportedShapes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -40,70 +40,95 @@ namespace Vulcan.SolidWorksClient.Services
         #region 建模主入口
         public void ExecuteModeling(ModelData modelData, string userRequest = "")
         {
+            new ModelingEngine(this).Execute(modelData, userRequest);
+        }
+
+        public void BeginRun(string userRequest)
+        {
+            _baseLengthMm = 0;
+            _baseWidthMm = 0;
+            _currentFeatureIndex = 0;
+            _cutFeatureIndex = 0;
+            _lastCreatedFeatureName = null;
+            _isFourHoleRequest = IsFourHoleRequest(userRequest);
+
             try
             {
-                // 重置状态
-                _baseLengthMm = 0;
-                _baseWidthMm = 0;
-                _currentFeatureIndex = 0;
-                _cutFeatureIndex = 0;
-                _lastCreatedFeatureName = null;
-                _featureNameMap.Clear();
-                _createdFeatureNames.Clear();
-                _isFourHoleRequest = IsFourHoleRequest(userRequest);
-
-                if (modelData == null) throw new ArgumentNullException(nameof(modelData), "云端返回的模型参数为空");
-                if (string.IsNullOrEmpty(modelData.feature_type) && (modelData.features == null || modelData.features.Count == 0))
-                    throw new Exception("云端未返回有效特征指令");
-
-                EnsureActivePartDocument();
-                if (_activeModel == null)
-                {
-                    throw new Exception("请先在SolidWorks中手动新建/打开一个零件文档，再执行建模操作");
-                }
-
-                // 清空选择集，避免干扰
-                _activeModel.ClearSelection2(true);
-
-                if (!string.IsNullOrEmpty(modelData.feature_type))
-                {
-                    _currentFeatureIndex++;
-                    ExecuteSingleFeature(modelData.feature_type, modelData.@params, modelData.name);
-                }
-                else if (modelData.features != null && modelData.features.Count > 0)
-                {
-                    Logger.Info($"开始执行多特征建模，共{modelData.features.Count}个特征");
-                    foreach (var feature in modelData.features)
-                    {
-                        _currentFeatureIndex++;
-                        ExecuteSingleFeature(feature.feature_type, feature.@params, feature.name);
-                    }
-                }
-
-                // 最终视图适配
-                _activeModel.ShowNamedView2("*上下二等角轴测", 8);
-                _activeModel.ViewZoomtofit2();
-                Logger.Info("=== 建模全流程执行完成 ===");
+                _inputDimPromptWasOn = _swApp.GetUserPreferenceToggle(
+                    (int)swUserPreferenceToggle_e.swInputDimValOnCreate);
+                _inputDimPromptCaptured = true;
+                _swApp.SetUserPreferenceToggle(
+                    (int)swUserPreferenceToggle_e.swInputDimValOnCreate, false);
             }
             catch (Exception ex)
             {
-                Logger.Error("建模执行失败", ex);
-                string partial = _createdFeatureNames.Count == 0
-                    ? "尚未创建任何特征。"
-                    : $"已创建 {_createdFeatureNames.Count} 个特征：{string.Join("、", _createdFeatureNames)}。";
-                throw new InvalidOperationException(
-                    $"建模在第 {Math.Max(1, _currentFeatureIndex)} 个特征处中止。{partial}请检查特征树后重试。",
-                    ex);
+                Logger.Warning("无法临时关闭尺寸输入对话框", ex);
             }
         }
 
-        private void ExecuteSingleFeature(string featureType, Dictionary<string, object> parameters, string featureName = null)
+        public void EnsureDocument()
         {
-            if (string.IsNullOrEmpty(featureType)) return;
+            _activeModel = _swApp.ActiveDoc as ModelDoc2;
+            if (_activeModel == null)
+            {
+                throw new InvalidOperationException(
+                    "请先在 SolidWorks 中新建或打开一个零件、装配体或工程图文档。");
+            }
+            _activeModel.ClearSelection2(true);
+        }
+
+        public void EndRun(bool success)
+        {
+            if (_inputDimPromptCaptured)
+            {
+                try
+                {
+                    _swApp.SetUserPreferenceToggle(
+                        (int)swUserPreferenceToggle_e.swInputDimValOnCreate,
+                        _inputDimPromptWasOn);
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning("恢复尺寸输入对话框设置失败", ex);
+                }
+                _inputDimPromptCaptured = false;
+            }
+
+            if (success && _activeModel != null)
+            {
+                _activeModel.ShowNamedView2("*上下二等角轴测", 8);
+                _activeModel.ViewZoomtofit2();
+            }
+        }
+
+        public string ExecuteFeature(
+            string featureType,
+            Dictionary<string, object> parameters,
+            string featureName)
+        {
+            if (string.IsNullOrEmpty(featureType)) return null;
+            _currentFeatureIndex++;
             if (!string.IsNullOrEmpty(featureName)) Logger.Info($"开始执行特征：{featureName}");
 
             string normalizedType = featureType.ToLower().Trim();
             _lastCreatedFeatureName = null;
+
+            if (normalizedType == "note")
+            {
+                CreateNoteFeature(parameters);
+                return _lastCreatedFeatureName;
+            }
+            if (normalizedType == "insert_component")
+            {
+                CreateInsertComponentFeature(parameters);
+                return _lastCreatedFeatureName;
+            }
+            if (!(_activeModel is PartDoc))
+            {
+                throw new InvalidOperationException(
+                    "当前文档不是零件文档。Vulcan 的该特征只支持零件，请切换到零件后重试。");
+            }
+
             if (normalizedType == "cut" || normalizedType == "hole")
             {
                 _cutFeatureIndex++;
@@ -159,20 +184,21 @@ namespace Vulcan.SolidWorksClient.Services
                 case "rib":
                     CreateRibFeature(parameters);
                     break;
+                case "counterbore":
+                    CreateCounterboreFeature(parameters);
+                    break;
+                case "countersink":
+                    CreateCountersinkFeature(parameters);
+                    break;
+                case "hole_array":
+                    CreateHoleArrayFeature(parameters);
+                    break;
                 default:
                     Logger.Warning($"暂不支持的特征类型：{featureType}，已跳过");
                     break;
             }
 
-            if (!string.IsNullOrEmpty(_lastCreatedFeatureName))
-            {
-                _createdFeatureNames.Add(_lastCreatedFeatureName);
-                if (!string.IsNullOrEmpty(featureName))
-                {
-                    _featureNameMap[featureName] = _lastCreatedFeatureName;
-                    Logger.Info($"特征名称映射：{featureName} -> {_lastCreatedFeatureName}");
-                }
-            }
+            return _lastCreatedFeatureName;
         }
         #endregion
 
@@ -300,35 +326,15 @@ namespace Vulcan.SolidWorksClient.Services
                 IFeatureManager featureManager = _activeModel.FeatureManager;
 
                 // 核心修复2：FeatureCut4参数100%对齐SolidWorks规范
-                Feature cut = featureManager.FeatureCut4(
-                    Sd: !isBidirectional, // 完全贯穿时用双向
-                    Flip: false, // 方向1不反转，朝向实体内部
-                    Dir: isBidirectional, // 完全贯穿时启用第二方向
-                    T1: endCondition,
-                    T2: isBidirectional ? endCondition : (int)swEndConditions_e.swEndCondBlind,
-                    D1: throughAll ? 0 : depthM, // 完全贯穿时深度设为0
-                    D2: throughAll ? 0 : depthM,
-                    Dchk1: false,
-                    Dchk2: false,
-                    Ddir1: false,
-                    Ddir2: false,
-                    Dang1: GetDraftAngleRad(parameters),
-                    Dang2: 0,
-                    OffsetReverse1: false,
-                    OffsetReverse2: false,
-                    TranslateSurface1: false,
-                    TranslateSurface2: false,
-                    NormalCut: false, // 实体切除必须为false
-                    UseFeatScope: false,
-                    UseAutoSelect: true, // 自动选择轮廓，确保切除正确
-                    AssemblyFeatureScope: false,
-                    AutoSelectComponents: false,
-                    PropagateFeatureToParts: false,
-                    T0: (int)swStartConditions_e.swStartSketchPlane,
-                    StartOffset: 0,
-                    FlipStartOffset: false,
-                    OptimizeGeometry: true
-                );
+                double draftRad = GetDraftAngleRad(parameters);
+                Feature cut = CallFeatureCut4(
+                    featureManager, isBidirectional, endCondition, depthM, throughAll, draftRad, false);
+                if (cut == null && !throughAll)
+                {
+                    Logger.Info("盲切第一次方向未切到实体，反向重试");
+                    cut = CallFeatureCut4(
+                        featureManager, isBidirectional, endCondition, depthM, throughAll, draftRad, true);
+                }
 
                 if (cut == null)
                 {
@@ -343,6 +349,44 @@ namespace Vulcan.SolidWorksClient.Services
                 Logger.Warning("纯API切除失败，切换到兜底方案", ex1);
                 ExecuteExtrusionFallback(depthMm, true, throughAll);
             }
+        }
+        private Feature CallFeatureCut4(
+            IFeatureManager featureManager,
+            bool isBidirectional,
+            int endCondition,
+            double depthM,
+            bool throughAll,
+            double draftRad,
+            bool flip)
+        {
+            return featureManager.FeatureCut4(
+                Sd: false,
+                Flip: flip,
+                Dir: isBidirectional,
+                T1: endCondition,
+                T2: isBidirectional ? endCondition : (int)swEndConditions_e.swEndCondBlind,
+                D1: throughAll ? 0 : depthM,
+                D2: throughAll ? 0 : depthM,
+                Dchk1: false,
+                Dchk2: false,
+                Ddir1: false,
+                Ddir2: false,
+                Dang1: draftRad,
+                Dang2: 0,
+                OffsetReverse1: false,
+                OffsetReverse2: false,
+                TranslateSurface1: false,
+                TranslateSurface2: false,
+                NormalCut: false,
+                UseFeatScope: false,
+                UseAutoSelect: true,
+                AssemblyFeatureScope: false,
+                AutoSelectComponents: false,
+                PropagateFeatureToParts: false,
+                T0: (int)swStartConditions_e.swStartSketchPlane,
+                StartOffset: 0,
+                FlipStartOffset: false,
+                OptimizeGeometry: true);
         }
         #endregion
 
@@ -1777,6 +1821,339 @@ namespace Vulcan.SolidWorksClient.Services
             Logger.Info($"筋创建完成：草图={sketchName}，厚度={thicknessMm}mm，长度={lengthMm}mm");
         }
 
+        private void CreateCounterboreFeature(Dictionary<string, object> parameters)
+        {
+            double holeDiameterMm = GetDouble(parameters, "hole_diameter", 6.0);
+            double counterboreDiameterMm = GetDouble(parameters, "counterbore_diameter", 11.0);
+            double counterboreDepthMm = GetDouble(parameters, "counterbore_depth", 6.0);
+            if (holeDiameterMm <= 0 || counterboreDiameterMm <= holeDiameterMm)
+            {
+                throw new InvalidOperationException("沉孔：counterbore_diameter 必须大于 hole_diameter");
+            }
+            if (counterboreDepthMm <= 0)
+            {
+                throw new InvalidOperationException("沉孔：counterbore_depth 必须大于 0");
+            }
+
+            string plane = GetString(parameters, "plane", "前视基准面");
+            double centerX = GetDouble(parameters, "center_x", 0.0);
+            double centerY = GetDouble(parameters, "center_y", 0.0);
+
+            CreateCutFeature(new Dictionary<string, object>
+            {
+                { "plane", plane },
+                { "shape", "circle" },
+                { "diameter", counterboreDiameterMm },
+                { "depth", counterboreDepthMm },
+                { "center_x", centerX },
+                { "center_y", centerY }
+            });
+
+            CreateCutFeature(BuildHoleCut(parameters, plane, centerX, centerY));
+            Logger.Info(
+                $"沉孔创建完成：孔={holeDiameterMm}mm，沉孔={counterboreDiameterMm}x{counterboreDepthMm}mm");
+        }
+
+        private void CreateCountersinkFeature(Dictionary<string, object> parameters)
+        {
+            double holeDiameterMm = GetDouble(parameters, "hole_diameter", 6.0);
+            double countersinkDiameterMm = GetDouble(parameters, "countersink_diameter", 11.0);
+            double angleDeg = GetDouble(parameters, "countersink_angle", 90.0);
+            if (holeDiameterMm <= 0 || countersinkDiameterMm <= holeDiameterMm)
+            {
+                throw new InvalidOperationException("埋头孔：countersink_diameter 必须大于 hole_diameter");
+            }
+
+            double halfAngleDeg = Math.Max(1.0, Math.Min(89.0, angleDeg / 2.0));
+            double halfAngleRad = halfAngleDeg * Math.PI / 180.0;
+            double sinkDepthMm = (countersinkDiameterMm - holeDiameterMm) / 2.0 / Math.Tan(halfAngleRad);
+            if (sinkDepthMm <= 0)
+            {
+                throw new InvalidOperationException("埋头孔：计算出的锥面深度无效");
+            }
+
+            string plane = GetString(parameters, "plane", "前视基准面");
+            double centerX = GetDouble(parameters, "center_x", 0.0);
+            double centerY = GetDouble(parameters, "center_y", 0.0);
+
+            CreateCutFeature(new Dictionary<string, object>
+            {
+                { "plane", plane },
+                { "shape", "circle" },
+                { "diameter", countersinkDiameterMm },
+                { "depth", sinkDepthMm },
+                { "draft_angle", -halfAngleDeg },
+                { "center_x", centerX },
+                { "center_y", centerY }
+            });
+
+            CreateCutFeature(BuildHoleCut(parameters, plane, centerX, centerY));
+            Logger.Info(
+                $"埋头孔创建完成：孔={holeDiameterMm}mm，锥面={countersinkDiameterMm}mm/{angleDeg}度，锥深={sinkDepthMm:0.###}mm");
+        }
+
+        private void CreateHoleArrayFeature(Dictionary<string, object> parameters)
+        {
+            double diameterMm = GetDouble(parameters, "diameter", 8.0);
+            if (diameterMm <= 0)
+            {
+                throw new InvalidOperationException("孔阵列：diameter 必须大于 0");
+            }
+
+            int count = Math.Max(2, Math.Min(100, (int)GetDouble(parameters, "count", 2)));
+            double spacingMm = GetDouble(parameters, "spacing", 20.0);
+            if (spacingMm <= 0)
+            {
+                throw new InvalidOperationException("孔阵列：spacing 必须大于 0");
+            }
+
+            string direction = GetString(parameters, "direction", "x").ToLowerInvariant();
+            double angleDeg = GetDouble(parameters, "angle", 0.0);
+            double angleRad = angleDeg * Math.PI / 180.0;
+            double baseDx = direction == "y" ? 0.0 : 1.0;
+            double baseDy = direction == "y" ? 1.0 : 0.0;
+            double stepX = (baseDx * Math.Cos(angleRad) - baseDy * Math.Sin(angleRad)) * spacingMm;
+            double stepY = (baseDx * Math.Sin(angleRad) + baseDy * Math.Cos(angleRad)) * spacingMm;
+
+            string plane = GetString(parameters, "plane", "前视基准面");
+            double startX = GetDouble(parameters, "center_x", 0.0);
+            double startY = GetDouble(parameters, "center_y", 0.0);
+
+            for (int index = 0; index < count; index++)
+            {
+                double centerX = startX + stepX * index;
+                double centerY = startY + stepY * index;
+                Dictionary<string, object> hole = BuildHoleCut(parameters, plane, centerX, centerY);
+                hole["diameter"] = diameterMm;
+                CreateCutFeature(hole);
+            }
+
+            Logger.Info(
+                $"孔阵列创建完成：数量={count}，间距={spacingMm}mm，方向={direction}，角度={angleDeg}度");
+        }
+
+        private static Dictionary<string, object> BuildHoleCut(
+            Dictionary<string, object> parameters,
+            string plane,
+            double centerX,
+            double centerY)
+        {
+            var cut = new Dictionary<string, object>
+            {
+                { "plane", plane },
+                { "shape", "circle" },
+                { "center_x", centerX },
+                { "center_y", centerY }
+            };
+
+            bool throughAll = GetBool(parameters, "through_all", true);
+            if (throughAll)
+            {
+                cut["through_all"] = true;
+            }
+            else
+            {
+                cut["depth"] = GetDouble(parameters, "depth", 10.0);
+            }
+
+            double draftAngle = GetDouble(parameters, "draft_angle", 0.0);
+            if (Math.Abs(draftAngle) > 1e-9)
+            {
+                cut["draft_angle"] = draftAngle;
+            }
+
+            return cut;
+        }
+
+        private void CreateInsertComponentFeature(Dictionary<string, object> parameters)
+        {
+            AssemblyDoc assembly = _activeModel as AssemblyDoc;
+            if (assembly == null)
+            {
+                throw new InvalidOperationException("插入零部件需要装配体文档，请先切换到装配体。");
+            }
+
+            string path = GetString(parameters, "path", null);
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                throw new InvalidOperationException("插入零部件：path 不能为空");
+            }
+
+            double xMm = GetDouble(parameters, "x", 0.0);
+            double yMm = GetDouble(parameters, "y", 0.0);
+            double zMm = GetDouble(parameters, "z", 0.0);
+
+            double xM = xMm / 1000.0;
+            double yM = yMm / 1000.0;
+            double zM = zMm / 1000.0;
+
+            Component2 component = TryAddComponent(assembly, path, xM, yM, zM);
+            if (component == null)
+            {
+                component = TryAddAfterOpeningComponent(assembly, path, xM, yM, zM);
+            }
+            if (component == null)
+            {
+                component = TryImportComponent(assembly, path, xM, yM, zM);
+            }
+
+            if (component == null)
+            {
+                throw new InvalidOperationException($"插入零部件失败：{path}");
+            }
+
+            if (GetBool(parameters, "fixed", false))
+            {
+                _activeModel.ClearSelection2(true);
+                if (component.Select4(false, null, false))
+                {
+                    assembly.FixComponent();
+                    _activeModel.ClearSelection2(true);
+                }
+                else
+                {
+                    Logger.Warning("插入零部件：固定时未能选中零部件");
+                }
+            }
+
+            _lastCreatedFeatureName = component.Name2;
+            Logger.Info($"已插入零部件：{path}，位置=({xMm}, {yMm}, {zMm})mm");
+        }
+
+        private static Component2 TryAddComponent(
+            AssemblyDoc assembly,
+            string path,
+            double xM,
+            double yM,
+            double zM)
+        {
+            Component2 component = assembly.AddComponent5(
+                path, 0, string.Empty, false, string.Empty, xM, yM, zM);
+            if (component != null)
+            {
+                return component;
+            }
+
+            component = assembly.AddComponent4(path, string.Empty, xM, yM, zM);
+            if (component != null)
+            {
+                return component;
+            }
+
+            return assembly.AddComponent2(path, xM, yM, zM) as Component2;
+        }
+
+        private Component2 TryAddAfterOpeningComponent(
+            AssemblyDoc assembly,
+            string path,
+            double xM,
+            double yM,
+            double zM)
+        {
+            string assemblyTitle = _activeModel.GetTitle();
+            int openErrors = 0;
+            int openWarnings = 0;
+            int docType = path.ToLowerInvariant().EndsWith(".sldasm")
+                ? (int)swDocumentTypes_e.swDocASSEMBLY
+                : (int)swDocumentTypes_e.swDocPART;
+            ModelDoc2 opened = _swApp.OpenDoc6(
+                path,
+                docType,
+                (int)swOpenDocOptions_e.swOpenDocOptions_Silent,
+                string.Empty,
+                ref openErrors,
+                ref openWarnings) as ModelDoc2;
+
+            if (opened == null)
+            {
+                Logger.Warning(
+                    $"插入零部件：静默打开 {path} 失败，错误码={openErrors}");
+                return null;
+            }
+
+            try
+            {
+                int activateError = 0;
+                _swApp.ActivateDoc2(assemblyTitle, false, ref activateError);
+                Logger.Info($"插入零部件：已打开并激活装配体，重新插入 {path}");
+                return TryAddComponent(assembly, path, xM, yM, zM);
+            }
+            finally
+            {
+                try
+                {
+                    _swApp.QuitDoc(opened.GetTitle());
+                }
+                catch (Exception ex)
+                {
+                    Logger.Warning("插入零部件：关闭临时打开的零件失败", ex);
+                }
+            }
+        }
+
+        private Component2 TryImportComponent(
+            AssemblyDoc assembly,
+            string path,
+            double xM,
+            double yM,
+            double zM)
+        {
+            try
+            {
+                object imported;
+                int result = assembly.InsertImportedComponent(path, xM, yM, zM, out imported);
+                Component2 component = imported as Component2;
+                if (component != null)
+                {
+                    Logger.Info($"插入零部件：导入接口成功，结果码={result}");
+                    return component;
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("插入零部件：导入接口失败", ex);
+            }
+            return null;
+        }
+
+        private void CreateNoteFeature(Dictionary<string, object> parameters)
+        {
+            DrawingDoc drawing = _activeModel as DrawingDoc;
+            if (drawing == null)
+            {
+                throw new InvalidOperationException("工程图注释需要工程图文档，请先切换到工程图。");
+            }
+
+            string text = GetString(parameters, "text", null);
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                throw new InvalidOperationException("注释：text 不能为空");
+            }
+            if (text.Length > 500)
+            {
+                throw new InvalidOperationException("注释：text 不能超过 500 个字符");
+            }
+
+            double xMm = GetDouble(parameters, "x", 20.0);
+            double yMm = GetDouble(parameters, "y", 20.0);
+            double heightMm = GetDouble(parameters, "height", 5.0);
+            Note note = drawing.CreateText2(
+                text,
+                xMm / 1000.0,
+                yMm / 1000.0,
+                0.0,
+                heightMm / 1000.0,
+                0.0) as Note;
+
+            if (note == null)
+            {
+                throw new InvalidOperationException("注释创建失败：CreateText2 返回空");
+            }
+
+            _lastCreatedFeatureName = note.GetName();
+            Logger.Info($"已创建工程图注释：{text}");
+        }
+
         private string GetLastRefPlaneName()
         {
             string last = null;
@@ -1807,15 +2184,7 @@ namespace Vulcan.SolidWorksClient.Services
         private string GetSeedFeatureName(Dictionary<string, object> parameters)
         {
             string seed = GetString(parameters, "seed", null);
-            if (!string.IsNullOrEmpty(seed))
-            {
-                if (_featureNameMap.TryGetValue(seed, out string mapped))
-                {
-                    return mapped;
-                }
-                return seed;
-            }
-            return GetLastSolidFeatureName();
+            return string.IsNullOrEmpty(seed) ? GetLastSolidFeatureName() : seed;
         }
 
         private string GetLastSolidFeatureName()

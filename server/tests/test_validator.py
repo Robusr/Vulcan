@@ -391,3 +391,142 @@ def test_both_envelopes_rejected():
     model = plate_feature()
     model["features"] = [plate_feature()]
     assert any("不能同时包含" in error for error in validate_feature_tree(model))
+
+
+def test_valid_counterbore():
+    feature = {
+        "feature_type": "counterbore",
+        "params": {
+            "plane": "前视基准面",
+            "hole_diameter": 6,
+            "counterbore_diameter": 11,
+            "counterbore_depth": 6,
+            "through_all": True,
+            "center_x": 0,
+            "center_y": 0,
+        },
+    }
+    assert validate_feature(feature) == []
+
+
+def test_counterbore_diameter_must_exceed_hole():
+    feature = {
+        "feature_type": "counterbore",
+        "params": {
+            "plane": "前视基准面",
+            "hole_diameter": 10,
+            "counterbore_diameter": 10,
+            "counterbore_depth": 5,
+            "through_all": True,
+        },
+    }
+    errors = validate_feature(feature)
+    assert any("counterbore_diameter" in error for error in errors)
+
+
+def test_valid_countersink():
+    feature = {
+        "feature_type": "countersink",
+        "params": {
+            "plane": "前视基准面",
+            "hole_diameter": 6,
+            "countersink_diameter": 12,
+            "countersink_angle": 90,
+            "through_all": True,
+        },
+    }
+    assert validate_feature(feature) == []
+
+
+def test_countersink_angle_range():
+    feature = {
+        "feature_type": "countersink",
+        "params": {
+            "plane": "前视基准面",
+            "hole_diameter": 6,
+            "countersink_diameter": 12,
+            "countersink_angle": 200,
+            "through_all": True,
+        },
+    }
+    assert any("countersink_angle" in error for error in validate_feature(feature))
+
+
+def test_valid_hole_array():
+    feature = {
+        "feature_type": "hole_array",
+        "params": {
+            "plane": "前视基准面",
+            "diameter": 6,
+            "count": 4,
+            "spacing": 15,
+            "through_all": True,
+            "center_x": -22.5,
+            "center_y": 0,
+        },
+    }
+    assert validate_feature(feature) == []
+
+
+def test_hole_array_count_range():
+    feature = {
+        "feature_type": "hole_array",
+        "params": {
+            "plane": "前视基准面",
+            "diameter": 6,
+            "count": 1,
+            "spacing": 15,
+            "through_all": True,
+        },
+    }
+    assert any("count" in error for error in validate_feature(feature))
+
+
+def test_hole_array_bounds_against_base():
+    tree = plate_tree(
+        [
+            {
+                "feature_type": "hole_array",
+                "params": {
+                    "plane": "前视基准面",
+                    "diameter": 10,
+                    "count": 3,
+                    "spacing": 15,
+                    "through_all": True,
+                    "center_x": 99,
+                    "center_y": 0,
+                },
+            }
+        ]
+    )
+    assert any("超出基体范围" in error for error in validate_feature_tree(tree))
+
+
+def test_valid_note():
+    feature = {
+        "feature_type": "note",
+        "params": {"text": "Vulcan 1.0", "x": 20, "y": 20, "height": 5},
+    }
+    assert validate_feature(feature) == []
+
+
+def test_note_requires_text():
+    assert validate_feature({"feature_type": "note", "params": {}})
+
+
+def test_note_text_length_limit():
+    feature = {"feature_type": "note", "params": {"text": "a" * 501}}
+    assert any("500" in error for error in validate_feature(feature))
+
+
+def test_valid_insert_component():
+    feature = {
+        "feature_type": "insert_component",
+        "params": {"path": "C:/models/base.sldprt", "x": 0, "y": 0, "z": 0, "fixed": True},
+    }
+    assert validate_feature(feature) == []
+
+
+def test_insert_component_requires_cad_file():
+    feature = {"feature_type": "insert_component", "params": {"path": "C:/models/base.step"}}
+    assert any("sldprt" in error for error in validate_feature(feature))

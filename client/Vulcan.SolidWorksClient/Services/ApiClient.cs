@@ -1,9 +1,13 @@
 using System;
+using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Vulcan.SolidWorksClient.Models;
 
 namespace Vulcan.SolidWorksClient.Services
@@ -71,6 +75,10 @@ namespace Vulcan.SolidWorksClient.Services
             {
                 _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-LLM-Model", settings.LlmModel.Trim());
             }
+            if (!string.IsNullOrWhiteSpace(settings.LlmProvider))
+            {
+                _httpClient.DefaultRequestHeaders.TryAddWithoutValidation("X-LLM-Provider", settings.LlmProvider.Trim());
+            }
         }
 
         /// <summary>
@@ -126,6 +134,117 @@ namespace Vulcan.SolidWorksClient.Services
             catch (Exception ex)
             {
                 Logger.Error($"接口调用未知错误：{ex.Message}", ex);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// 流式调用生成接口；服务端不支持时自动回退到普通请求。
+        /// </summary>
+        public async Task<ModelData> GenerateModelStreamAsync(
+            string userPrompt,
+            IProgress<string> progress,
+            CancellationToken cancellationToken)
+        {
+            try
+            {
+                Logger.Info($"正在流式调用后端接口，prompt 长度：{userPrompt?.Length ?? 0}");
+                var request = new ApiRequest { prompt = userPrompt };
+                string jsonContent = JsonConvert.SerializeObject(request);
+                using (var content = new StringContent(jsonContent, Encoding.UTF8, "application/json"))
+                using (var message = new HttpRequestMessage(HttpMethod.Post, $"{_baseUrl}/api/v1/generate/stream"))
+                {
+                    message.Content = content;
+                    using (var response = await _httpClient.SendAsync(
+                        message, HttpCompletionOption.ResponseHeadersRead, cancellationToken))
+                    {
+                        if (response.StatusCode == HttpStatusCode.NotFound ||
+                            response.StatusCode == HttpStatusCode.MethodNotAllowed)
+                        {
+                            Logger.Info("服务端不支持流式接口，回退到普通请求");
+                            return await GenerateModelAsync(userPrompt);
+                        }
+
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            string errorBody = await response.Content.ReadAsStringAsync();
+                            var errorResponse = JsonConvert.DeserializeObject<ApiErrorResponse>(errorBody);
+                            string errorMsg = errorResponse?.message
+                                ?? $"接口请求失败，状态码：{(int)response.StatusCode}";
+                            throw new Exception(errorMsg);
+                        }
+
+                        using (var stream = await response.Content.ReadAsStreamAsync())
+                        using (var reader = new StreamReader(stream, Encoding.UTF8))
+                        {
+                            int received = 0;
+                            string line;
+                            while ((line = await reader.ReadLineAsync()) != null)
+                            {
+                                cancellationToken.ThrowIfCancellationRequested();
+                                if (!line.StartsWith("data:", StringComparison.Ordinal))
+                                {
+                                    continue;
+                                }
+
+                                JObject evt;
+                                try
+                                {
+                                    evt = JObject.Parse(line.Substring(5).Trim());
+                                }
+                                catch (JsonException)
+                                {
+                                    continue;
+                                }
+
+                                string type = (string)evt["type"];
+                                if (type == "delta")
+                                {
+                                    received += ((string)evt["text"] ?? string.Empty).Length;
+                                    if (progress != null)
+                                    {
+                                        progress.Report($"正在生成参数... 已接收 {received} 字符");
+                                    }
+                                }
+                                else if (type == "result")
+                                {
+                                    var data = evt["data"] == null
+                                        ? null
+                                        : evt["data"].ToObject<ModelData>();
+                                    if (data == null)
+                                    {
+                                        throw new Exception("流式响应缺少建模参数");
+                                    }
+                                    Logger.Info("流式建模参数解析成功");
+                                    return data;
+                                }
+                                else if (type == "error")
+                                {
+                                    string errorMessage = (string)evt["message"] ?? "流式生成失败";
+                                    throw new Exception(errorMessage);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                throw new Exception("流式响应意外结束，未收到建模参数");
+            }
+            catch (TaskCanceledException timeoutEx)
+            {
+                string errorMsg = "后端接口请求超时，请检查后端服务是否启动";
+                Logger.Error(errorMsg, timeoutEx);
+                throw new Exception(errorMsg);
+            }
+            catch (JsonException jsonEx)
+            {
+                string errorMsg = $"后端返回格式解析失败：{jsonEx.Message}";
+                Logger.Error(errorMsg, jsonEx);
+                throw new Exception(errorMsg);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"流式接口调用失败：{ex.Message}", ex);
                 throw;
             }
         }

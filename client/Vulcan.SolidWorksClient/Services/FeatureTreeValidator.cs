@@ -15,7 +15,9 @@ namespace Vulcan.SolidWorksClient.Services
         {
             "extrude", "cut", "hole", "revolve", "fillet", "chamfer",
             "linear_pattern", "circular_pattern", "mirror", "shell",
-            "draft", "sweep", "loft", "rib"
+            "draft", "sweep", "loft", "rib",
+            "counterbore", "countersink", "hole_array",
+            "note", "insert_component"
         };
 
         private static readonly HashSet<string> AllowedShapes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
@@ -42,7 +44,7 @@ namespace Vulcan.SolidWorksClient.Services
 
         private static readonly HashSet<string> AllowedNeutralPlanes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            "front", "top", "right",
+            "front", "top", "right", "face", "dessus", "droite",
             "前视基准面", "上视基准面", "右视基准面"
         };
 
@@ -159,11 +161,14 @@ namespace Vulcan.SolidWorksClient.Services
                 JObject p = JObject.FromObject(feature.@params);
                 string prefix = string.Format("features[{0}]: ", index);
 
-                if ((type == "cut" || type == "hole") && index > baseIndex)
+                if ((type == "cut" || type == "hole" || type == "counterbore" ||
+                     type == "countersink" || type == "hole_array") && index > baseIndex)
                 {
                     string cutPlane = PlaneKey(GetStringValue(p, "plane"));
                     double[] bounds = CutBounds(basePlane, cutPlane, length, width, depth);
-                    double? diameter = GetNullableNumber(p, "diameter");
+                    double? diameter = GetNullableNumber(p, "counterbore_diameter")
+                        ?? GetNullableNumber(p, "countersink_diameter")
+                        ?? GetNullableNumber(p, "diameter");
                     double? centerX = GetNullableNumber(p, "center_x");
                     double? centerY = GetNullableNumber(p, "center_y");
                     if (bounds != null && diameter.HasValue && centerX.HasValue && centerY.HasValue)
@@ -406,6 +411,34 @@ namespace Vulcan.SolidWorksClient.Services
                 case "rib":
                     ValidateRib(p, prefix, errors);
                     break;
+                case "counterbore":
+                    ValidateHoleBody(p, prefix, errors);
+                    RequireNumber(p, "hole_diameter", errors, prefix, 0.01);
+                    RequireNumber(p, "counterbore_diameter", errors, prefix, 0.01);
+                    RequireNumber(p, "counterbore_depth", errors, prefix, 0.01);
+                    RequireLarger(p, "counterbore_diameter", "hole_diameter", errors, prefix);
+                    break;
+                case "countersink":
+                    ValidateHoleBody(p, prefix, errors);
+                    RequireNumber(p, "hole_diameter", errors, prefix, 0.01);
+                    RequireNumber(p, "countersink_diameter", errors, prefix, 0.01);
+                    RequireNumber(p, "countersink_angle", errors, prefix, 30, 180, false);
+                    RequireLarger(p, "countersink_diameter", "hole_diameter", errors, prefix);
+                    break;
+                case "hole_array":
+                    ValidateHoleBody(p, prefix, errors);
+                    RequireNumber(p, "diameter", errors, prefix, 0.01);
+                    RequireInteger(p, "count", errors, prefix, 2, 100);
+                    RequireNumber(p, "spacing", errors, prefix, 0.01);
+                    RequireString(p, "direction", errors, prefix, AllowedRibDirections, false);
+                    RequireNumber(p, "angle", errors, prefix, -360, 360, false);
+                    break;
+                case "note":
+                    ValidateNote(p, prefix, errors);
+                    break;
+                case "insert_component":
+                    ValidateInsertComponent(p, prefix, errors);
+                    break;
             }
         }
 
@@ -547,6 +580,53 @@ namespace Vulcan.SolidWorksClient.Services
             }
         }
 
+        private static void ValidateNote(JObject p, string prefix, List<string> errors)
+        {
+            string text = RequireString(p, "text", errors, prefix);
+            if (!string.IsNullOrEmpty(text) && text.Length > 500)
+            {
+                errors.Add(prefix + "text 不能超过 500 个字符");
+            }
+            RequireNumber(p, "x", errors, prefix, -10000, 10000, false);
+            RequireNumber(p, "y", errors, prefix, -10000, 10000, false);
+            RequireNumber(p, "height", errors, prefix, 0.1, 100, false);
+        }
+
+        private static void ValidateInsertComponent(JObject p, string prefix, List<string> errors)
+        {
+            string path = RequireString(p, "path", errors, prefix);
+            if (!string.IsNullOrEmpty(path))
+            {
+                if (path.Length > 260)
+                {
+                    errors.Add(prefix + "path 过长");
+                }
+                string lower = path.ToLowerInvariant();
+                if (!lower.EndsWith(".sldprt") && !lower.EndsWith(".sldasm"))
+                {
+                    errors.Add(prefix + "path 必须指向 .sldprt 或 .sldasm 文件");
+                }
+            }
+            RequireNumber(p, "x", errors, prefix, -100000, 100000, false);
+            RequireNumber(p, "y", errors, prefix, -100000, 100000, false);
+            RequireNumber(p, "z", errors, prefix, -100000, 100000, false);
+            RequireBool(p, "fixed", errors, prefix);
+        }
+
+        private static void ValidateHoleBody(JObject p, string prefix, List<string> errors)
+        {
+            RequireString(p, "plane", errors, prefix);
+            bool throughAll = GetBool(p, "through_all", false);
+            RequireBool(p, "through_all", errors, prefix);
+            if (!throughAll)
+            {
+                RequireNumber(p, "depth", errors, prefix, 0.01);
+            }
+            RequireNumber(p, "center_x", errors, prefix, double.MinValue, double.MaxValue, false);
+            RequireNumber(p, "center_y", errors, prefix, double.MinValue, double.MaxValue, false);
+            RequireNumber(p, "draft_angle", errors, prefix, -89, 89, false);
+        }
+
         private static void ValidateRib(JObject p, string prefix, List<string> errors)
         {
             RequireNumber(p, "thickness", errors, prefix, 0.01);
@@ -665,6 +745,21 @@ namespace Vulcan.SolidWorksClient.Services
             if (value > maximum)
             {
                 errors.Add(prefix + key + " 必须 <= " + maximum);
+            }
+        }
+
+        private static void RequireLarger(
+            JObject p,
+            string largerKey,
+            string smallerKey,
+            List<string> errors,
+            string prefix)
+        {
+            double? larger = GetNullableNumber(p, largerKey);
+            double? smaller = GetNullableNumber(p, smallerKey);
+            if (larger.HasValue && smaller.HasValue && larger.Value <= smaller.Value)
+            {
+                errors.Add(prefix + largerKey + " 必须大于 " + smallerKey);
             }
         }
 

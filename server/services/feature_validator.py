@@ -17,6 +17,11 @@ ALLOWED_FEATURE_TYPES = {
     "sweep",
     "loft",
     "rib",
+    "counterbore",
+    "countersink",
+    "hole_array",
+    "note",
+    "insert_component",
 }
 ALLOWED_SHAPES = {"circle", "rectangle", "polygon", "ellipse", "slot"}
 ALLOWED_DIRECTIONS = {"x", "y", "z"}
@@ -24,13 +29,16 @@ ALLOWED_MIRROR_PLANES = {
     "front",
     "top",
     "right",
+    "face",
+    "dessus",
+    "droite",
     "前视基准面",
     "上视基准面",
     "右视基准面",
 }
 ALLOWED_REMOVE_FACES = {"top", "bottom", "front", "back", "left", "right", "none"}
 ALLOWED_DRAFT_FACES = {"sides", "top", "bottom"}
-ALLOWED_NEUTRAL_PLANES = {"front", "top", "right"}
+ALLOWED_NEUTRAL_PLANES = {"front", "top", "right", "face", "dessus", "droite"}
 
 
 def _is_number(value):
@@ -233,6 +241,74 @@ def _validate_loft(params, errors):
         _validate_profile(params["profile2"], errors, "profile2.")
 
 
+def _validate_hole_body(params, errors):
+    _string(params, "plane", errors)
+    through_all = params.get("through_all", False)
+    if not isinstance(through_all, bool):
+        errors.append("through_all 必须是布尔值")
+    if not through_all:
+        _number(params, "depth", errors, minimum=0.01)
+    _number(params, "center_x", errors, required=False)
+    _number(params, "center_y", errors, required=False)
+
+
+def _validate_counterbore(params, errors):
+    _validate_hole_body(params, errors)
+    hole_diameter = _number(params, "hole_diameter", errors, minimum=0.01)
+    counterbore_diameter = _number(params, "counterbore_diameter", errors, minimum=0.01)
+    _number(params, "counterbore_depth", errors, minimum=0.01)
+    if (
+        hole_diameter is not None
+        and counterbore_diameter is not None
+        and counterbore_diameter <= hole_diameter
+    ):
+        errors.append("counterbore_diameter 必须大于 hole_diameter")
+
+
+def _validate_countersink(params, errors):
+    _validate_hole_body(params, errors)
+    hole_diameter = _number(params, "hole_diameter", errors, minimum=0.01)
+    countersink_diameter = _number(params, "countersink_diameter", errors, minimum=0.01)
+    _number(params, "countersink_angle", errors, minimum=30, maximum=180, required=False)
+    if (
+        hole_diameter is not None
+        and countersink_diameter is not None
+        and countersink_diameter <= hole_diameter
+    ):
+        errors.append("countersink_diameter 必须大于 hole_diameter")
+
+
+def _validate_hole_array(params, errors):
+    _validate_hole_body(params, errors)
+    _number(params, "diameter", errors, minimum=0.01)
+    _integer(params, "count", errors, minimum=2, maximum=100)
+    _number(params, "spacing", errors, minimum=0.01)
+    _string(params, "direction", errors, allowed={"x", "y"}, required=False)
+    _number(params, "angle", errors, minimum=-360, maximum=360, required=False)
+
+
+def _validate_note(params, errors):
+    text = _string(params, "text", errors)
+    if text is not None and len(text) > 500:
+        errors.append("text 不能超过 500 个字符")
+    _number(params, "x", errors, minimum=-10000, maximum=10000, required=False)
+    _number(params, "y", errors, minimum=-10000, maximum=10000, required=False)
+    _number(params, "height", errors, minimum=0.1, maximum=100, required=False)
+
+
+def _validate_insert_component(params, errors):
+    path = _string(params, "path", errors)
+    if path is not None:
+        if len(path) > 260:
+            errors.append("path 过长")
+        if not path.lower().endswith((".sldprt", ".sldasm")):
+            errors.append("path 必须指向 .sldprt 或 .sldasm 文件")
+    _number(params, "x", errors, minimum=-100000, maximum=100000, required=False)
+    _number(params, "y", errors, minimum=-100000, maximum=100000, required=False)
+    _number(params, "z", errors, minimum=-100000, maximum=100000, required=False)
+    _bool(params, "fixed", errors)
+
+
 def _validate_rib(params, errors):
     _number(params, "thickness", errors, minimum=0.01)
     _number(params, "length", errors, minimum=0.01)
@@ -282,6 +358,16 @@ def validate_feature(feature, prefix=""):
         _validate_loft(params, errors)
     elif feature_type == "rib":
         _validate_rib(params, errors)
+    elif feature_type == "counterbore":
+        _validate_counterbore(params, errors)
+    elif feature_type == "countersink":
+        _validate_countersink(params, errors)
+    elif feature_type == "hole_array":
+        _validate_hole_array(params, errors)
+    elif feature_type == "note":
+        _validate_note(params, errors)
+    elif feature_type == "insert_component":
+        _validate_insert_component(params, errors)
 
     return [prefix + error for error in errors]
 
@@ -351,9 +437,14 @@ def _validate_geometry(features, errors):
             continue
         prefix = f"features[{index}]: "
 
-        if feature_type in {"cut", "hole"} and index > base_index:
+        hole_types = {"cut", "hole", "counterbore", "countersink", "hole_array"}
+        if feature_type in hole_types and index > base_index:
             bounds = _cut_bounds(base_plane, _plane_key(params.get("plane")), length, width, depth)
-            diameter = _number_value(params.get("diameter"))
+            diameter = _number_value(
+                params.get("counterbore_diameter")
+                or params.get("countersink_diameter")
+                or params.get("diameter")
+            )
             center_x = _number_value(params.get("center_x"))
             center_y = _number_value(params.get("center_y"))
             if bounds and diameter is not None and center_x is not None and center_y is not None:

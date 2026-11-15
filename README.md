@@ -113,7 +113,7 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 | Layer | Stack | Responsibility |
 |---|---|---|
 | Client | C# / WPF / .NET Framework 4.8 | `Vulcan AI` ribbon tab, prompt panel, DPAPI settings, editable JSON preview, COM execution |
-| Transport | HTTP REST / JSON | Single endpoint: `POST /api/v1/generate` |
+| Transport | HTTP REST / JSON | `POST /api/v1/generate`, plus SSE streaming at `POST /api/v1/generate/stream` |
 | Server | Python 3.10+ / Flask 3 | Prompt assembly, LLM call, envelope and parameter validation, error mapping |
 | Model | OpenAI-compatible API | JSON feature tree generation |
 | Deployment | Docker, reverse proxy, or bare metal | Server anywhere; client beside SolidWorks |
@@ -220,6 +220,11 @@ One of the four holes is shown. The full response repeats the `cut` feature with
 | `sweep` | Sweeps a circular profile along a path. | `diameter`, `path_length`; optional `path_plane`, `path_shape` |
 | `loft` | Lofts between two profiles. | `height`, `profile1`, `profile2`; optional `plane` |
 | `rib` | Inserts a rib from an open sketch. | `thickness`, `length`; optional `plane`, `center_x`, `center_y`, `draft_angle`, `two_sided` |
+| `counterbore` | Cuts a counterbored hole. | `hole_diameter`, `counterbore_diameter` (larger), `counterbore_depth`; hole `depth` or `through_all` |
+| `countersink` | Cuts a countersunk hole. | `hole_diameter`, `countersink_diameter` (larger), optional `countersink_angle`; hole `depth` or `through_all` |
+| `hole_array` | Cuts a row of identical holes. | `diameter`, `count`, `spacing`; optional `direction`, `angle`; hole `depth` or `through_all` |
+| `note` | Adds a drawing annotation. Drawing documents only. | `text`; optional `x`, `y`, `height` |
+| `insert_component` | Inserts a part or sub-assembly. Assembly documents only. | `path` (`.sldprt` or `.sldasm`); optional `x`, `y`, `z`, `fixed` |
 
 ### Feature schema
 
@@ -329,13 +334,13 @@ The fallback is pragmatic, not elegant. Keep SolidWorks focused while a model is
 
 ## Prompt engineering
 
-The system prompt lives in [`server/prompts/system_prompt.py`](server/prompts/system_prompt.py) and is versioned with `PROMPT_VERSION = "2.4.0"` (about 300 lines). It encodes five things:
+The prompts live in [`server/prompts/`](server/prompts/) and are versioned with `PROMPT_VERSION = "3.0.0"`. Chinese, English, and French prompts are native, not translations at runtime; the server selects one from an optional `language` field (`zh`, `en`, or `fr`) or detects it from the request text. Each prompt encodes five things:
 
 1. **Output discipline.** JSON only — no markdown, no prose, no code fences.
 2. **Coordinate rules.** Per-plane axis mappings, with a worked example for a 200 × 100 × 20 base and four holes.
 3. **Feature schema.** Required and optional fields for `extrude`, `cut`, `revolve`, `fillet`, and `chamfer`, plus shape-specific parameters.
 4. **Anti-overlap constraint.** Multiple identical features must use distinct coordinates; never stack them at the origin.
-5. **Plane vocabulary.** The model must emit Chinese plane names such as `前视基准面`, `上视基准面`, and `右视基准面`.
+5. **Plane vocabulary.** Each prompt emits the plane names its language resolves on any SolidWorks UI: Chinese `前视基准面` / `上视基准面` / `右视基准面`, English `front` / `top` / `right`, and French `front` / `dessus` / `droite`.
 
 The prompt is deliberately separate from business logic so it can be iterated without touching the server. The model call uses a low temperature because the task rewards consistency, not creativity.
 
@@ -446,7 +451,7 @@ This section maps every entity you touch, from the installer to the feature tree
 
 ### 3. Configure the server
 
-Click the gear button (top-right of the panel). The dialog contains two grouped sections, five fields, and four buttons.
+Click the gear button (top-right of the panel). The dialog contains two grouped sections, six fields, and four buttons.
 
 | Field | Meaning |
 |---|---|
@@ -493,6 +498,13 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 - Rate-limit state is bounded, an optional trusted-proxy mode fixes client IPs behind a reverse proxy, and CI now runs ruff, Black, mypy, and the client validator tests.
 - Sketches now carry driving dimensions: circle diameter, rectangle length and width, polygon side length, slot radius and center-distance, and line length for rib and sweep paths. Profile position still comes from coordinates, and ellipse profiles stay geometry-only.
 - Verified against SolidWorks 2025 SP0 with an automated COM smoke run (`tools/SolidWorksVerify`): requested sizes appear as dimensions and editing a diameter rebuilds the body.
+- Added `counterbore`, `countersink`, and `hole_array` hole features, plus `insert_component` for assemblies and `note` for drawing annotations.
+- Added native English and French prompts, an optional `language` field, provider adapters for `openai` and `anthropic`, and an SSE streaming endpoint with client-side progress.
+- Extracted `ModelingEngine` behind an `IFeatureBackend` seam so client CI runs sequencing, seed resolution, and partial-failure checks with a fake backend.
+- Added a task pane panel; the ribbon command opens the pane and falls back to the modal window when the pane is unavailable.
+- Fixed blind cuts by using bidirectional `FeatureCut4` parameters with an opposite-direction retry.
+- The task pane hosts the WPF panel through `SetParent` and stays interactive; the ribbon command falls back to the modal panel if hosting fails.
+- During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
 
 ## What's new in 1.2.1
 
@@ -583,6 +595,7 @@ tools\SolidWorksVerify\bin\SwVerify.exe
 QINIU_API_KEY="sk-xxxxxxxxxxxxxxxx"
 QINIU_BASE_URL="https://api.openai.com/v1"
 QINIU_MODEL="gpt-4o-mini"
+LLM_PROVIDER="openai"
 
 HOST="127.0.0.1"
 PORT="5000"
@@ -604,6 +617,7 @@ The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. The c
 | `QINIU_API_KEY` | none | Provider API key |
 | `QINIU_BASE_URL` | none | OpenAI-compatible base URL |
 | `QINIU_MODEL` | `gpt-oss-120b` | Model name |
+| `LLM_PROVIDER` | `openai` | Provider family: `openai` (chat completions) or `anthropic` (Messages API) |
 | `HOST` | `127.0.0.1` | Bind address; use `0.0.0.0` only behind a trusted reverse proxy |
 | `PORT` | `5000` | Server port |
 | `FLASK_ENV` | `production` | Set to `development` to enable Flask debug mode |
@@ -625,6 +639,7 @@ The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. The c
 | Qwen (DashScope compatible mode) | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
 | Ollama | `http://localhost:11434/v1` | a model served locally |
 | vLLM | `http://localhost:8000/v1` | your served model |
+| Anthropic | `https://api.anthropic.com/v1` with provider `anthropic` | `claude-opus-5-5` |
 
 Use a model with strong instruction-following and reliable JSON output. Weak models produce the classic failure modes: markdown wrappers, prose before the JSON, or coordinates that overlap.
 
@@ -638,6 +653,7 @@ The add-in is configured in its own dialog: click **设置** in the top-right co
 | Server token | Matches `VULCAN_API_TOKEN` when the server requires a bearer token |
 | LLM API Key | Your own provider key; leave empty to use the server's key |
 | LLM Base URL | OpenAI-compatible base URL for your provider |
+| LLM Provider | `openai` or `anthropic`; selects the request shape sent to your provider |
 | LLM Model | Model name, for example `gpt-4o-mini` |
 
 The dialog also has **测试连接** (health check), **打开日志目录** (open the client log folder), and **保存**. Settings are written to `%APPDATA%\Vulcan\settings.json`; `ServerToken` and `LlmApiKey` are encrypted with Windows DPAPI for the current user, so the file is not portable across machines or accounts and must never be committed.
@@ -719,6 +735,18 @@ Errors use a small envelope:
 
 Omitted headers fall back to `QINIU_*`. Values are length-limited, the base URL must use `http` or `https`, and neither keys nor prompts are written to the server log.
 
+### `POST /api/v1/generate/stream`
+
+Same request body and headers as `/api/v1/generate`. The response is `text/event-stream`; each event is a `data:` line containing one JSON object.
+
+| Event | Payload |
+|---|---|
+| `delta` | `{"type":"delta","text":"..."}` for each provider text chunk |
+| `result` | `{"type":"result","data":{...}}` with the validated feature tree |
+| `error` | `{"type":"error","message":"...","status":400}` when the request or model output is invalid |
+
+The server accumulates the text, parses the JSON, and applies the same envelope and feature validation as the non-streaming endpoint.
+
 **Security.** The server supports an optional bearer token and per-IP rate limiting. It does not terminate TLS and has no user accounts. Keep `HOST=127.0.0.1` or put it behind a TLS reverse proxy, set `VULCAN_API_TOKEN`, and never enable Flask debug mode in production.
 
 ## Project structure
@@ -734,8 +762,8 @@ Vulcan/
 │   └── Vulcan.SolidWorksClient/
 │       ├── Core/                 #   SwAddIn — COM registration and lifecycle
 │       ├── Models/               #   ModelData — request/response types
-│       ├── Services/             #   ApiClient, SwModeler, SettingsStore, Logger, validator
-│       ├── UI/                   #   MainWindow, SettingsWindow, PreviewWindow, Theme.xaml
+│       ├── Services/             #   ApiClient, SwModeler, ModelingEngine, validator
+│       ├── UI/                   #   MainWindow, task pane, SettingsWindow, PreviewWindow
 │       ├── ReferenceDLL/         #   SolidWorks interop assemblies
 │       ├── Vulcan Setup/         #   Inno Setup installer
 │       └── packaging/            #   install/uninstall scripts and build_installer.ps1
@@ -746,7 +774,7 @@ Vulcan/
 │   ├── config.py                 #   Environment configuration
 │   ├── .env.example              #   Provider, auth, and server template
 │   ├── Dockerfile                #   python:3.11-slim + gunicorn image
-│   ├── prompts/                  #   Versioned system prompt
+│   ├── prompts/                  #   Versioned zh/en/fr prompts
 │   ├── services/                 #   LLM client and feature validator
 │   ├── tests/                    #   pytest suite
 │   └── utils/                    #   Logging, rate limiting, exceptions
@@ -770,7 +798,7 @@ Vulcan/
 | SolidWorks | Built and tested against SolidWorks 2025 (`FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, `InsertFeatureChamfer`). Older releases may need parameter updates or the UI fallback; they are not part of the tested matrix. |
 | Client platform | Windows only, x64, .NET Framework 4.8. |
 | Server platform | Python 3.10–3.11; local, Docker, or headless. |
-| Feature types | `extrude`, `cut`, `revolve`, `fillet`, `chamfer`, `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` are implemented. |
+| Feature types | `extrude`, `cut`, `revolve`, `fillet`, `chamfer`, `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, `rib`, `counterbore`, `countersink`, `hole_array`, `note`, and `insert_component` are implemented. |
 | Planes | The modeler routes front, top, and right datum planes and resolves Chinese, English, and French plane names. |
 | Validation | The server checks the envelope and validates feature parameters; envelope deserialization and field defaults live in the C# client. |
 | Authentication | Optional bearer token (`VULCAN_API_TOKEN`) and per-IP rate limiting. TLS and user accounts still belong in a reverse proxy. |
@@ -807,17 +835,17 @@ Server logs are written to `vulcan_server.log` in the working directory, rotated
 - [x] Revolve, fillet, and chamfer features.
 - [x] Sweep, loft, and rib features.
 - [x] Linear/circular patterns and mirroring.
-- [ ] Hole Wizard and hole-array enhancements.
-- [ ] Native English and French system prompts, not only multilingual model behavior.
-- [ ] Provider adapters and streaming responses.
+- [x] Hole Wizard and hole-array enhancements.
+- [x] Native English and French system prompts, not only multilingual model behavior.
+- [x] Provider adapters and streaming responses.
 - [x] Optional bearer-token authentication and per-IP rate limiting.
 - [x] Bring-your-own-key provider settings with local DPAPI storage.
 - [x] Editable JSON preview before execution.
 - [x] Self-elevating, quiet install and uninstall scripts.
 - [x] Prompt regression tests and a Python CI workflow.
-- [ ] A mocked COM layer for client CI.
-- [ ] A task-pane UI instead of a modal panel.
-- [ ] Assembly-level operations and drawing annotations.
+- [x] A mocked COM layer for client CI.
+- [x] A task-pane UI instead of a modal panel.
+- [x] Assembly-level operations and drawing annotations.
 
 ## Contributing
 

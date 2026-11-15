@@ -58,6 +58,115 @@ namespace Vulcan.Client.Tests
                 ExpectErrors(PlateWithExtra(Feature("fillet", P("radius", 11.0))), 1));
             Run("shell thicker than half base", () =>
                 ExpectErrors(PlateWithExtra(Feature("shell", P("thickness", 10.0))), 1));
+            Run("valid counterbore", () =>
+                ExpectErrors(Feature("counterbore", P("plane", "前视基准面", "hole_diameter", 6.0, "counterbore_diameter", 11.0, "counterbore_depth", 6.0, "through_all", true)), 0));
+            Run("counterbore diameter must exceed hole", () =>
+                ExpectErrors(Feature("counterbore", P("plane", "前视基准面", "hole_diameter", 10.0, "counterbore_diameter", 10.0, "counterbore_depth", 5.0, "through_all", true)), 1));
+            Run("valid countersink", () =>
+                ExpectErrors(Feature("countersink", P("plane", "前视基准面", "hole_diameter", 6.0, "countersink_diameter", 12.0, "through_all", true)), 0));
+            Run("countersink angle range", () =>
+                ExpectErrors(Feature("countersink", P("plane", "前视基准面", "hole_diameter", 6.0, "countersink_diameter", 12.0, "countersink_angle", 200.0, "through_all", true)), 1));
+            Run("valid hole array", () =>
+                ExpectErrors(Feature("hole_array", P("plane", "前视基准面", "diameter", 6.0, "count", 4, "spacing", 15.0, "through_all", true)), 0));
+            Run("hole array count range", () =>
+                ExpectErrors(Feature("hole_array", P("plane", "前视基准面", "diameter", 6.0, "count", 1, "spacing", 15.0, "through_all", true)), 1));
+            Run("hole array bounds against base", () =>
+                ExpectErrors(PlateWithFeature(new FeatureItem { feature_type = "hole_array", @params = P("plane", "前视基准面", "diameter", 10.0, "count", 3, "spacing", 15.0, "through_all", true, "center_x", 99.0, "center_y", 0.0) }), 1));
+            Run("engine runs a single feature", () =>
+            {
+                var backend = new FakeBackend();
+                new ModelingEngine(backend).Execute(Feature("extrude", P("plane", "前视基准面")), "prompt");
+                Expect(backend.Calls.Count == 1, "one call");
+                Expect(backend.Calls[0] == "extrude", "type");
+                Expect(backend.BeginRunCount == 1 && backend.EndRunCount == 1 && backend.LastEndRunSuccess, "lifecycle");
+            });
+            Run("engine keeps feature order", () =>
+            {
+                var backend = new FakeBackend();
+                new ModelingEngine(backend).Execute(PlateWithExtra(Feature("fillet", P("radius", 3.0))), "prompt");
+                Expect(backend.Calls.Count == 2, "two calls");
+                Expect(backend.Calls[1] == "fillet", "second type");
+            });
+            Run("engine resolves seed names", () =>
+            {
+                var backend = new FakeBackend();
+                var tree = new ModelData
+                {
+                    features = new List<FeatureItem>
+                    {
+                        new FeatureItem { feature_type = "extrude", name = "Base", @params = P("plane", "前视基准面") },
+                        new FeatureItem { feature_type = "linear_pattern", name = "Pattern", @params = P("seed", "Base", "direction", "x", "count", 2, "spacing", 10.0) }
+                    }
+                };
+                new ModelingEngine(backend).Execute(tree, "prompt");
+                Expect((string)backend.Parameters[1]["seed"] == "Feat1", "seed mapped");
+            });
+            Run("engine reports partial results", () =>
+            {
+                var backend = new FakeBackend { FailAtCall = 2 };
+                var tree = new ModelData
+                {
+                    features = new List<FeatureItem>
+                    {
+                        new FeatureItem { feature_type = "extrude", name = "Base", @params = P("plane", "前视基准面") },
+                        new FeatureItem { feature_type = "fillet", name = "Round", @params = P("radius", 3.0) }
+                    }
+                };
+                try
+                {
+                    new ModelingEngine(backend).Execute(tree, "prompt");
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Expect(ex.Message.Contains("已创建 1 个特征"), "count in message");
+                    Expect(ex.Message.Contains("Feat1"), "name in message");
+                    return;
+                }
+                throw new Exception("expected failure");
+            });
+            Run("engine rejects conflicting envelopes", () =>
+            {
+                var backend = new FakeBackend();
+                var tree = new ModelData
+                {
+                    feature_type = "extrude",
+                    @params = P("plane", "前视基准面"),
+                    features = new List<FeatureItem>
+                    {
+                        new FeatureItem { feature_type = "extrude", @params = P("plane", "前视基准面") }
+                    }
+                };
+                try
+                {
+                    new ModelingEngine(backend).Execute(tree, "prompt");
+                }
+                catch (InvalidOperationException)
+                {
+                    Expect(backend.BeginRunCount == 0, "backend untouched");
+                    return;
+                }
+                throw new Exception("expected rejection");
+            });
+            Run("engine rejects empty envelope", () =>
+            {
+                try
+                {
+                    new ModelingEngine(new FakeBackend()).Execute(new ModelData(), "prompt");
+                }
+                catch (InvalidOperationException)
+                {
+                    return;
+                }
+                throw new Exception("expected rejection");
+            });
+            Run("valid note", () =>
+                ExpectErrors(Feature("note", P("text", "Vulcan", "x", 20.0, "y", 20.0, "height", 5.0)), 0));
+            Run("note text length limit", () =>
+                ExpectErrors(Feature("note", P("text", new string('a', 501))), 1));
+            Run("valid insert component", () =>
+                ExpectErrors(Feature("insert_component", P("path", "C:/models/base.sldprt", "fixed", true)), 0));
+            Run("insert component requires CAD file", () =>
+                ExpectErrors(Feature("insert_component", P("path", "C:/models/base.step")), 1));
             Run("client timeout exceeds server timeout", () => ExpectApiTimeout(60));
 
             Console.WriteLine(
@@ -100,6 +209,53 @@ namespace Vulcan.Client.Tests
             if (Math.Abs(httpClient.Timeout.TotalSeconds - seconds) > 0.001)
             {
                 throw new Exception("timeout is " + httpClient.Timeout.TotalSeconds + "s, expected " + seconds + "s");
+            }
+        }
+
+        private sealed class FakeBackend : IFeatureBackend
+        {
+            public readonly List<string> Calls = new List<string>();
+            public readonly List<Dictionary<string, object>> Parameters = new List<Dictionary<string, object>>();
+            public int BeginRunCount;
+            public int EndRunCount;
+            public bool LastEndRunSuccess;
+            public int FailAtCall = int.MaxValue;
+
+            public void BeginRun(string userRequest)
+            {
+                BeginRunCount++;
+            }
+
+            public void EnsureDocument()
+            {
+            }
+
+            public string ExecuteFeature(
+                string featureType,
+                Dictionary<string, object> parameters,
+                string featureName)
+            {
+                Calls.Add(featureType);
+                Parameters.Add(parameters);
+                if (Calls.Count == FailAtCall)
+                {
+                    throw new InvalidOperationException("boom");
+                }
+                return "Feat" + Calls.Count;
+            }
+
+            public void EndRun(bool success)
+            {
+                EndRunCount++;
+                LastEndRunSuccess = success;
+            }
+        }
+
+        private static void Expect(bool condition, string label)
+        {
+            if (!condition)
+            {
+                throw new Exception("expectation failed: " + label);
             }
         }
 

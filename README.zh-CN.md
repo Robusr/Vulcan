@@ -113,7 +113,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | 层次 | 技术栈 | 职责 |
 |---|---|---|
 | 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、提示面板、DPAPI 设置、可编辑 JSON 预览、COM 执行 |
-| 传输 | HTTP REST / JSON | 单一端点：`POST /api/v1/generate` |
+| 传输 | HTTP REST / JSON | `POST /api/v1/generate`，以及 `POST /api/v1/generate/stream` 的 SSE 流式接口 |
 | 服务端 | Python 3.10+ / Flask 3 | 提示词组装、上游大模型调用、信封与参数校验、错误映射 |
 | 模型 | OpenAI 兼容 API | JSON 特征树生成 |
 | 部署 | Docker、反向代理或裸机 | 服务端任意部署；客户端与 SolidWorks 同机 |
@@ -220,6 +220,11 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | `sweep` | 沿路径扫掠圆形轮廓。 | `diameter`、`path_length`；可选 `path_plane`、`path_shape` |
 | `loft` | 在两个截面之间放样。 | `height`、`profile1`、`profile2`；可选 `plane` |
 | `rib` | 由开放草图生成筋。 | `thickness`、`length`；可选 `plane`、`center_x`、`center_y`、`draft_angle`、`two_sided` |
+| `counterbore` | 生成沉孔。 | `hole_diameter`、`counterbore_diameter`（更大）、`counterbore_depth`；通孔 `depth` 或 `through_all` |
+| `countersink` | 生成埋头孔。 | `hole_diameter`、`countersink_diameter`（更大）、可选 `countersink_angle`；通孔 `depth` 或 `through_all` |
+| `hole_array` | 生成一排相同的孔。 | `diameter`、`count`、`spacing`；可选 `direction`、`angle`；通孔 `depth` 或 `through_all` |
+| `note` | 添加工程图注释，仅工程图。 | `text`；可选 `x`、`y`、`height` |
+| `insert_component` | 插入零件或子装配，仅装配体。 | `path`（`.sldprt` 或 `.sldasm`）；可选 `x`、`y`、`z`、`fixed` |
 
 ### 特征模式
 
@@ -329,13 +334,13 @@ SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征
 
 ## 提示词工程
 
-系统提示词位于 [`server/prompts/system_prompt.py`](server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.4.0"`，约 300 行。它编码了五件事：
+提示词位于 [`server/prompts/`](server/prompts/)，版本为 `PROMPT_VERSION = "3.0.0"`。中文、英文和法文提示词都是原生编写，而不是运行时翻译；服务端根据可选的 `language` 字段（`zh`、`en` 或 `fr`）选择，或从请求文本自动识别。每份提示词都编码五件事：
 
 1. **输出纪律。** 只输出 JSON——没有 Markdown、没有解释、没有代码围栏。
 2. **坐标规则。** 逐基准面的轴映射，并给出 200 × 100 × 20 基体与四个孔的完整示例。
 3. **特征模式。** `extrude`、`cut`、`revolve`、`fillet`、`chamfer` 的必填/可选字段，以及形状专属参数。
 4. **防重叠约束。** 多个相同特征必须使用不同坐标，绝不能堆在原点。
-5. **基准面词汇。** 模型必须输出 `前视基准面`、`上视基准面`、`右视基准面` 等中文名称。
+5. **基准面词汇。** 各语言提示词输出客户端可在任意 SolidWorks 界面解析的名称：中文 `前视基准面` / `上视基准面` / `右视基准面`，英文 `front` / `top` / `right`，法文 `front` / `dessus` / `droite`。
 
 提示词与业务逻辑刻意分离，因此可以独立迭代，不必改动服务端。模型调用使用较低的温度，因为这项任务奖励一致性，而不是创造力。
 
@@ -446,7 +451,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 ### 3. 配置服务端
 
-点击面板右上角的齿轮按钮，对话框分为两个分组，包含五个输入项和四个按钮。
+点击面板右上角的齿轮按钮，对话框分为两个分组，包含六个输入项和四个按钮。
 
 | 输入项 | 含义 |
 |---|---|
@@ -454,6 +459,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 | 服务端 Token | 服务端启用鉴权时对应 `VULCAN_API_TOKEN` |
 | LLM API Key | 你自己的提供商密钥（BYOK）；留空则使用服务端密钥 |
 | LLM Base URL | 提供商的 OpenAI 兼容 Base URL |
+| 服务商 | `openai` 或 `anthropic`，决定发往提供商的请求格式 |
 | 模型名称 | 例如 `gpt-4o-mini` |
 
 | 按钮 | 行为 |
@@ -493,6 +499,13 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 - 限流状态加入数量上限，新增可选可信代理模式修复反向代理下的客户端 IP，CI 加入 ruff、Black、mypy 和客户端校验器测试。
 - 草图现在带驱动尺寸：圆直径、矩形长宽、多边形边长、槽口半径与中心距，以及筋和扫掠路径的线段长度。轮廓位置仍由坐标决定，椭圆轮廓暂只保留几何。
 - 已在 SolidWorks 2025 SP0 上用自动化 COM 冒烟验证（`tools/SolidWorksVerify`）：请求尺寸会写为驱动尺寸，修改直径后重建几何同步更新。
+- 新增 `counterbore`、`countersink`、`hole_array` 孔特征，以及装配体的 `insert_component` 和工程图的 `note`。
+- 新增原生英文/法文提示词、可选 `language` 字段、`openai`/`anthropic` 提供商适配器，以及带客户端进度的 SSE 流式端点。
+- 抽出 `ModelingEngine` 与 `IFeatureBackend` 接口，客户端 CI 可用假后端验证顺序、种子解析和部分失败报告。
+- 新增任务窗格面板；功能区命令优先打开窗格，窗格不可用时回退模态窗口。
+- 修复盲切：使用双向 `FeatureCut4` 参数，并在失败时反向重试。
+- 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；功能区命令在窗格不可用时回退模态面板。
+- 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
 
 ## 1.2.1 更新要点
 
@@ -583,6 +596,7 @@ tools\SolidWorksVerify\bin\SwVerify.exe
 QINIU_API_KEY="sk-xxxxxxxxxxxxxxxx"
 QINIU_BASE_URL="https://api.openai.com/v1"
 QINIU_MODEL="gpt-4o-mini"
+LLM_PROVIDER="openai"
 
 HOST="127.0.0.1"
 PORT="5000"
@@ -604,6 +618,7 @@ LOG_FILE="vulcan_server.log"
 | `QINIU_API_KEY` | 无 | 提供商 API 密钥 |
 | `QINIU_BASE_URL` | 无 | OpenAI 兼容 Base URL |
 | `QINIU_MODEL` | `gpt-oss-120b` | 模型名称 |
+| `LLM_PROVIDER` | `openai` | 提供商类型：`openai`（chat completions）或 `anthropic`（Messages API） |
 | `HOST` | `127.0.0.1` | 绑定地址；仅在可信反向代理之后使用 `0.0.0.0` |
 | `PORT` | `5000` | 服务端口 |
 | `FLASK_ENV` | `production` | 设为 `development` 才开启 Flask 调试模式 |
@@ -625,6 +640,7 @@ LOG_FILE="vulcan_server.log"
 | 通义千问（DashScope 兼容模式） | `https://dashscope.aliyuncs.com/compatible-mode/v1` | `qwen-plus` |
 | Ollama | `http://localhost:11434/v1` | 本地部署的模型 |
 | vLLM | `http://localhost:8000/v1` | 你部署的模型 |
+| Anthropic | `https://api.anthropic.com/v1`，服务商设为 `anthropic` | `claude-opus-5-5` |
 
 建议选择指令遵循能力强、JSON 输出稳定的模型。较弱的模型通常会出现这些问题：Markdown 包裹、JSON 前后夹杂解释，或坐标重叠。
 
@@ -637,6 +653,7 @@ LOG_FILE="vulcan_server.log"
 | 服务端地址 | Vulcan 服务端，例如 `https://vulcan.example.com` |
 | 服务端 Token | 对应 `VULCAN_API_TOKEN`，服务端启用鉴权时填写 |
 | LLM API Key | 你自己的提供商密钥；留空则使用服务端配置 |
+| 服务商 | `openai` 或 `anthropic`，决定发往提供商的请求格式 |
 | LLM Base URL | 提供商的 OpenAI 兼容 Base URL |
 | 模型名称 | 例如 `gpt-4o-mini` |
 
@@ -719,6 +736,18 @@ setx VULCAN_API_TOKEN "your-shared-token"
 
 未提供的请求头回退到 `QINIU_*`。取值有长度上限，Base URL 必须以 `http` 或 `https` 开头，密钥和提示词都不会写入服务端日志。
 
+### `POST /api/v1/generate/stream`
+
+请求体和请求头与 `/api/v1/generate` 相同。响应为 `text/event-stream`，每个事件是一行 `data:`，内容为一个 JSON 对象。
+
+| 事件 | 负载 |
+|---|---|
+| `delta` | `{"type":"delta","text":"..."}`，每个提供商的文本片段 |
+| `result` | `{"type":"result","data":{...}}`，校验通过的特征树 |
+| `error` | `{"type":"error","message":"...","status":400}`，请求或模型输出无效时 |
+
+服务端会累积文本、解析 JSON，并执行与非流式端点相同的包络和特征校验。
+
 **安全提示。** 服务端支持可选的 Bearer Token 和每 IP 限流，但不终止 TLS，也没有用户账户。请保持 `HOST=127.0.0.1`，或放在 TLS 反向代理之后，设置 `VULCAN_API_TOKEN`，并且不要在生产环境开启 Flask 调试模式。
 
 ## 项目结构
@@ -746,10 +775,10 @@ Vulcan/
 │   ├── config.py                 #   环境配置
 │   ├── .env.example              #   提供商、鉴权与服务端配置模板
 │   ├── Dockerfile                #   python:3.11-slim + gunicorn 镜像
-│   ├── prompts/                  #   版本化系统提示词
+│   ├── prompts/                  #   版本化的中/英/法系统提示词
 │   ├── services/                 #   大模型客户端与特征校验器
 │   ├── tests/                    #   pytest 测试
-│   └── utils/                    #   日志、限流与自定义异常
+│   └── utils/                    #   日志、限流、语言识别与自定义异常
 ├── archive/                      # 历史代码归档
 │   └── beta/                     #   旧版代码生成路线
 │       ├── client-csharp-beta/   #     早期命令组/功能区原型
@@ -770,7 +799,7 @@ Vulcan/
 | SolidWorks | 已在 SolidWorks 2025 上构建并测试（`FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3`、`InsertFeatureChamfer`）。旧版本可能需要调整参数或使用 UI 兜底，不在已测试矩阵内。 |
 | 客户端平台 | 仅 Windows，x64，.NET Framework 4.8。 |
 | 服务端平台 | Python 3.10–3.11；本地、Docker 或无头运行。 |
-| 特征类型 | 已实现 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`、`linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib`。 |
+| 特征类型 | 已实现 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`、`linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib`、`counterbore`、`countersink`、`hole_array`、`note`、`insert_component`。 |
 | 基准面 | 建模器支持前视、上视、右视基准面，并能解析中文、英文、法文名称。 |
 | 校验 | 服务端检查响应信封并校验特征参数；信封反序列化和字段默认值位于 C# 客户端。 |
 | 鉴权 | 支持可选的 Bearer Token（`VULCAN_API_TOKEN`）和每 IP 限流。TLS 与用户账户仍应由反向代理负责。 |
@@ -807,17 +836,17 @@ Vulcan/
 - [x] 旋转、圆角、倒角特征。
 - [x] 扫掠、放样和筋特征。
 - [x] 线性/圆周阵列与镜像。
-- [ ] 孔向导与孔阵列增强。
-- [ ] 原生英文和法文系统提示词，而不只依赖模型的多语言能力。
-- [ ] 提供商适配器与流式响应。
+- [x] 孔向导与孔阵列增强。
+- [x] 原生英文和法文系统提示词，而不只依赖模型的多语言能力。
+- [x] 提供商适配器与流式响应。
 - [x] 可选的 Bearer Token 鉴权和每 IP 限流。
 - [x] 自带密钥的提供商设置，密钥经 Windows DPAPI 本地加密。
 - [x] 执行前可编辑的 JSON 预览。
 - [x] 自动提权的静默安装与卸载脚本。
 - [x] 提示词回归测试和 Python CI 工作流。
-- [ ] 可在 CI 中运行的 COM 抽象层。
-- [ ] 用任务窗格替代模态面板。
-- [ ] 装配体级操作与工程图标注。
+- [x] 可在 CI 中运行的 COM 抽象层。
+- [x] 用任务窗格替代模态面板。
+- [x] 装配体级操作与工程图标注。
 
 ## 参与贡献
 

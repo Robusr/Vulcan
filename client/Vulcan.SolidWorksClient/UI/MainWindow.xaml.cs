@@ -120,7 +120,9 @@ namespace Vulcan.SolidWorksClient.UI
             try
             {
                 var apiClient = new ApiClient();
-                ModelData modelData = await apiClient.GenerateModelAsync(userPrompt);
+                var progress = new Progress<string>(message => StatusText.Text = message);
+                ModelData modelData = await apiClient.GenerateModelStreamAsync(
+                    userPrompt, progress, System.Threading.CancellationToken.None);
                 var validationErrors = FeatureTreeValidator.Validate(modelData);
                 if (validationErrors.Count > 0)
                 {

@@ -13,6 +13,7 @@ namespace Vulcan.SolidWorksClient.Services
         public string LlmApiKey { get; set; }
         public string LlmBaseUrl { get; set; }
         public string LlmModel { get; set; }
+        public string LlmProvider { get; set; }
     }
 
     public static class SettingsStore
@@ -52,7 +53,8 @@ namespace Vulcan.SolidWorksClient.Services
                         ServerToken = Unprotect(stored.ServerToken),
                         LlmApiKey = Unprotect(stored.LlmApiKey),
                         LlmBaseUrl = stored.LlmBaseUrl,
-                        LlmModel = stored.LlmModel
+                        LlmModel = stored.LlmModel,
+                        LlmProvider = stored.LlmProvider
                     };
                 }
                 catch (Exception ex)
@@ -79,7 +81,8 @@ namespace Vulcan.SolidWorksClient.Services
                     ServerToken = Protect(settings.ServerToken),
                     LlmApiKey = Protect(settings.LlmApiKey),
                     LlmBaseUrl = settings.LlmBaseUrl == null ? null : settings.LlmBaseUrl.Trim(),
-                    LlmModel = settings.LlmModel == null ? null : settings.LlmModel.Trim()
+                    LlmModel = settings.LlmModel == null ? null : settings.LlmModel.Trim(),
+                    LlmProvider = settings.LlmProvider == null ? null : settings.LlmProvider.Trim()
                 };
 
                 File.WriteAllText(
@@ -131,6 +134,7 @@ namespace Vulcan.SolidWorksClient.Services
             public string LlmApiKey { get; set; }
             public string LlmBaseUrl { get; set; }
             public string LlmModel { get; set; }
+            public string LlmProvider { get; set; }
         }
     }
 }

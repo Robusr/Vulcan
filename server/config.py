@@ -44,6 +44,7 @@ class Config:
     QINIU_API_KEY = os.getenv("QINIU_API_KEY")
     QINIU_BASE_URL = (os.getenv("QINIU_BASE_URL") or "").rstrip("/")
     QINIU_MODEL = os.getenv("QINIU_MODEL", "gpt-oss-120b")
+    LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openai").strip().lower()
     LLM_TIMEOUT = _int_env("LLM_TIMEOUT", 30)
 
     # BYOK: let each client override key/base URL/model per request.
