@@ -12,6 +12,6 @@ jobs:
       - uses: actions/checkout@v7
       - uses: microsoft/setup-msbuild@v3
       - name: Restore NuGet packages
-        run: nuget restore release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln
+        run: nuget restore client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln
       - name: Build x64 Release
-        run: msbuild release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln /p:Configuration=Release /p:Platform=x64 /v:minimal
+        run: msbuild client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln /p:Configuration=Release /p:Platform=x64 /v:minimal

@@ -102,5 +102,5 @@
   <text class="ui sub" x="950" y="382">Editable preview before execution</text>
   <text class="ui sub" x="950" y="398">UI fallback on COM failure</text>
 
-  <text class="ui" x="48" y="456" font-size="11.5" fill="#94A3B8">Both tracks remain in the repository: beta/ for reference, release/ for the maintained client.</text>
+  <text class="ui" x="48" y="456" font-size="11.5" fill="#94A3B8">Beta is archived under archive/beta/; the maintained client and server live in client/ and server/.</text>
 </svg>

@@ -22,6 +22,8 @@ htmlcov/
 
 # Visual Studio
 .vs/
+*.user
+*.suo
 
 # .NET build artifacts
 **/obj/
@@ -37,9 +39,9 @@ htmlcov/
 *.force
 
 # Installer payloads and local build output
-release/client/Vulcan.SolidWorksClient/dist/
-release/client/Vulcan.SolidWorksClient/Vulcan Setup/Output/
-release/client/Vulcan.SolidWorksClient/Vulcan Setup/{pf}/
+client/Vulcan.SolidWorksClient/dist/
+client/Vulcan.SolidWorksClient/Vulcan Setup/Output/
+client/Vulcan.SolidWorksClient/Vulcan Setup/{pf}/
 
 # macOS
 .DS_Store

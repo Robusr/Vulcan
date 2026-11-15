@@ -12,9 +12,16 @@ fi
 repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
+# Historical and current paths. filter-repo rewrites all refs, including tags.
 git filter-repo --force \
+  --path .env \
+  --path client/.env \
+  --path rebuild/server/.env \
   --path beta/server-python-beta/.env \
+  --path archive/beta/server-python-beta/.env \
   --path release/server/vulcan_server.log \
+  --path server/vulcan_server.log \
+  --path rebuild/server/vulcan_server.log \
   --invert-paths
 
 cat <<'EOF'

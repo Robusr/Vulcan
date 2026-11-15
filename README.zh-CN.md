@@ -50,10 +50,10 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 仓库保留了两代实现：
 
-- **`beta/`**——最初的概念验证。大模型生成 Python 代码，客户端用 `exec()` 执行。
-- **`release/`**——当前维护的架构。大模型返回类型化的 JSON 特征树，由 C# 插件确定性执行。
+- **`archive/beta/`**——最初的概念验证。大模型生成 Python 代码，客户端用 `exec()` 执行。
+- **`client/` 与 `server/`**——当前维护的架构。大模型返回类型化的 JSON 特征树，由 C# 插件确定性执行。
 
-本 README 以 `release/` 为主；`beta/` 作为参考与设计演进的记录保留。
+本 README 以根目录的 `client/` 与 `server/` 为主；beta 已归档到 `archive/beta/`，作为参考与设计演进的记录保留。
 
 ## 它能做什么
 
@@ -319,7 +319,7 @@ Rebuild 版本把大模型当作**由模式驱动的参数填充器**。模型�
 
 通用模型在 CAD 任务上表现不佳，不是因为不够聪明，而是因为缺少上下文。它们不知道前视基准面和上视基准面的区别，也不知道切除特征的 Z 坐标必须落在基体厚度内。
 
-Vulcan 通过 [`system_prompt.py`](release/server/prompts/system_prompt.py) 提供这些上下文：基准面与坐标轴的映射、特征模式、形状专属字段、输出纪律，以及多特征模型的防重叠规则。
+Vulcan 通过 [`system_prompt.py`](server/prompts/system_prompt.py) 提供这些上下文：基准面与坐标轴的映射、特征模式、形状专属字段、输出纪律，以及多特征模型的防重叠规则。
 
 ### API 优先，UI 兜底
 
@@ -329,7 +329,7 @@ SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征
 
 ## 提示词工程
 
-系统提示词位于 [`release/server/prompts/system_prompt.py`](release/server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.4.0"`，约 300 行。它编码了五件事：
+系统提示词位于 [`server/prompts/system_prompt.py`](server/prompts/system_prompt.py)，版本为 `PROMPT_VERSION = "2.4.0"`，约 300 行。它编码了五件事：
 
 1. **输出纪律。** 只输出 JSON——没有 Markdown、没有解释、没有代码围栏。
 2. **坐标规则。** 逐基准面的轴映射，并给出 200 × 100 × 20 基体与四个孔的完整示例。
@@ -360,7 +360,7 @@ cd Vulcan
 ### 2. 启动服务端
 
 ```bash
-cd release/server
+cd server
 
 python -m venv venv
 source venv/bin/activate   # Windows: venv\Scripts\activate
@@ -378,7 +378,7 @@ python app.py
 ### 3. 或使用 Docker
 
 ```bash
-cd release/server
+cd server
 docker build -t vulcan-server .
 docker run --rm -p 5000:5000 --env-file .env vulcan-server
 ```
@@ -399,7 +399,7 @@ curl -s http://127.0.0.1:5000/api/v1/generate \
 
 **方案 B——从源码构建。**
 
-1. 在 Visual Studio 2022 中打开 `release/client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln`。
+1. 在 Visual Studio 2022 中打开 `client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln`。
 2. 还原 NuGet 包（客户端使用 `Newtonsoft.Json`）。
 3. 项目使用 `ReferenceDLL/` 中的 SolidWorks 互操作程序集；如果你的 SolidWorks 版本不同，请替换这些文件。
 4. 构建并注册后，打开**设置**对话框填写服务端地址，例如 `https://vulcan.example.com`；如果服务端启用了鉴权，再填写 `VULCAN_API_TOKEN`。等价的环境变量（`VULCAN_SERVER_URL`、`VULCAN_API_TOKEN`）仍然可用，并在设置对话框留空时作为兜底。
@@ -549,7 +549,7 @@ Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 服务端测试使用 Flask 测试客户端和模拟的大模型客户端。客户端构建与安装包由 GitHub Actions 工作流覆盖。
 
 ```bash
-cd release/server
+cd server
 pip install -r requirements.txt -r requirements-dev.txt
 pytest
 pip-audit -r requirements.txt
@@ -631,8 +631,8 @@ setx VULCAN_API_TOKEN "your-shared-token"
 
 ### 参数调节
 
-- [`llm_client.py`](release/server/services/llm_client.py) 中的 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048` 控制模型调用。
-- [`config.py`](release/server/config.py) 中的 `LLM_TIMEOUT = 30` 控制服务端请求超时。
+- [`llm_client.py`](server/services/llm_client.py) 中的 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048` 控制模型调用。
+- [`config.py`](server/config.py) 中的 `LLM_TIMEOUT = 30` 控制服务端请求超时。
 - `ApiClient` 使用 30 秒客户端超时。如果提高其中一个，请同步提高另一个。
 
 ## API 参考
@@ -705,37 +705,37 @@ Vulcan/
 ├── README.zh-CN.md               # 简体中文
 ├── README.fr.md                  # 法文
 ├── SECURITY.md                   # 安全策略与密钥轮换
-├── scripts/                      # 维护脚本
+├── pyproject.toml                # Ruff、Black 与 mypy 配置
+├── client/                       # 当前 C# / WPF 客户端
+│   └── Vulcan.SolidWorksClient/
+│       ├── Core/                 #   SwAddIn——COM 注册与生命周期
+│       ├── Models/               #   ModelData——请求/响应类型
+│       ├── Services/             #   ApiClient、SwModeler、SettingsStore、Logger
+│       ├── UI/                   #   MainWindow、SettingsWindow、PreviewWindow（WPF）
+│       ├── ReferenceDLL/         #   SolidWorks 互操作程序集
+│       ├── Vulcan Setup/         #   Inno Setup 安装包
+│       └── packaging/            #   install/uninstall 脚本与 build_installer.ps1
+├── server/                       # 当前 Flask 服务端
+│   ├── app.py                    #   Flask 入口
+│   ├── config.py                 #   环境配置
+│   ├── .env.example              #   提供商、鉴权与服务端配置模板
+│   ├── Dockerfile                #   python:3.11-slim + gunicorn 镜像
+│   ├── prompts/                  #   版本化系统提示词
+│   ├── services/                 #   大模型客户端与特征校验器
+│   ├── tests/                    #   pytest 测试
+│   └── utils/                    #   日志、限流与自定义异常
+├── archive/                      # 历史代码归档
+│   └── beta/                     #   旧版代码生成路线
+│       ├── client-csharp-beta/   #     早期命令组/功能区原型
+│       ├── client-python-beta/   #     使用 exec() 的 PyQt5 客户端
+│       └── server-python-beta/   #     FastAPI + AsyncOpenAI 服务端
 ├── docs/
-│   └── assets/                   # 三份 README 共用的矢量配图
-│
-├── beta/                         # 旧版代码生成路线
-│   ├── client-csharp-beta/       #   早期命令组/功能区原型
-│   ├── client-python-beta/       #   使用 exec() 的 PyQt5 客户端
-│   └── server-python-beta/       #   FastAPI + AsyncOpenAI 服务端
-│
-└── release/                      # 当前 JSON 契约路线
-    ├── client/
-    │   └── Vulcan.SolidWorksClient/
-    │       ├── Core/             #   SwAddIn——COM 注册与生命周期
-    │       ├── Models/           #   ModelData——请求/响应类型
-    │       ├── Services/         #   ApiClient、SwModeler、SettingsStore、Logger
-    │       ├── UI/               #   MainWindow、SettingsWindow、PreviewWindow（WPF）
-    │       ├── ReferenceDLL/     #   SolidWorks 互操作程序集
-    │       ├── Vulcan Setup/     #   Inno Setup 安装包
-    │       └── packaging/        #   install/uninstall 脚本与 build_installer.ps1
-    └── server/
-        ├── app.py                #   Flask 入口
-        ├── config.py             #   环境配置
-        ├── .env.example          #   提供商、鉴权与服务端配置模板
-        ├── Dockerfile            #   python:3.11-slim + gunicorn 镜像
-        ├── prompts/              #   版本化系统提示词
-        ├── services/             #   大模型客户端与特征校验器
-        ├── tests/                #   pytest 测试
-        └── utils/                #   日志、限流与自定义异常
+│   └── assets/                   #   三份 README 共用的矢量配图
+├── scripts/                      # 维护脚本
+└── tools/                        # 文档与演示工具
 ```
 
-**仓库说明。** release 客户端实际编译 `Core/SwAddIn.cs`。`beta/` 仅作参考，不再维护。构建产物、日志、`.env` 和安装包负载都不进入 Git。
+**仓库说明。** 当前客户端实际编译 `Core/SwAddIn.cs`。beta 已归档到 `archive/beta/`，不再维护。构建产物、日志、`.env` 和安装包负载都不进入 Git。
 
 ## 兼容性与当前范围
 

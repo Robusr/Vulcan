@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: release/server
+        working-directory: server
 
     steps:
       - uses: actions/checkout@v7
