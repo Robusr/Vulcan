@@ -420,7 +420,7 @@ The response is the feature tree itself, not a wrapper. If `VULCAN_API_TOKEN` is
 
 ### 5. Install or build the client
 
-**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. From `client\Vulcan.SolidWorksClient`, run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client: click **设置** in the task pane or on the Vulcan AI tab, then enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
+**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. From `client\Vulcan.SolidWorksClient`, run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan-Setup-1.3.0.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client: click **设置** in the task pane or on the Vulcan AI tab, then enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
 
 **Option B — build from source.**
 
@@ -456,9 +456,9 @@ This section maps every entity you touch, from the installer to the feature tree
 
 ### 1. Install
 
-1. Run `Vulcan-Setup-1.2.1.exe`. Accept the administrator prompt, read the GPLv3 page, and keep the default `{autopf}\Vulcan` folder.
+1. Run `Vulcan-Setup-1.3.0.exe`. Accept the administrator prompt, read the GPLv3 page, and keep the default `{autopf}\Vulcan` folder.
 2. The installer copies the add-in, its dependencies, the icon set, and `install.bat` / `uninstall.bat`, then runs `install.bat /quiet` to register the x64 add-in with `RegAsm`.
-3. Alternatively, extract `Vulcan-1.2.1-portable.zip` and run `install.bat` as administrator.
+3. Alternatively, extract `Vulcan-1.3.0-portable.zip` and run `install.bat` as administrator.
 4. Restart SolidWorks.
 
 ### 2. Open the panel
@@ -509,7 +509,7 @@ The **检查并编辑建模参数** window shows the original request, a JSON ed
 
 The modeler creates native features (for the example: `凸台-拉伸1` plus its sketch), zooms to fit, and leaves a **模型生成完成。** status in the pane. Client logs are written to `Vulcan_Logs\log_YYYYMMDD.txt`; server logs to `vulcan_server.log`.
 
-## Unreleased
+## What's new in 1.3.0
 
 - Added native `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` features.
 - Raised the prompt contract to `PROMPT_VERSION = "2.4.0"` and updated the English, Chinese, and French documentation.
@@ -558,7 +558,7 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
   <img src="docs/assets/vulcan-install.gif" alt="Vulcan installer: welcome page, GPLv3 license, destination folder, and completion" width="100%">
 </p>
 
-1. Run `Vulcan-Setup-1.2.1.exe` and approve the administrator prompt.
+1. Run `Vulcan-Setup-1.3.0.exe` and approve the administrator prompt.
 2. Accept the GPLv3 license and keep the default `{autopf}\Vulcan` folder, or choose another.
 3. The installer copies the add-in, dependencies, and icons, then runs `install.bat /quiet` to register the x64 add-in with `RegAsm`.
 4. Restart SolidWorks; the `Vulcan AI` tab, toolbar, and task pane are available.
@@ -566,10 +566,10 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 Silent install:
 
 ```bat
-Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+Vulcan-Setup-1.3.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 
-Portable alternative: extract `Vulcan-1.2.1-portable.zip` and run `install.bat` as administrator.
+Portable alternative: extract `Vulcan-1.3.0-portable.zip` and run `install.bat` as administrator.
 
 ### Upgrade
 

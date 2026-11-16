@@ -420,7 +420,7 @@ curl -s http://127.0.0.1:5000/api/v1/generate \
 
 ### 5. 安装或构建客户端
 
-**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，然后在 `client\Vulcan.SolidWorksClient` 目录运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在任务窗格或 Vulcan AI 标签页点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
+**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，然后在 `client\Vulcan.SolidWorksClient` 目录运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan-Setup-1.3.0.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在任务窗格或 Vulcan AI 标签页点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
 
 **方案 B——从源码构建。**
 
@@ -456,9 +456,9 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 ### 1. 安装
 
-1. 运行 `Vulcan-Setup-1.2.1.exe`，在 UAC 提示中允许管理员权限，阅读 GPLv3 许可页，保留默认安装目录 `{autopf}\Vulcan`。
+1. 运行 `Vulcan-Setup-1.3.0.exe`，在 UAC 提示中允许管理员权限，阅读 GPLv3 许可页，保留默认安装目录 `{autopf}\Vulcan`。
 2. 安装包复制插件、依赖、图标资源以及 `install.bat` / `uninstall.bat`，随后以 `install.bat /quiet` 调用 `RegAsm` 注册 x64 插件。
-3. 也可以解压 `Vulcan-1.2.1-portable.zip`，以管理员身份运行 `install.bat`。
+3. 也可以解压 `Vulcan-1.3.0-portable.zip`，以管理员身份运行 `install.bat`。
 4. 重启 SolidWorks。
 
 ### 2. 打开面板
@@ -509,7 +509,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图）、自动缩放视图，并在任务窗格保留**模型生成完成。**状态。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
 
-## 未发布
+## 1.3.0 更新要点
 
 - 新增原生 `linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib` 特征。
 - 提示词契约升级到 `PROMPT_VERSION = "2.4.0"`，英文、中文、法文文档同步更新。
@@ -558,7 +558,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
   <img src="docs/assets/vulcan-install.gif" alt="Vulcan 安装向导：欢迎页、GPLv3 许可、目标目录与完成页" width="100%">
 </p>
 
-1. 运行 `Vulcan-Setup-1.2.1.exe`，在 UAC 提示中允许管理员权限。
+1. 运行 `Vulcan-Setup-1.3.0.exe`，在 UAC 提示中允许管理员权限。
 2. 接受 GPLv3 许可，保留默认目录 `{autopf}\Vulcan` 或选择其他位置。
 3. 安装包复制插件、依赖与图标，并以 `install.bat /quiet` 调用 `RegAsm` 注册 x64 插件。
 4. 重启 SolidWorks，`Vulcan AI` 标签页、工具栏与任务窗格即可使用。
@@ -566,10 +566,10 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 静默安装：
 
 ```bat
-Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+Vulcan-Setup-1.3.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 
-便携方式：解压 `Vulcan-1.2.1-portable.zip`，以管理员身份运行 `install.bat`。
+便携方式：解压 `Vulcan-1.3.0-portable.zip`，以管理员身份运行 `install.bat`。
 
 ### 升级
 

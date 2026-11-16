@@ -1,8 +1,8 @@
 [Setup]
 AppId={{03D4BCE0-7A21-4660-82A1-4CEEF0FBD651}
 AppName=Vulcan
-AppVersion=1.2.1
-AppVerName=Vulcan 1.2.1
+AppVersion=1.3.0
+AppVerName=Vulcan 1.3.0
 AppPublisher=Robusr
 AppPublisherURL=https://github.com/Robusr/Vulcan
 AppSupportURL=https://github.com/Robusr/Vulcan
@@ -10,7 +10,7 @@ AppUpdatesURL=https://github.com/Robusr/Vulcan
 DefaultDirName={autopf}\Vulcan
 DefaultGroupName=Vulcan
 OutputDir=Output
-OutputBaseFilename=Vulcan-Setup-1.2.1
+OutputBaseFilename=Vulcan-Setup-1.3.0
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -34,11 +34,11 @@ CloseApplications=yes
 RestartApplications=no
 SetupLogging=yes
 UsePreviousAppDir=yes
-VersionInfoVersion=1.2.1.0
-VersionInfoProductVersion=1.2.1
+VersionInfoVersion=1.3.0.0
+VersionInfoProductVersion=1.3.0
 VersionInfoProductName=Vulcan
 VersionInfoCompany=Robusr
-VersionInfoTextVersion=v1.2.1
+VersionInfoTextVersion=v1.3.0
 VersionInfoCopyright=GPL-3.0-or-later
 VersionInfoDescription=Vulcan AI For SolidWorks
 

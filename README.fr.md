@@ -420,7 +420,7 @@ La réponse est l’arbre de fonctions lui-même, sans enveloppe supplémentaire
 
 ### 5. Installer ou compiler le client
 
-**Option A — installateur précompilé.** Les installateurs précompilés peuvent être diffusés via GitHub Releases, ou construits localement. Compilez `Release | x64`, puis exécutez `build_installer.ps1` depuis `client\Vulcan.SolidWorksClient` ; il prépare le payload dans `dist/` et produit `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`. L’installateur demande l’élévation, enregistre l’add-in x64 avec `RegAsm` en silence et ne laisse aucune fenêtre de console ouverte. Une fois l’installation terminée, lancez SolidWorks et configurez le client : cliquez sur **设置** dans le volet ou dans l’onglet Vulcan AI, puis saisissez l’URL du serveur, un éventuel jeton partagé et, si vous voulez utiliser votre propre clé, la clé API, l’URL de base et le modèle du fournisseur. Les réglages sont stockés dans `%APPDATA%\Vulcan\settings.json`, les secrets étant chiffrés par Windows DPAPI.
+**Option A — installateur précompilé.** Les installateurs précompilés peuvent être diffusés via GitHub Releases, ou construits localement. Compilez `Release | x64`, puis exécutez `build_installer.ps1` depuis `client\Vulcan.SolidWorksClient` ; il prépare le payload dans `dist/` et produit `Vulcan Setup/Output/Vulcan-Setup-1.3.0.exe`. L’installateur demande l’élévation, enregistre l’add-in x64 avec `RegAsm` en silence et ne laisse aucune fenêtre de console ouverte. Une fois l’installation terminée, lancez SolidWorks et configurez le client : cliquez sur **设置** dans le volet ou dans l’onglet Vulcan AI, puis saisissez l’URL du serveur, un éventuel jeton partagé et, si vous voulez utiliser votre propre clé, la clé API, l’URL de base et le modèle du fournisseur. Les réglages sont stockés dans `%APPDATA%\Vulcan\settings.json`, les secrets étant chiffrés par Windows DPAPI.
 
 **Option B — compilation depuis les sources.**
 
@@ -456,9 +456,9 @@ Cette section décrit chaque élément manipulé, de l’installateur à l’arb
 
 ### 1. Installation
 
-1. Lancez `Vulcan-Setup-1.2.1.exe`. Acceptez l’élévation administrateur, lisez la page GPLv3 et conservez le dossier par défaut `{autopf}\Vulcan`.
+1. Lancez `Vulcan-Setup-1.3.0.exe`. Acceptez l’élévation administrateur, lisez la page GPLv3 et conservez le dossier par défaut `{autopf}\Vulcan`.
 2. L’installateur copie l’add-in, ses dépendances, les icônes et `install.bat` / `uninstall.bat`, puis exécute `install.bat /quiet` pour enregistrer l’add-in x64 avec `RegAsm`.
-3. Vous pouvez aussi extraire `Vulcan-1.2.1-portable.zip` et lancer `install.bat` en administrateur.
+3. Vous pouvez aussi extraire `Vulcan-1.3.0-portable.zip` et lancer `install.bat` en administrateur.
 4. Redémarrez SolidWorks.
 
 ### 2. Ouvrir le panneau
@@ -509,7 +509,7 @@ La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON
 
 Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse), ajuste la vue et laisse l’état **模型生成完成。** dans le volet. Les journaux client vont dans `Vulcan_Logs\log_YYYYMMDD.txt`, ceux du serveur dans `vulcan_server.log`.
 
-## À venir
+## Nouveautés de la 1.3.0
 
 - Ajout des fonctions natives `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib`.
 - Contrat du prompt passé à `PROMPT_VERSION = "2.4.0"` et documentation anglaise, chinoise et française mise à jour.
@@ -558,7 +558,7 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse), 
   <img src="docs/assets/vulcan-install.gif" alt="Assistant d’installation Vulcan : accueil, licence GPLv3, dossier cible et fin" width="100%">
 </p>
 
-1. Lancez `Vulcan-Setup-1.2.1.exe` et acceptez l’élévation administrateur.
+1. Lancez `Vulcan-Setup-1.3.0.exe` et acceptez l’élévation administrateur.
 2. Acceptez la licence GPLv3 et conservez le dossier `{autopf}\Vulcan`, ou choisissez-en un autre.
 3. L’installateur copie l’add-in, ses dépendances et les icônes, puis exécute `install.bat /quiet` pour l’enregistrer avec `RegAsm`.
 4. Redémarrez SolidWorks ; l’onglet, la barre d’outils et le volet `Vulcan AI` sont disponibles.
@@ -566,10 +566,10 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse), 
 Installation silencieuse :
 
 ```bat
-Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+Vulcan-Setup-1.3.0.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ```
 
-Variante portable : extrayez `Vulcan-1.2.1-portable.zip` et lancez `install.bat` en administrateur.
+Variante portable : extrayez `Vulcan-1.3.0-portable.zip` et lancez `install.bat` en administrateur.
 
 ### Mise à niveau
 
