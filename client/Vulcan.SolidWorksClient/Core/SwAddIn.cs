@@ -203,7 +203,6 @@ namespace VulcanAddin
                     if (iconStripsReady)
                     {
                         mainCmdGroup.IconList = iconStrips.ToArray();
-                        // TextBelow（大按钮）在部分 SolidWorks 版本中仍读取旧图标列表。
                         mainCmdGroup.SmallIconList = Path.Combine(iconDir, "commands", "strip_20.png");
                         mainCmdGroup.LargeIconList = Path.Combine(iconDir, "commands", "strip_32.png");
                     }
@@ -284,9 +283,7 @@ namespace VulcanAddin
 
                     // 每个命令独立成一个分组，保证 8 个命令从左到右单行排开，
                     // 不会像单个大分组那样被 SolidWorks 折成多行网格。
-                    // 注意：SW2025 SP0 中 swCommandTabButton_TextBelow（大按钮）
-                    // 即使提供 SmallIconList/LargeIconList 也会渲染为空白，
-                    // 因此这里统一使用 TextHorizontal，图标在左、文字在右。
+                    // 使用 TextHorizontal 保持当前单行布局，图标在左、文字在右。
                     int[][] commandGroups =
                     {
                         new[] { 0 },

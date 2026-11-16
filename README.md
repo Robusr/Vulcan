@@ -529,7 +529,7 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 - The task pane hosts the WPF panel through `SetParent` and stays interactive; the pane command falls back to the modal panel if hosting fails.
 - During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
 - Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
-- The Vulcan AI tab now gives every command its own tab box, keeping all eight commands in one left-to-right row instead of collapsing into a grid.
+- The Vulcan AI tab now gives every command its own tab box, keeping all eight commands in one left-to-right row instead of collapsing into a grid; the command glyphs are also about 25% larger inside the fixed 20 px tiles.
 - Refreshed the README media with real SolidWorks 2025 screenshots of the ribbon tab, task pane, and status window, plus command-tour and end-to-end generation GIFs.
 - Unified the brand and UI around a black-and-red minimal system: new V mark, banners, command icons, installer artwork, WPF theme, and refreshed screenshots and GIFs.
 
