@@ -3,53 +3,53 @@
   <desc id="demo-desc">Three panels: a Chinese prompt in the Vulcan panel, the editable JSON preview, and the resulting native cylinder feature tree in SolidWorks.</desc>
   <defs>
     <linearGradient id="btn" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#EA580C"/><stop offset="1" stop-color="#F97316"/>
+      <stop offset="0" stop-color="#B3121F"/><stop offset="1" stop-color="#E11D2E"/>
     </linearGradient>
     <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#F8FAFC"/><stop offset="0.55" stop-color="#E2E8F0"/><stop offset="1" stop-color="#B8C4D4"/>
+      <stop offset="0" stop-color="#FAFAFA"/><stop offset="0.55" stop-color="#E5E5EA"/><stop offset="1" stop-color="#C7C7CC"/>
     </linearGradient>
     <linearGradient id="steelSide" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#94A3B8"/><stop offset="1" stop-color="#64748B"/>
+      <stop offset="0" stop-color="#8E8E93"/><stop offset="1" stop-color="#6E6E73"/>
     </linearGradient>
     <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
-      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#0F172A" flood-opacity="0.10"/>
+      <feDropShadow dx="0" dy="10" stdDeviation="16" flood-color="#0A0A0A" flood-opacity="0.10"/>
     </filter>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0L10 5L0 10z" fill="#94A3B8"/>
+      <path d="M0 0L10 5L0 10z" fill="#8E8E93"/>
     </marker>
     <style>
       .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-      .step { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; fill: #C2410C; }
-      .title { font-size: 14px; font-weight: 700; fill: #0F172A; }
-      .body { font-size: 11.5px; fill: #64748B; }
-      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; fill: #334155; }
+      .step { font-size: 11px; font-weight: 700; letter-spacing: 1.4px; fill: #B3121F; }
+      .title { font-size: 14px; font-weight: 700; fill: #0A0A0A; }
+      .body { font-size: 11.5px; fill: #6E6E73; }
+      .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 11px; fill: #3A3A3C; }
     </style>
   </defs>
 
   <rect width="1200" height="540" fill="#FFFFFF"/>
-  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0F172A">One sentence. One editable part.</text>
-  <text class="ui" x="48" y="82" font-size="14" fill="#64748B">Describe the part, review or edit the JSON, then let the add-in build native features.</text>
+  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0A0A0A">One sentence. One editable part.</text>
+  <text class="ui" x="48" y="82" font-size="14" fill="#6E6E73">Describe the part, review or edit the JSON, then let the add-in build native features.</text>
 
   <!-- panel 1: prompt -->
-  <rect x="40" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="40" y="116" width="352" height="356" rx="16" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#shadow)"/>
   <text class="ui step" x="64" y="146">1 · 输入需求</text>
   <text class="ui title" x="64" y="182">输入建模需求</text>
-  <rect x="272" y="164" width="64" height="26" rx="6" fill="#FFFFFF" stroke="#CBD5E1"/>
-  <text class="ui" x="304" y="182" text-anchor="middle" font-size="11" fill="#475569">设置</text>
-  <rect x="64" y="202" width="304" height="140" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
-  <text class="ui" x="80" y="232" font-size="12.5" fill="#0F172A">在前视基准面拉伸一个直径40，</text>
-  <text class="ui" x="80" y="254" font-size="12.5" fill="#0F172A">高度60的圆柱体。</text>
+  <rect x="272" y="164" width="64" height="26" rx="6" fill="#FFFFFF" stroke="#D1D1D6"/>
+  <text class="ui" x="304" y="182" text-anchor="middle" font-size="11" fill="#3A3A3C">设置</text>
+  <rect x="64" y="202" width="304" height="140" rx="8" fill="#FFFFFF" stroke="#D1D1D6"/>
+  <text class="ui" x="80" y="232" font-size="12.5" fill="#0A0A0A">在前视基准面拉伸一个直径40，</text>
+  <text class="ui" x="80" y="254" font-size="12.5" fill="#0A0A0A">高度60的圆柱体。</text>
   <rect x="64" y="362" width="304" height="40" rx="8" fill="url(#btn)"/>
   <text class="ui" x="216" y="388" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">开始生成</text>
-  <circle cx="70" cy="426" r="4" fill="#10B981"/>
-  <text class="ui" x="84" y="430" font-size="11.5" fill="#64748B">就绪 · 可停靠任务窗格</text>
+  <circle cx="70" cy="426" r="4" fill="#E11D2E"/>
+  <text class="ui" x="84" y="430" font-size="11.5" fill="#6E6E73">就绪 · 可停靠任务窗格</text>
 
   <!-- panel 2: preview -->
-  <rect x="424" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="424" y="116" width="352" height="356" rx="16" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#shadow)"/>
   <text class="ui step" x="448" y="146">2 · 检查并编辑 JSON</text>
   <text class="ui title" x="448" y="182">确认后才会写入 SolidWorks</text>
-  <rect x="448" y="200" width="304" height="184" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
+  <rect x="448" y="200" width="304" height="184" rx="8" fill="#FFFFFF" stroke="#D1D1D6"/>
   <text class="code" x="464" y="226">{</text>
   <text class="code" x="480" y="246">"feature_type": "extrude",</text>
   <text class="code" x="480" y="266">"params": {</text>
@@ -60,29 +60,29 @@
   <text class="code" x="464" y="366">}</text>
   <rect x="448" y="402" width="120" height="34" rx="8" fill="url(#btn)"/>
   <text class="ui" x="508" y="424" text-anchor="middle" font-size="12" font-weight="700" fill="#FFFFFF">执行建模</text>
-  <rect x="580" y="402" width="80" height="34" rx="8" fill="#FFFFFF" stroke="#CBD5E1"/>
-  <text class="ui" x="620" y="424" text-anchor="middle" font-size="12" fill="#475569">取消</text>
+  <rect x="580" y="402" width="80" height="34" rx="8" fill="#FFFFFF" stroke="#D1D1D6"/>
+  <text class="ui" x="620" y="424" text-anchor="middle" font-size="12" fill="#3A3A3C">取消</text>
 
   <!-- panel 3: result -->
-  <rect x="808" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>
+  <rect x="808" y="116" width="352" height="356" rx="16" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#shadow)"/>
   <text class="ui step" x="832" y="146">3 · 原生特征树</text>
   <text class="ui title" x="832" y="182">零件1 · 凸台-拉伸1</text>
 
   <!-- cylinder -->
   <g transform="translate(984 276)">
-    <ellipse cx="0" cy="0" rx="74" ry="34" fill="url(#steel)" stroke="#94A3B8"/>
-    <path d="M-74 0v54a74 34 0 0 0 148 0V0" fill="url(#steelSide)" stroke="#94A3B8"/>
-    <ellipse cx="0" cy="54" rx="74" ry="34" fill="url(#steel)" stroke="#94A3B8"/>
-    <ellipse cx="0" cy="0" rx="46" ry="21" fill="none" stroke="#F97316" stroke-width="1.4"/>
-    <circle cx="0" cy="0" r="2.2" fill="#F97316"/>
+    <ellipse cx="0" cy="0" rx="74" ry="34" fill="url(#steel)" stroke="#8E8E93"/>
+    <path d="M-74 0v54a74 34 0 0 0 148 0V0" fill="url(#steelSide)" stroke="#8E8E93"/>
+    <ellipse cx="0" cy="54" rx="74" ry="34" fill="url(#steel)" stroke="#8E8E93"/>
+    <ellipse cx="0" cy="0" rx="46" ry="21" fill="none" stroke="#E11D2E" stroke-width="1.4"/>
+    <circle cx="0" cy="0" r="2.2" fill="#E11D2E"/>
   </g>
-  <text class="ui" x="984" y="404" text-anchor="middle" font-size="11.5" fill="#64748B">Ø40 × 60 mm · 前视基准面</text>
+  <text class="ui" x="984" y="404" text-anchor="middle" font-size="11.5" fill="#6E6E73">Ø40 × 60 mm · 前视基准面</text>
 
   <!-- flow arrows -->
-  <g stroke="#94A3B8" stroke-width="1.6">
+  <g stroke="#8E8E93" stroke-width="1.6">
     <line x1="396" y1="294" x2="420" y2="294" marker-end="url(#arrow)"/>
     <line x1="780" y1="294" x2="804" y2="294" marker-end="url(#arrow)"/>
   </g>
 
-  <text class="ui" x="48" y="512" font-size="11.5" fill="#94A3B8">Illustrative. The preview is editable; cancelling leaves the document untouched.</text>
+  <text class="ui" x="48" y="512" font-size="11.5" fill="#8E8E93">Illustrative. The preview is editable; cancelling leaves the document untouched.</text>
 </svg>

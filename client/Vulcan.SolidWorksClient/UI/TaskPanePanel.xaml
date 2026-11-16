@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Background="{DynamicResource PageBrush}"
-    FontFamily="Microsoft YaHei UI"
+    FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"
     mc:Ignorable="d">
 
     <UserControl.Resources>
@@ -22,10 +22,35 @@
         <StackPanel Margin="10">
             <Grid>
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="10" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <StackPanel>
+                <Border
+                    Width="32"
+                    Height="32"
+                    VerticalAlignment="Top"
+                    Background="#0A0A0A"
+                    CornerRadius="8">
+                    <Grid>
+                        <Path
+                            Data="M8 7 L16 24 L24 7"
+                            Stroke="White"
+                            StrokeThickness="2.4"
+                            StrokeStartLineCap="Round"
+                            StrokeEndLineCap="Round"
+                            StrokeLineJoin="Round" />
+                        <Ellipse
+                            Width="6"
+                            Height="6"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,5,4,0"
+                            Fill="{StaticResource AccentBrush}" />
+                    </Grid>
+                </Border>
+                <StackPanel Grid.Column="2">
                     <TextBlock
                         FontSize="15"
                         FontWeight="Bold"
@@ -39,7 +64,7 @@
                 </StackPanel>
                 <Button
                     x:Name="SettingsBtn"
-                    Grid.Column="1"
+                    Grid.Column="3"
                     AutomationProperties.Name="设置"
                     Click="SettingsBtn_Click"
                     Content="&#xE713;"

@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Robusr/Vulcan/stargazers"><img src="https://img.shields.io/github/stars/Robusr/Vulcan?style=flat-square&amp;color=f97316" alt="Étoiles GitHub"></a>
-  <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=2563eb" alt="Forks GitHub"></a>
-  <img src="https://img.shields.io/badge/SolidWorks-2025-e63946?style=flat-square" alt="SolidWorks 2025">
+  <a href="https://github.com/Robusr/Vulcan/stargazers"><img src="https://img.shields.io/github/stars/Robusr/Vulcan?style=flat-square&amp;color=e11d2e" alt="Étoiles GitHub"></a>
+  <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=e11d2e" alt="Forks GitHub"></a>
+  <img src="https://img.shields.io/badge/SolidWorks-2025-e11d2e?style=flat-square" alt="SolidWorks 2025">
   <img src="https://img.shields.io/badge/.NET_Framework-4.8-512BD4?style=flat-square&amp;logo=dotnet&amp;logoColor=white" alt=".NET Framework 4.8">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&amp;logo=flask&amp;logoColor=white" alt="Flask 3.1">
@@ -530,6 +530,7 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse), 
 - Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
 - Ajout d’une barre d’outils CommandManager Vulcan et d’un onglet de ruban avec une icône par commande (volet, exemples, réglages, test de connexion, état, journaux, à propos), d’une barre d’actions rapides dans le volet et d’une fenêtre d’état affichant la santé du serveur et la dernière exécution.
 - Mise à jour des médias du README avec de vraies captures SolidWorks 2025 (onglet, volet, fenêtre d’état) et deux GIF : visite des commandes et génération de bout en bout.
+- Unification de la marque et de l’interface autour d’un système minimal noir et rouge : nouveau sigle V, bannières, icônes de commandes, visuels d’installateur, thème WPF et captures/GIF actualisés.
 
 ## Nouveautés de la 1.2.1
 
@@ -576,7 +577,7 @@ Lancez un installateur plus récent sur l’installation existante. Le dossier p
 ### Désinstallation
 
 <p align="center">
-  <img src="docs/assets/vulcan-uninstall.gif" alt="Désinstalleur Vulcan : confirmation, progression et fin" width="100%">
+  <img src="docs/assets/vulcan-uninstall.gif" alt="Boîte de confirmation du désinstalleur Vulcan" width="72%">
 </p>
 
 1. Ouvrez **Paramètres → Applications → Applications installées**, trouvez **Vulcan AI For SolidWorks** et choisissez **Désinstaller**. Vous pouvez aussi lancer `C:\Program Files\Vulcan\unins000.exe`.

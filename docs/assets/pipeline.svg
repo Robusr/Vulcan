@@ -3,49 +3,49 @@
   <desc id="pipe-desc">Seven stages from natural language to SolidWorks execution, including an editable JSON preview before anything is written to the document, with typical latency and failure handling.</desc>
   <defs>
     <marker id="pa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#94A3B8"/>
+      <path d="M0 0L10 5L0 10z" fill="#8E8E93"/>
     </marker>
     <filter id="ps" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.06"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0A0A0A" flood-opacity="0.06"/>
     </filter>
     <style>
       .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
       .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-      .t { font-size: 12.5px; font-weight: 700; fill: #0F172A; }
-      .d { font-size: 10.3px; fill: #64748B; }
-      .m { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9.6px; fill: #475569; }
+      .t { font-size: 12.5px; font-weight: 700; fill: #0A0A0A; }
+      .d { font-size: 10.3px; fill: #6E6E73; }
+      .m { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9.6px; fill: #3A3A3C; }
       .n { font-size: 11px; font-weight: 700; fill: #FFFFFF; }
     </style>
   </defs>
 
-  <rect width="1200" height="500" fill="#F8FAFC"/>
-  <rect x="1" y="1" width="1198" height="498" rx="18" fill="#FFFFFF" stroke="#E2E8F0"/>
-  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0F172A">Request lifecycle</text>
-  <text class="ui" x="48" y="82" font-size="14" fill="#64748B">Seven stages, one round trip, and an editable preview before SolidWorks is touched.</text>
+  <rect width="1200" height="500" fill="#FAFAFA"/>
+  <rect x="1" y="1" width="1198" height="498" rx="18" fill="#FFFFFF" stroke="#E5E5EA"/>
+  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0A0A0A">Request lifecycle</text>
+  <text class="ui" x="48" y="82" font-size="14" fill="#6E6E73">Seven stages, one round trip, and an editable preview before SolidWorks is touched.</text>
 
   <!-- stage cards -->
   <g>
-    <rect x="40" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
-    <rect x="40" y="128" width="148" height="4" rx="2" fill="#64748B"/>
-    <circle cx="60" cy="154" r="10" fill="#64748B"/><text class="ui n" x="60" y="158" text-anchor="middle">1</text>
+    <rect x="40" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
+    <rect x="40" y="128" width="148" height="4" rx="2" fill="#6E6E73"/>
+    <circle cx="60" cy="154" r="10" fill="#6E6E73"/><text class="ui n" x="60" y="158" text-anchor="middle">1</text>
     <text class="ui t" x="54" y="190">Natural language</text>
     <text class="ui d" x="54" y="214">Engineer writes the</text>
     <text class="ui d" x="54" y="232">request in Chinese,</text>
     <text class="ui d" x="54" y="250">English, or French.</text>
   </g>
   <g>
-    <rect x="200" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
-    <rect x="200" y="128" width="148" height="4" rx="2" fill="#2563EB"/>
-    <circle cx="220" cy="154" r="10" fill="#2563EB"/><text class="ui n" x="220" y="158" text-anchor="middle">2</text>
+    <rect x="200" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
+    <rect x="200" y="128" width="148" height="4" rx="2" fill="#3A3A3C"/>
+    <circle cx="220" cy="154" r="10" fill="#3A3A3C"/><text class="ui n" x="220" y="158" text-anchor="middle">2</text>
     <text class="ui t" x="214" y="190">Prompt assembly</text>
     <text class="ui d" x="214" y="214">Domain prompt plus</text>
     <text class="ui d" x="214" y="232">user text; versioned</text>
     <text class="ui m" x="214" y="252">PROMPT_VERSION 3.0.0</text>
   </g>
   <g>
-    <rect x="360" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
-    <rect x="360" y="128" width="148" height="4" rx="2" fill="#7C3AED"/>
-    <circle cx="380" cy="154" r="10" fill="#7C3AED"/><text class="ui n" x="380" y="158" text-anchor="middle">3</text>
+    <rect x="360" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
+    <rect x="360" y="128" width="148" height="4" rx="2" fill="#0A0A0A"/>
+    <circle cx="380" cy="154" r="10" fill="#0A0A0A"/><text class="ui n" x="380" y="158" text-anchor="middle">3</text>
     <text class="ui t" x="374" y="190">LLM call</text>
     <text class="ui d" x="374" y="214">OpenAI-compatible</text>
     <text class="ui d" x="374" y="232">endpoint, low</text>
@@ -53,9 +53,9 @@
     <text class="ui d" x="374" y="268">feature tree.</text>
   </g>
   <g>
-    <rect x="520" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
-    <rect x="520" y="128" width="148" height="4" rx="2" fill="#D97706"/>
-    <circle cx="540" cy="154" r="10" fill="#D97706"/><text class="ui n" x="540" y="158" text-anchor="middle">4</text>
+    <rect x="520" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
+    <rect x="520" y="128" width="148" height="4" rx="2" fill="#B3121F"/>
+    <circle cx="540" cy="154" r="10" fill="#B3121F"/><text class="ui n" x="540" y="158" text-anchor="middle">4</text>
     <text class="ui t" x="534" y="190">JSON recovery</text>
     <text class="ui d" x="534" y="214">Strip code fences,</text>
     <text class="ui d" x="534" y="232">then take the first</text>
@@ -63,9 +63,9 @@
     <text class="ui d" x="534" y="270">substring and parse.</text>
   </g>
   <g>
-    <rect x="680" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
-    <rect x="680" y="128" width="148" height="4" rx="2" fill="#059669"/>
-    <circle cx="700" cy="154" r="10" fill="#059669"/><text class="ui n" x="700" y="158" text-anchor="middle">5</text>
+    <rect x="680" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
+    <rect x="680" y="128" width="148" height="4" rx="2" fill="#B3121F"/>
+    <circle cx="700" cy="154" r="10" fill="#B3121F"/><text class="ui n" x="700" y="158" text-anchor="middle">5</text>
     <text class="ui t" x="694" y="190">Schema check</text>
     <text class="ui d" x="694" y="214">Envelope validation,</text>
     <text class="ui d" x="694" y="232">typed model classes,</text>
@@ -73,9 +73,9 @@
     <text class="ui d" x="694" y="268">optional fields.</text>
   </g>
   <g>
-    <rect x="840" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#FED7AA" filter="url(#ps)"/>
-    <rect x="840" y="128" width="148" height="4" rx="2" fill="#F97316"/>
-    <circle cx="860" cy="154" r="10" fill="#F97316"/><text class="ui n" x="860" y="158" text-anchor="middle">6</text>
+    <rect x="840" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#FECDD3" filter="url(#ps)"/>
+    <rect x="840" y="128" width="148" height="4" rx="2" fill="#E11D2E"/>
+    <circle cx="860" cy="154" r="10" fill="#E11D2E"/><text class="ui n" x="860" y="158" text-anchor="middle">6</text>
     <text class="ui t" x="854" y="190">Preview &amp; edit</text>
     <text class="ui d" x="854" y="214">Editable JSON window;</text>
     <text class="ui d" x="854" y="232">confirm or cancel.</text>
@@ -83,9 +83,9 @@
     <text class="ui d" x="854" y="268">untouched until then.</text>
   </g>
   <g>
-    <rect x="1000" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E2E8F0" filter="url(#ps)"/>
-    <rect x="1000" y="128" width="148" height="4" rx="2" fill="#0891B2"/>
-    <circle cx="1020" cy="154" r="10" fill="#0891B2"/><text class="ui n" x="1020" y="158" text-anchor="middle">7</text>
+    <rect x="1000" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
+    <rect x="1000" y="128" width="148" height="4" rx="2" fill="#6E6E73"/>
+    <circle cx="1020" cy="154" r="10" fill="#6E6E73"/><text class="ui n" x="1020" y="158" text-anchor="middle">7</text>
     <text class="ui t" x="1014" y="190">COM execution</text>
     <text class="ui d" x="1014" y="214">Sketch, extrude, cut.</text>
     <text class="ui m" x="1014" y="234">FeatureExtrusion3</text>
@@ -94,7 +94,7 @@
   </g>
 
   <!-- stage arrows -->
-  <g stroke="#94A3B8" stroke-width="1.4">
+  <g stroke="#8E8E93" stroke-width="1.4">
     <line x1="188" y1="204" x2="198" y2="204" marker-end="url(#pa)"/>
     <line x1="348" y1="204" x2="358" y2="204" marker-end="url(#pa)"/>
     <line x1="508" y1="204" x2="518" y2="204" marker-end="url(#pa)"/>
@@ -104,32 +104,32 @@
   </g>
 
   <!-- latency -->
-  <text class="ui" x="48" y="326" font-size="12" font-weight="700" fill="#334155">Typical latency</text>
-  <text class="ui" x="48" y="344" font-size="11" fill="#94A3B8">Local steps are milliseconds; the model call dominates, and the preview waits for a human.</text>
-  <rect x="40" y="358" width="1108" height="16" rx="8" fill="#F1F5F9"/>
-  <rect x="40" y="358" width="150" height="16" rx="8" fill="#CBD5E1"/>
-  <rect x="190" y="358" width="560" height="16" fill="#C4B5FD"/>
-  <rect x="750" y="358" width="80" height="16" fill="#FDE68A"/>
-  <rect x="830" y="358" width="130" height="16" fill="#FDBA74"/>
-  <rect x="960" y="358" width="70" height="16" fill="#A7F3D0"/>
-  <rect x="1030" y="358" width="118" height="16" rx="8" fill="#A5F3FC"/>
-  <text class="ui" x="115" y="390" text-anchor="middle" font-size="10.5" fill="#475569">~1 ms</text>
-  <text class="ui" x="470" y="390" text-anchor="middle" font-size="10.5" fill="#5B21B6">2–20 s</text>
-  <text class="ui" x="790" y="390" text-anchor="middle" font-size="10.5" fill="#92400E">~1 ms</text>
-  <text class="ui" x="895" y="390" text-anchor="middle" font-size="10.5" fill="#9A3412">review</text>
-  <text class="ui" x="995" y="390" text-anchor="middle" font-size="10.5" fill="#047857">~1 ms</text>
-  <text class="ui" x="1089" y="390" text-anchor="middle" font-size="10.5" fill="#0E7490">0.2–2 s</text>
+  <text class="ui" x="48" y="326" font-size="12" font-weight="700" fill="#3A3A3C">Typical latency</text>
+  <text class="ui" x="48" y="344" font-size="11" fill="#8E8E93">Local steps are milliseconds; the model call dominates, and the preview waits for a human.</text>
+  <rect x="40" y="358" width="1108" height="16" rx="8" fill="#F2F2F7"/>
+  <rect x="40" y="358" width="150" height="16" rx="8" fill="#D1D1D6"/>
+  <rect x="190" y="358" width="560" height="16" fill="#E5E5EA"/>
+  <rect x="750" y="358" width="80" height="16" fill="#FECDD3"/>
+  <rect x="830" y="358" width="130" height="16" fill="#F87171"/>
+  <rect x="960" y="358" width="70" height="16" fill="#FECDD3"/>
+  <rect x="1030" y="358" width="118" height="16" rx="8" fill="#FECDD3"/>
+  <text class="ui" x="115" y="390" text-anchor="middle" font-size="10.5" fill="#3A3A3C">~1 ms</text>
+  <text class="ui" x="470" y="390" text-anchor="middle" font-size="10.5" fill="#B3121F">2–20 s</text>
+  <text class="ui" x="790" y="390" text-anchor="middle" font-size="10.5" fill="#7F1D1D">~1 ms</text>
+  <text class="ui" x="895" y="390" text-anchor="middle" font-size="10.5" fill="#7F1D1D">review</text>
+  <text class="ui" x="995" y="390" text-anchor="middle" font-size="10.5" fill="#B3121F">~1 ms</text>
+  <text class="ui" x="1089" y="390" text-anchor="middle" font-size="10.5" fill="#3A3A3C">0.2–2 s</text>
 
   <!-- guardrails -->
-  <rect x="40" y="412" width="350" height="58" rx="10" fill="#FFFBEB" stroke="#FDE68A"/>
-  <text class="ui" x="58" y="434" font-size="11.5" font-weight="700" fill="#92400E">Recover</text>
-  <text class="ui" x="58" y="454" font-size="11" fill="#78716C">Code fences and prose are stripped before parsing.</text>
+  <rect x="40" y="412" width="350" height="58" rx="10" fill="#F2F2F7" stroke="#FECDD3"/>
+  <text class="ui" x="58" y="434" font-size="11.5" font-weight="700" fill="#7F1D1D">Recover</text>
+  <text class="ui" x="58" y="454" font-size="11" fill="#6E6E73">Code fences and prose are stripped before parsing.</text>
 
-  <rect x="406" y="412" width="350" height="58" rx="10" fill="#EFF6FF" stroke="#BFDBFE"/>
-  <text class="ui" x="424" y="434" font-size="11.5" font-weight="700" fill="#1E40AF">Reject</text>
-  <text class="ui" x="424" y="454" font-size="11" fill="#64748B">Missing prompt or feature envelope returns HTTP 400.</text>
+  <rect x="406" y="412" width="350" height="58" rx="10" fill="#FAFAFA" stroke="#E5E5EA"/>
+  <text class="ui" x="424" y="434" font-size="11.5" font-weight="700" fill="#0A0A0A">Reject</text>
+  <text class="ui" x="424" y="454" font-size="11" fill="#6E6E73">Missing prompt or feature envelope returns HTTP 400.</text>
 
-  <rect x="772" y="412" width="376" height="58" rx="10" fill="#FFF7ED" stroke="#FED7AA"/>
-  <text class="ui" x="790" y="434" font-size="11.5" font-weight="700" fill="#C2410C">Confirm, then execute</text>
-  <text class="ui" x="790" y="454" font-size="11" fill="#64748B">Nothing reaches the document until confirmed. COM first, keyboard fallback second.</text>
+  <rect x="772" y="412" width="376" height="58" rx="10" fill="#FFF1F2" stroke="#FECDD3"/>
+  <text class="ui" x="790" y="434" font-size="11.5" font-weight="700" fill="#B3121F">Confirm, then execute</text>
+  <text class="ui" x="790" y="454" font-size="11" fill="#6E6E73">Nothing is written until confirmed.</text>
 </svg>

@@ -115,6 +115,7 @@
       <DependentUpon>TaskPanePanel.xaml</DependentUpon>
     </Compile>
     <Compile Include="UI\TaskPaneView.cs" />
+    <Compile Include="UI\UiAssets.cs" />
     <Compile Include="UI\StatusWindow.xaml.cs">
       <DependentUpon>StatusWindow.xaml</DependentUpon>
     </Compile>

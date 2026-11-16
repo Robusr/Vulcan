@@ -3,29 +3,29 @@
   <desc id="contract-desc">An annotated JSON feature tree with an extrude base and four cut holes, plus notes on envelope, feature types, shapes, units, and placement.</desc>
   <defs>
     <filter id="cs" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0F172A" flood-opacity="0.06"/>
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0A0A0A" flood-opacity="0.06"/>
     </filter>
     <style>
       .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
       .code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12.2px; }
-      .ln { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.5px; fill: #475569; }
-      .p { fill: #64748B; } .k { fill: #7DD3FC; } .s { fill: #FDBA74; } .n { fill: #C4B5FD; } .b { fill: #E2E8F0; }
-      .title { font-size: 12.5px; font-weight: 700; fill: #0F172A; }
-      .body { font-size: 11.2px; fill: #64748B; }
-      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.6px; fill: #475569; }
+      .ln { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.5px; fill: #3A3A3C; }
+      .p { fill: #6E6E73; } .k { fill: #D1D1D6; } .s { fill: #F87171; } .n { fill: #E5E5EA; } .b { fill: #E5E5EA; }
+      .title { font-size: 12.5px; font-weight: 700; fill: #0A0A0A; }
+      .body { font-size: 11.2px; fill: #6E6E73; }
+      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 10.6px; fill: #3A3A3C; }
     </style>
   </defs>
 
-  <rect width="1200" height="600" fill="#F8FAFC"/>
-  <rect x="1" y="1" width="1198" height="598" rx="18" fill="#FFFFFF" stroke="#E2E8F0"/>
-  <text class="ui" x="48" y="56" font-size="26" font-weight="700" fill="#0F172A">The JSON contract</text>
-  <text class="ui" x="48" y="84" font-size="14" fill="#64748B">A small, typed feature tree — not generated code.</text>
+  <rect width="1200" height="600" fill="#FAFAFA"/>
+  <rect x="1" y="1" width="1198" height="598" rx="18" fill="#FFFFFF" stroke="#E5E5EA"/>
+  <text class="ui" x="48" y="56" font-size="26" font-weight="700" fill="#0A0A0A">The JSON contract</text>
+  <text class="ui" x="48" y="84" font-size="14" fill="#6E6E73">A small, typed feature tree — not generated code.</text>
 
   <!-- code panel -->
-  <rect x="40" y="112" width="680" height="446" rx="14" fill="#0B1120"/>
-  <circle cx="64" cy="136" r="4" fill="#F87171"/><circle cx="78" cy="136" r="4" fill="#FBBF24"/><circle cx="92" cy="136" r="4" fill="#34D399"/>
-  <text class="ui" x="110" y="140" font-size="11" fill="#94A3B8">response.json · abridged</text>
-  <text class="ui" x="696" y="140" text-anchor="end" font-size="10" fill="#475569">application/json</text>
+  <rect x="40" y="112" width="680" height="446" rx="14" fill="#0A0A0A"/>
+  <circle cx="64" cy="136" r="4" fill="#F87171"/><circle cx="78" cy="136" r="4" fill="#FCA5A5"/><circle cx="92" cy="136" r="4" fill="#F87171"/>
+  <text class="ui" x="110" y="140" font-size="11" fill="#8E8E93">response.json · abridged</text>
+  <text class="ui" x="696" y="140" text-anchor="end" font-size="10" fill="#3A3A3C">application/json</text>
 
   <g>
     <text class="ln" x="68" y="180" text-anchor="end">1</text>
@@ -87,37 +87,37 @@
   </g>
 
   <!-- annotations -->
-  <rect x="744" y="112" width="416" height="82" rx="10" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#cs)"/>
-  <text class="ui" x="762" y="134" font-size="10.5" font-weight="700" fill="#C2410C">01</text>
+  <rect x="744" y="112" width="416" height="82" rx="10" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#cs)"/>
+  <text class="ui" x="762" y="134" font-size="10.5" font-weight="700" fill="#B3121F">01</text>
   <text class="ui title" x="784" y="134">Envelope</text>
   <text class="ui body" x="762" y="156">Single feature (<tspan class="mono">feature_type</tspan> + <tspan class="mono">params</tspan>)</text>
   <text class="ui body" x="762" y="174">or an ordered <tspan class="mono">features[]</tspan> array.</text>
 
-  <rect x="744" y="204" width="416" height="74" rx="10" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#cs)"/>
-  <text class="ui" x="762" y="226" font-size="10.5" font-weight="700" fill="#C2410C">02</text>
+  <rect x="744" y="204" width="416" height="74" rx="10" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#cs)"/>
+  <text class="ui" x="762" y="226" font-size="10.5" font-weight="700" fill="#B3121F">02</text>
   <text class="ui title" x="784" y="226">Feature types</text>
   <text class="ui body" x="762" y="248"><tspan class="mono">extrude</tspan> adds material; <tspan class="mono">cut</tspan> removes it.</text>
   <text class="ui body" x="762" y="266">Order matters: the base comes first.</text>
 
-  <rect x="744" y="288" width="416" height="102" rx="10" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#cs)"/>
-  <text class="ui" x="762" y="310" font-size="10.5" font-weight="700" fill="#C2410C">03</text>
+  <rect x="744" y="288" width="416" height="102" rx="10" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#cs)"/>
+  <text class="ui" x="762" y="310" font-size="10.5" font-weight="700" fill="#B3121F">03</text>
   <text class="ui title" x="784" y="310">Shape parameters</text>
   <text class="ui body" x="762" y="332"><tspan class="mono">circle</tspan> → diameter</text>
   <text class="ui body" x="762" y="350"><tspan class="mono">rectangle</tspan>, <tspan class="mono">slot</tspan> → length, width</text>
   <text class="ui body" x="762" y="368"><tspan class="mono">polygon</tspan> → diameter, sides (3–100)</text>
   <text class="ui body" x="762" y="386"><tspan class="mono">ellipse</tspan> → major_axis, minor_axis</text>
 
-  <rect x="744" y="400" width="416" height="68" rx="10" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#cs)"/>
-  <text class="ui" x="762" y="422" font-size="10.5" font-weight="700" fill="#C2410C">04</text>
+  <rect x="744" y="400" width="416" height="68" rx="10" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#cs)"/>
+  <text class="ui" x="762" y="422" font-size="10.5" font-weight="700" fill="#B3121F">04</text>
   <text class="ui title" x="784" y="422">Units</text>
   <text class="ui body" x="762" y="444">Millimetres in JSON; metres at the COM boundary.</text>
   <text class="ui body" x="762" y="462">Optional fields fall back to modeler defaults.</text>
 
-  <rect x="744" y="478" width="416" height="80" rx="10" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#cs)"/>
-  <text class="ui" x="762" y="500" font-size="10.5" font-weight="700" fill="#C2410C">05</text>
+  <rect x="744" y="478" width="416" height="80" rx="10" fill="#FAFAFA" stroke="#E5E5EA" filter="url(#cs)"/>
+  <text class="ui" x="762" y="500" font-size="10.5" font-weight="700" fill="#B3121F">05</text>
   <text class="ui title" x="784" y="500">Placement</text>
   <text class="ui body" x="762" y="522"><tspan class="mono">center_x</tspan> / <tspan class="mono">center_y</tspan> position the sketch.</text>
   <text class="ui body" x="762" y="540"><tspan class="mono">through_all</tspan> cuts in both directions.</text>
 
-  <text class="ui" x="48" y="584" font-size="11.5" fill="#94A3B8">The server checks the envelope; the client deserializes typed classes, applies defaults, and opens the JSON in an editable preview before execution.</text>
+  <text class="ui" x="48" y="584" font-size="11.5" fill="#8E8E93">The server checks the envelope; the client deserializes typed classes, applies defaults, and opens the JSON in an editable preview before execution.</text>
 </svg>

@@ -13,6 +13,7 @@ namespace Vulcan.SolidWorksClient.UI
         public StatusWindow()
         {
             InitializeComponent();
+            UiAssets.ApplyIcon(this);
             RefreshSnapshot();
             Loaded += (sender, args) => TestConnection();
         }

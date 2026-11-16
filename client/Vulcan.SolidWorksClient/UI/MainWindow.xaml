@@ -10,7 +10,7 @@
     MinWidth="600"
     MinHeight="460"
     Background="{DynamicResource PageBrush}"
-    FontFamily="Microsoft YaHei UI"
+    FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"
     ResizeMode="CanResize"
     SnapsToDevicePixels="True"
     UseLayoutRounding="True"
@@ -51,22 +51,21 @@
                 Width="44"
                 Height="44"
                 Background="{StaticResource BrandGradient}"
-                CornerRadius="12">
+                CornerRadius="10">
                 <Grid>
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        FontFamily="Segoe UI Semibold"
-                        FontSize="21"
-                        FontWeight="Bold"
-                        Foreground="White"
-                        Text="V" />
+                    <Path
+                        Data="M11 10 L22 34 L33 10"
+                        Stroke="White"
+                        StrokeThickness="4"
+                        StrokeStartLineCap="Round"
+                        StrokeEndLineCap="Round"
+                        StrokeLineJoin="Round" />
                     <Ellipse
-                        Width="6"
-                        Height="6"
+                        Width="7"
+                        Height="7"
                         HorizontalAlignment="Right"
                         VerticalAlignment="Top"
-                        Margin="0,7,7,0"
+                        Margin="0,7,6,0"
                         Fill="{StaticResource AccentBrush}" />
                 </Grid>
             </Border>
@@ -132,7 +131,7 @@
                         MinHeight="150"
                         AutomationProperties.Name="建模需求"
                         AcceptsReturn="True"
-                        Background="#FBFDFF"
+                        Background="#FAFAFA"
                         FontSize="13.5"
                         MaxLength="4000"
                         Style="{StaticResource RoundedTextBox}"

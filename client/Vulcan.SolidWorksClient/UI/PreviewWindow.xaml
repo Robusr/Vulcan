@@ -10,7 +10,7 @@
     MinWidth="760"
     MinHeight="560"
     Background="{DynamicResource PageBrush}"
-    FontFamily="Microsoft YaHei UI"
+    FontFamily="Segoe UI Variable Text, Segoe UI, Microsoft YaHei UI"
     ResizeMode="CanResize"
     SnapsToDevicePixels="True"
     UseLayoutRounding="True"

@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Robusr/Vulcan/stargazers"><img src="https://img.shields.io/github/stars/Robusr/Vulcan?style=flat-square&amp;color=f97316" alt="GitHub stars"></a>
-  <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=2563eb" alt="GitHub forks"></a>
-  <img src="https://img.shields.io/badge/SolidWorks-2025-e63946?style=flat-square" alt="SolidWorks 2025">
+  <a href="https://github.com/Robusr/Vulcan/stargazers"><img src="https://img.shields.io/github/stars/Robusr/Vulcan?style=flat-square&amp;color=e11d2e" alt="GitHub stars"></a>
+  <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=e11d2e" alt="GitHub forks"></a>
+  <img src="https://img.shields.io/badge/SolidWorks-2025-e11d2e?style=flat-square" alt="SolidWorks 2025">
   <img src="https://img.shields.io/badge/.NET_Framework-4.8-512BD4?style=flat-square&amp;logo=dotnet&amp;logoColor=white" alt=".NET Framework 4.8">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&amp;logo=flask&amp;logoColor=white" alt="Flask 3.1">
@@ -530,6 +530,7 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 - During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
 - Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
 - Refreshed the README media with real SolidWorks 2025 screenshots of the ribbon tab, task pane, and status window, plus command-tour and end-to-end generation GIFs.
+- Unified the brand and UI around a black-and-red minimal system: new V mark, banners, command icons, installer artwork, WPF theme, and refreshed screenshots and GIFs.
 
 ## What's new in 1.2.1
 
@@ -576,7 +577,7 @@ Run a newer installer over the existing installation. The installer keeps the pr
 ### Uninstall
 
 <p align="center">
-  <img src="docs/assets/vulcan-uninstall.gif" alt="Vulcan uninstaller: confirmation, removal progress, and completion" width="100%">
+  <img src="docs/assets/vulcan-uninstall.gif" alt="Vulcan uninstaller confirmation dialog" width="72%">
 </p>
 
 1. Open **Settings → Apps → Installed apps**, find **Vulcan AI For SolidWorks**, and choose **Uninstall**. You can also run `C:\Program Files\Vulcan\unins000.exe`.

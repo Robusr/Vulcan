@@ -10,9 +10,9 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Robusr/Vulcan/stargazers"><img src="https://img.shields.io/github/stars/Robusr/Vulcan?style=flat-square&amp;color=f97316" alt="GitHub 星标"></a>
-  <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=2563eb" alt="GitHub Fork"></a>
-  <img src="https://img.shields.io/badge/SolidWorks-2025-e63946?style=flat-square" alt="SolidWorks 2025">
+  <a href="https://github.com/Robusr/Vulcan/stargazers"><img src="https://img.shields.io/github/stars/Robusr/Vulcan?style=flat-square&amp;color=e11d2e" alt="GitHub 星标"></a>
+  <a href="https://github.com/Robusr/Vulcan/network/members"><img src="https://img.shields.io/github/forks/Robusr/Vulcan?style=flat-square&amp;color=e11d2e" alt="GitHub Fork"></a>
+  <img src="https://img.shields.io/badge/SolidWorks-2025-e11d2e?style=flat-square" alt="SolidWorks 2025">
   <img src="https://img.shields.io/badge/.NET_Framework-4.8-512BD4?style=flat-square&amp;logo=dotnet&amp;logoColor=white" alt=".NET Framework 4.8">
   <img src="https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10+">
   <img src="https://img.shields.io/badge/Flask-3.1-000000?style=flat-square&amp;logo=flask&amp;logoColor=white" alt="Flask 3.1">
@@ -530,6 +530,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 - 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
 - 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
 - README 配图更新为 SolidWorks 2025 实机截图（功能区标签页、任务窗格、状态窗口），并新增命令巡览与端到端生成 GIF。
+- 品牌与界面统一为黑红极简体系：新的 V 标志、横幅、命令图标、安装向导配图与 WPF 主题，并同步更新截图和 GIF。
 
 ## 1.2.1 更新要点
 
@@ -576,7 +577,7 @@ Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 ### 卸载
 
 <p align="center">
-  <img src="docs/assets/vulcan-uninstall.gif" alt="Vulcan 卸载程序：确认、移除进度与完成页" width="100%">
+  <img src="docs/assets/vulcan-uninstall.gif" alt="Vulcan 卸载程序确认对话框" width="72%">
 </p>
 
 1. 打开 **设置 → 应用 → 已安装的应用**，找到 **Vulcan AI For SolidWorks** 并选择**卸载**；也可以运行 `C:\Program Files\Vulcan\unins000.exe`。

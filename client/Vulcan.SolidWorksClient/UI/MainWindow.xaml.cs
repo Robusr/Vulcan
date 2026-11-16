@@ -20,31 +20,13 @@ namespace Vulcan.SolidWorksClient.UI
         {
             InitializeComponent();
             _swModeler = swModeler ?? throw new ArgumentNullException(nameof(swModeler));
-            LoadWindowIcon();
+            UiAssets.ApplyIcon(this);
             UpdatePlaceholder();
             UpdateCharCount();
             SetStatus("就绪", StatusKind.Ready);
         }
 
-        private void LoadWindowIcon()
-        {
-            try
-            {
-                string assemblyDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                if (string.IsNullOrEmpty(assemblyDirectory))
-                {
-                    return;
-                }
-                string iconPath = Path.Combine(assemblyDirectory, "icons", "Vulcan.ico");
-                if (File.Exists(iconPath))
-                {
-                    Icon = BitmapFrame.Create(new Uri(iconPath, UriKind.Absolute));
-                }
-            }
-            catch
-            {
-            }
-        }
+
 
         public void SetPrompt(string prompt)
         {

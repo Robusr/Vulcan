@@ -14,16 +14,16 @@ SIZES = (20, 32, 40, 64, 96, 128)
 # Command order must match commandDefinitions in Core/SwAddIn.cs.
 NAMES = ('pane', 'cylinder', 'plate', 'settings', 'health', 'status', 'logs', 'about')
 
-BG = (0x16, 0x22, 0x3A, 255)
-BORDER = (0x2A, 0x3A, 0x55, 255)
-FG = (0xF8, 0xFA, 0xFC, 255)
-ACCENT = (0xF9, 0x73, 0x16, 255)
+BG = (0x0A, 0x0A, 0x0A, 255)
+BORDER = (0x2C, 0x2C, 0x2E, 255)
+FG = (0xF5, 0xF5, 0xF7, 255)
+ACCENT = (0xE1, 0x1D, 0x2E, 255)
 
 
 def draw_tile(name, s):
     img = Image.new('RGBA', (s, s), (0, 0, 0, 0))
     d = ImageDraw.Draw(img)
-    r = max(2, int(s * 0.22))
+    r = max(2, int(s * 0.18))
     d.rounded_rectangle([0, 0, s - 1, s - 1], radius=r, fill=BG, outline=BORDER,
                         width=max(1, int(s * 0.03)))
     w = max(1, int(s * 0.07))

@@ -15,6 +15,7 @@ namespace Vulcan.SolidWorksClient.UI
         public SettingsWindow()
         {
             InitializeComponent();
+            UiAssets.ApplyIcon(this);
             LoadSettings();
         }
 

@@ -22,6 +22,7 @@ namespace Vulcan.SolidWorksClient.UI
         public PreviewWindow(ModelData modelData, string prompt)
         {
             InitializeComponent();
+            UiAssets.ApplyIcon(this);
 
             _validationTimer = new DispatcherTimer
             {

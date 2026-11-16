@@ -1,7 +1,7 @@
 """Assemble the README workflow GIF from captured SolidWorks frames.
 
 Usage:
-    python tools/make_demo_gif.py --frames <dir> --out docs/assets/vulcan-workflow.gif
+    python tools/make_demo_gif.py --frames <dir> --out build/workflow.gif
 
 Frames are expected as frame_01.png ... frame_NN.png in capture order. Each
 frame gets a caption bar drawn at the bottom. Captions can be supplied with
