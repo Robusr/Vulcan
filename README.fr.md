@@ -465,7 +465,7 @@ Cette section décrit chaque élément manipulé, de l’installateur à l’arb
 
 | Élément | Emplacement | Rôle |
 |---|---|---|
-| Onglet `Vulcan AI` | CommandManager, dernier onglet | Huit commandes : volet, exemple de cylindre, exemple de plaque, réglages, test de connexion, état, journaux et à propos |
+| Onglet `Vulcan AI` | CommandManager, dernier onglet | Huit commandes sur une seule ligne, de gauche à droite : volet, exemple de cylindre, exemple de plaque, réglages, test de connexion, état, journaux et à propos |
 | Barre d’outils `Vulcan AI` | Zone de barres d’outils SolidWorks | Les mêmes huit commandes, avec une icône par commande |
 | Volet `Vulcan AI` | Ancre à droite | Surface de saisie principale avec actions rapides, bouton de génération et ligne d’état |
 | Panneau de repli | Centre de SolidWorks | Panneau modal de 680 × 520 utilisé uniquement si le volet ne peut pas être créé |
@@ -529,6 +529,7 @@ Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse), 
 - Le volet des tâches héberge le panneau WPF via `SetParent` et reste interactif ; la commande de volet retombe sur le panneau modal si l’hôte échoue.
 - Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
 - Ajout d’une barre d’outils CommandManager Vulcan et d’un onglet de ruban avec une icône par commande (volet, exemples, réglages, test de connexion, état, journaux, à propos), d’une barre d’actions rapides dans le volet et d’une fenêtre d’état affichant la santé du serveur et la dernière exécution.
+- L’onglet Vulcan AI place désormais chaque commande dans sa propre boîte, ce qui garde les huit commandes sur une seule ligne de gauche à droite au lieu de les replier en grille.
 - Mise à jour des médias du README avec de vraies captures SolidWorks 2025 (onglet, volet, fenêtre d’état) et deux GIF : visite des commandes et génération de bout en bout.
 - Unification de la marque et de l’interface autour d’un système minimal noir et rouge : nouveau sigle V, bannières, icônes de commandes, visuels d’installateur, thème WPF et captures/GIF actualisés.
 

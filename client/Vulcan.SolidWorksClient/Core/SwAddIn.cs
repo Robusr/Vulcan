@@ -203,6 +203,9 @@ namespace VulcanAddin
                     if (iconStripsReady)
                     {
                         mainCmdGroup.IconList = iconStrips.ToArray();
+                        // TextBelow（大按钮）在部分 SolidWorks 版本中仍读取旧图标列表。
+                        mainCmdGroup.SmallIconList = Path.Combine(iconDir, "commands", "strip_20.png");
+                        mainCmdGroup.LargeIconList = Path.Combine(iconDir, "commands", "strip_32.png");
                     }
                     else if (brandIcons.Count > 0)
                     {
@@ -279,22 +282,43 @@ namespace VulcanAddin
                         continue;
                     }
 
-                    CommandTabBox tabBox = cmdTab.AddCommandTabBox();
-                    List<int> tabCommandIds = new List<int>();
-                    List<int> tabTextStyles = new List<int>();
-                    foreach (int cmdIndex in cmdIndexes)
+                    // 每个命令独立成一个分组，保证 8 个命令从左到右单行排开，
+                    // 不会像单个大分组那样被 SolidWorks 折成多行网格。
+                    // 注意：SW2025 SP0 中 swCommandTabButton_TextBelow（大按钮）
+                    // 即使提供 SmallIconList/LargeIconList 也会渲染为空白，
+                    // 因此这里统一使用 TextHorizontal，图标在左、文字在右。
+                    int[][] commandGroups =
                     {
-                        tabCommandIds.Add(mainCmdGroup.get_CommandID(cmdIndex));
-                        tabTextStyles.Add((int)swCommandTabButtonTextDisplay_e.swCommandTabButton_TextHorizontal);
-                    }
+                        new[] { 0 },
+                        new[] { 1 },
+                        new[] { 2 },
+                        new[] { 3 },
+                        new[] { 4 },
+                        new[] { 5 },
+                        new[] { 6 },
+                        new[] { 7 }
+                    };
 
-                    bool added = tabBox.AddCommands(
-                        tabCommandIds.ToArray(),
-                        tabTextStyles.ToArray());
-                    Logger.Info(
-                        "Vulcan AI 标签页 docType=" + docType +
-                        " ids=" + string.Join(",", tabCommandIds) +
-                        " added=" + added);
+                    foreach (int[] group in commandGroups)
+                    {
+                        List<int> tabCommandIds = new List<int>();
+                        List<int> tabTextStyles = new List<int>();
+                        foreach (int position in group)
+                        {
+                            tabCommandIds.Add(mainCmdGroup.get_CommandID(cmdIndexes[position]));
+                            tabTextStyles.Add(
+                                (int)swCommandTabButtonTextDisplay_e.swCommandTabButton_TextHorizontal);
+                        }
+
+                        CommandTabBox tabBox = cmdTab.AddCommandTabBox();
+                        bool added = tabBox.AddCommands(
+                            tabCommandIds.ToArray(),
+                            tabTextStyles.ToArray());
+                        Logger.Info(
+                            "Vulcan AI 标签页分组 docType=" + docType +
+                            " ids=" + string.Join(",", tabCommandIds) +
+                            " added=" + added);
+                    }
 
                     cmdTab.Visible = true;
                     cmdTab.Active = true;
@@ -361,8 +385,34 @@ namespace VulcanAddin
         /// <summary>
         /// 打开AI生成窗口，传递和SwModeler完全兼容的ISldWorks实例
         /// </summary>
+        private void ActivateVulcanTab()
+        {
+            try
+            {
+                int docType = (int)swDocumentTypes_e.swDocPART;
+                ModelDoc2 activeDoc = _swApp.ActiveDoc as ModelDoc2;
+                if (activeDoc != null)
+                {
+                    docType = activeDoc.GetType();
+                }
+
+                CommandTab tab = _cmdMgr.GetCommandTab(docType, "Vulcan AI");
+                if (tab != null)
+                {
+                    tab.Visible = true;
+                    tab.Active = true;
+                    Logger.Info("Vulcan AI 标签页已激活 docType=" + docType);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Warning("激活 Vulcan AI 标签页失败", ex);
+            }
+        }
+
         private void OpenMainWindow(string prompt = null)
         {
+            ActivateVulcanTab();
             if (_taskPaneView != null && _taskPaneControl != null)
             {
                 _taskPaneView.ShowView();

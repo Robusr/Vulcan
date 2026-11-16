@@ -465,7 +465,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 | 实体 | 位置 | 作用 |
 |---|---|---|
-| `Vulcan AI` 标签页 | CommandManager 最后一个标签 | 8 个命令：面板、圆柱示例、安装板示例、设置、连接测试、状态、日志、关于 |
+| `Vulcan AI` 标签页 | CommandManager 最后一个标签 | 8 个命令自左向右单行排列：面板、圆柱示例、安装板示例、设置、连接测试、状态、日志、关于 |
 | `Vulcan AI` 工具栏 | SolidWorks 工具栏区域 | 同样 8 个命令，每个命令有独立图标 |
 | `Vulcan AI` 任务窗格 | 右侧停靠 | 主提示界面，包含快捷操作、生成按钮与实时状态行 |
 | 兜底面板 | SolidWorks 中央 | 仅在任务窗格创建失败时使用的 680 × 520 模态面板 |
@@ -529,6 +529,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 - 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；面板命令在窗格不可用时回退模态面板。
 - 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
 - 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
+- `Vulcan AI` 标签页改为每个命令独立分组，8 个命令自左向右单行排列，不再被折叠成多行网格。
 - README 配图更新为 SolidWorks 2025 实机截图（功能区标签页、任务窗格、状态窗口），并新增命令巡览与端到端生成 GIF。
 - 品牌与界面统一为黑红极简体系：新的 V 标志、横幅、命令图标、安装向导配图与 WPF 主题，并同步更新截图和 GIF。
 
