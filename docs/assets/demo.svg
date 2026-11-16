@@ -43,7 +43,7 @@
   <rect x="64" y="362" width="304" height="40" rx="8" fill="url(#btn)"/>
   <text class="ui" x="216" y="388" text-anchor="middle" font-size="13" font-weight="700" fill="#FFFFFF">开始生成</text>
   <circle cx="70" cy="426" r="4" fill="#10B981"/>
-  <text class="ui" x="84" y="430" font-size="11.5" fill="#64748B">就绪 · 680 × 520 DIP</text>
+  <text class="ui" x="84" y="430" font-size="11.5" fill="#64748B">就绪 · 可停靠任务窗格</text>
 
   <!-- panel 2: preview -->
   <rect x="424" y="116" width="352" height="356" rx="16" fill="#F8FAFC" stroke="#E2E8F0" filter="url(#shadow)"/>

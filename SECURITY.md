@@ -20,3 +20,7 @@ Please do not open a public issue for security problems. Report them privately t
 - Do not enable Flask debug mode in production. The Docker image runs gunicorn with `FLASK_ENV=production`.
 - Per-IP rate limiting is in-memory and per worker, with a bounded key table. Use a shared store such as Redis when running multiple workers or replicas.
 - Set `VULCAN_TRUST_PROXY=true` only when exactly one trusted reverse proxy terminates TLS in front of the service; the header is otherwise client-controlled.
+
+## Related documentation
+
+See [README.md](README.md) for deployment and configuration guidance, and [server/.env.example](server/.env.example) for the full environment template.

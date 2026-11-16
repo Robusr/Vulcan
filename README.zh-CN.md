@@ -35,6 +35,8 @@
   <a href="#安装升级与卸载">安装/卸载</a> ·
   <a href="#操作演练">操作演练</a> ·
   <a href="#测试">测试</a> ·
+  <a href="#配置说明">配置</a> ·
+  <a href="#api-参考">API</a> ·
   <a href="#路线图">路线图</a>
 </p>
 
@@ -92,16 +94,17 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 |---|---|
 | 自然语言建模 | 一句需求变成有序特征树：先基础特征，后续特征依次叠加。 |
 | 原生输出 | 生成可编辑的 SolidWorks 特征，而不是网格、宏或脚本。 |
-| 结构化契约 | JSON 信封承载 `extrude`、`cut`、`revolve`、`fillet`、`chamfer`；JSON 用毫米，COM 边界转换为米。 |
+| 结构化契约 | JSON 信封承载拉伸、切除、旋转、圆角、倒角、阵列、镜像、抽壳、拔模、扫掠、放样、筋、孔、工程图注释与装配插入；JSON 用毫米，COM 边界转换为米。 |
 | 草图形状库 | 圆形、矩形、正多边形、椭圆、直槽口。 |
-| 特征库 | 拉伸、切除、旋转、圆角、倒角，以及孔别名。 |
-| 孔位控制 | 显式 `center_x`、`center_y`、`through_all`，以及会读取原始中文或英文提示词的四角孔启发式。 |
-| 提供商自由 | OpenAI、DeepSeek、通义千问、七牛云、vLLM、Ollama 或任意兼容端点。 |
+| 特征库 | 拉伸、切除、旋转、圆角、倒角、线性/圆周阵列、镜像、抽壳、拔模、扫掠、放样、筋、沉头孔、锥形沉孔、孔阵列、工程图注释与装配插入。 |
+| 孔位控制 | 显式 `center_x`、`center_y`、`through_all`，以及会读取原始中文、英文或法文提示词的四角孔启发式。 |
+| 提供商自由 | OpenAI、Anthropic、DeepSeek、通义千问、七牛云、vLLM、Ollama 或任意兼容端点。 |
 | 服务端可移植 | 本地、Docker 或隧道后运行；只有客户端需要 Windows。 |
 | 可调试管线 | release 版本没有 `exec()`；每个阶段都有日志和类型。 |
 | API 优先执行 | 优先调用原生特征 API；拉伸和切除失败时，使用键盘驱动的原生面板兜底。 |
 | 自带密钥 | 在插件设置对话框中填写提供商密钥、Base URL 和模型。密钥用 Windows DPAPI 在本机加密，仅在一次请求期间发送到你自己的 Vulcan 服务端。 |
 | 可编辑预览 | 每份响应都会打开可编辑的 JSON 预览，确认之前不会写入 SolidWorks。 |
+| CommandManager 工具 | Vulcan AI 标签页与工具栏提供 8 个命令（面板、两个示例、设置、连接测试、状态、日志、关于），任务窗格提供快捷操作，状态窗口显示实时健康与最近运行。 |
 | 静默安装与卸载 | 安装包自动提权，静默调用 `RegAsm` 注册 x64 插件，卸载时干净移除注册。 |
 
 ## 系统架构
@@ -115,7 +118,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | 客户端 | C# / WPF / .NET Framework 4.8 | `Vulcan AI` 功能区标签页、任务窗格、状态窗口、DPAPI 设置、可编辑 JSON 预览、COM 执行 |
 | 传输 | HTTP REST / JSON | `POST /api/v1/generate`，以及 `POST /api/v1/generate/stream` 的 SSE 流式接口 |
 | 服务端 | Python 3.10+ / Flask 3 | 提示词组装、上游大模型调用、信封与参数校验、错误映射 |
-| 模型 | OpenAI 兼容 API | JSON 特征树生成 |
+| 模型 | OpenAI 兼容 API 或 Anthropic Messages API | JSON 特征树生成 |
 | 部署 | Docker、反向代理或裸机 | 服务端任意部署；客户端与 SolidWorks 同机 |
 
 插件会在零件、装配和工程图中注册 `Vulcan AI` 功能区标签页，并提供工具栏、菜单命令和停靠式任务窗格。每个命令都有独立图标。主入口是任务窗格；如果窗格创建失败，会回退到模态 WPF 面板。
@@ -125,7 +128,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <sub>SolidWorks 2025 中的 Vulcan AI 标签页与命令组。每个命令都会打开任务窗格、对话框或状态视图。</sub>
+  <sub>SolidWorks 2025 中的 Vulcan AI 标签页与命令组。每个命令都会打开任务窗格、对话框、日志目录或状态视图。</sub>
 </p>
 
 <p align="center">
@@ -153,7 +156,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 1. **请求。** 插件把 `{ "prompt": "..." }` 发送到 Flask 服务端。
 2. **提示词组装。** 服务端在用户文本前拼接版本化的 SolidWorks 领域提示词。
-3. **模型调用。** 任意 OpenAI 兼容端点返回 JSON 特征树。默认参数为 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048`，超时 30 秒。
+3. **模型调用。** 任意 OpenAI 兼容端点返回 JSON 特征树。默认参数为 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048`，超时 30 秒。客户端优先使用 SSE 端点并显示流式进度；流式失败时回退到非流式端点。Anthropic 适配器只发送 `max_tokens`，因为当前 Claude 模型不接受 `temperature` 与 `top_p`。
 4. **恢复。** 服务端去除 Markdown 代码围栏，再截取第一个 `{` 到最后一个 `}` 后解析。
 5. **校验。** Flask 检查响应信封并校验特征参数；C# 客户端把信封反序列化为类型化模型类，再从参数字典读取参数并应用建模器默认值。
 6. **预览与编辑。** 插件打开可编辑的 JSON 窗口；确认之前不会写入文档。
@@ -355,7 +358,7 @@ SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征
 
 1. **输出纪律。** 只输出 JSON——没有 Markdown、没有解释、没有代码围栏。
 2. **坐标规则。** 逐基准面的轴映射，并给出 200 × 100 × 20 基体与四个孔的完整示例。
-3. **特征模式。** `extrude`、`cut`、`revolve`、`fillet`、`chamfer` 的必填/可选字段，以及形状专属参数。
+3. **特征模式。** 所有受支持特征类型的必填/可选字段，以及形状专属参数。
 4. **防重叠约束。** 多个相同特征必须使用不同坐标，绝不能堆在原点。
 5. **基准面词汇。** 各语言提示词输出客户端可在任意 SolidWorks 界面解析的名称：中文 `前视基准面` / `上视基准面` / `右视基准面`，英文 `front` / `top` / `right`，法文 `front` / `dessus` / `droite`。
 
@@ -417,17 +420,17 @@ curl -s http://127.0.0.1:5000/api/v1/generate \
 
 ### 5. 安装或构建客户端
 
-**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，再运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在插件面板右上角点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
+**方案 A——预编译安装包。** 预编译安装包可以通过 GitHub Releases 分发，也可以在本地构建。先编译 `Release / x64`，然后在 `client\Vulcan.SolidWorksClient` 目录运行 `build_installer.ps1`；它会把负载暂存到 `dist/`，并生成 `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`。安装包会自动请求管理员权限，静默调用 `RegAsm` 注册 x64 插件，不会留下挂起的控制台窗口。安装完成后启动 SolidWorks，在任务窗格或 Vulcan AI 标签页点击**设置**，填写服务端地址、可选的服务端 Token，以及（如果你想使用自己的密钥）LLM API Key、Base URL 和模型名称。设置保存在 `%APPDATA%\Vulcan\settings.json`，其中密钥由 Windows DPAPI 加密。
 
 **方案 B——从源码构建。**
 
 1. 在 Visual Studio 2022 中打开 `client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln`。
 2. 还原 NuGet 包（客户端使用 `Newtonsoft.Json`）。
 3. 项目使用 `ReferenceDLL/` 中的 SolidWorks 互操作程序集；如果你的 SolidWorks 版本不同，请替换这些文件。
-4. 构建并注册后，打开**设置**对话框填写服务端地址，例如 `https://vulcan.example.com`；如果服务端启用了鉴权，再填写 `VULCAN_API_TOKEN`。等价的环境变量（`VULCAN_SERVER_URL`、`VULCAN_API_TOKEN`）仍然可用，并在设置对话框留空时作为兜底。
-5. 构建 `Release / x64`。SolidWorks 是 64 位程序，不要发布 x86 构建。
-6. 运行 `build_installer.ps1` 暂存负载，然后以管理员身份执行 `dist\install.bat`，或直接运行 `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase`。
-7. 重启 SolidWorks，打开一个零件文档。`Vulcan AI` 功能区标签页应当出现。
+4. 构建 `Release / x64`。SolidWorks 是 64 位程序，不要发布 x86 构建。
+5. 在 `client\Vulcan.SolidWorksClient` 目录运行 `build_installer.ps1` 暂存负载，然后以管理员身份执行 `dist\install.bat`，或直接运行 `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase`。
+6. 重启 SolidWorks，打开一个零件文档。`Vulcan AI` 标签页、工具栏和任务窗格应当出现。
+7. 从任务窗格或 Vulcan AI 标签页打开**设置**，填写服务端地址，例如 `https://vulcan.example.com`；如果服务端启用了鉴权，再填写 `VULCAN_API_TOKEN`。等价的环境变量（`VULCAN_SERVER_URL`、`VULCAN_API_TOKEN`）仍然可用，并在设置对话框留空时作为兜底。
 
 ### 6. 生成第一个模型
 
@@ -462,9 +465,11 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 | 实体 | 位置 | 作用 |
 |---|---|---|
-| `Vulcan AI` 功能区标签 | CommandManager 最后一个标签 | 承载“打开AI生成窗口”命令 |
-| `AI生成` 工具栏按钮 | 左侧工具栏 | 打开同一个模态面板 |
-| `Vulcan AI` 窗口 | SolidWorks 中央 | 可缩放的 680 × 520 提示面板，含示例和状态提示条 |
+| `Vulcan AI` 标签页 | CommandManager 最后一个标签 | 8 个命令：面板、圆柱示例、安装板示例、设置、连接测试、状态、日志、关于 |
+| `Vulcan AI` 工具栏 | SolidWorks 工具栏区域 | 同样 8 个命令，每个命令有独立图标 |
+| `Vulcan AI` 任务窗格 | 右侧停靠 | 主提示界面，包含快捷操作、生成按钮与实时状态行 |
+| 兜底面板 | SolidWorks 中央 | 仅在任务窗格创建失败时使用的 680 × 520 模态面板 |
+| 状态窗口 | 由**状态**打开 | 服务端健康、最近操作、特征数量与最近错误 |
 
 ### 3. 配置服务端
 
@@ -488,7 +493,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 ### 4. 描述零件
 
-在白色输入卡片中输入需求，例如 `在前视基准面拉伸一个直径40，高度60的圆柱体`；聚焦时占位提示自动消失。点击**开始生成**会发送 `POST /api/v1/generate`，空闲时状态点为绿色。
+在白色输入卡片中输入需求，例如 `在前视基准面拉伸一个直径40，高度60的圆柱体`；聚焦时占位提示自动消失。上方的快捷操作可以填入圆柱或安装板示例、测试服务端、打开状态窗口或日志目录。点击**开始生成**会通过 `POST /api/v1/generate/stream` 流式获取结果并显示进度；流式失败时自动回退到非流式接口。
 
 ### 5. 检查并编辑 JSON
 
@@ -502,7 +507,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 
 ### 6. 查看结果
 
-建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图），并弹出“模型生成完成!”提示。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
+建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图）、自动缩放视图，并在任务窗格保留**模型生成完成。**状态。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
 
 ## 未发布
 
@@ -519,9 +524,9 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 - 新增 `counterbore`、`countersink`、`hole_array` 孔特征，以及装配体的 `insert_component` 和工程图的 `note`。
 - 新增原生英文/法文提示词、可选 `language` 字段、`openai`/`anthropic` 提供商适配器，以及带客户端进度的 SSE 流式端点。
 - 抽出 `ModelingEngine` 与 `IFeatureBackend` 接口，客户端 CI 可用假后端验证顺序、种子解析和部分失败报告。
-- 新增任务窗格面板；功能区命令优先打开窗格，窗格不可用时回退模态窗口。
+- 新增任务窗格面板；面板命令优先打开窗格，窗格不可用时回退模态窗口。
 - 修复盲切：使用双向 `FeatureCut4` 参数，并在失败时反向重试。
-- 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；功能区命令在窗格不可用时回退模态面板。
+- 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；面板命令在窗格不可用时回退模态面板。
 - 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
 - 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
 - README 配图更新为 SolidWorks 2025 实机截图（功能区标签页、任务窗格、状态窗口），并新增命令巡览与端到端生成 GIF。
@@ -554,7 +559,7 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 1. 运行 `Vulcan-Setup-1.2.1.exe`，在 UAC 提示中允许管理员权限。
 2. 接受 GPLv3 许可，保留默认目录 `{autopf}\Vulcan` 或选择其他位置。
 3. 安装包复制插件、依赖与图标，并以 `install.bat /quiet` 调用 `RegAsm` 注册 x64 插件。
-4. 重启 SolidWorks，`Vulcan AI` 标签页与 `AI生成` 工具栏按钮即可使用。
+4. 重启 SolidWorks，`Vulcan AI` 标签页、工具栏与任务窗格即可使用。
 
 静默安装：
 
@@ -586,7 +591,7 @@ Vulcan-Setup-1.2.1.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
 
 ## 测试
 
-服务端测试使用 Flask 测试客户端和模拟的大模型客户端。客户端带有无额外依赖的校验器测试程序，构建与安装包由 GitHub Actions 工作流覆盖。
+服务端测试使用 Flask 测试客户端和模拟的大模型客户端。客户端带有无额外依赖的校验器测试程序；GitHub Actions 工作流覆盖构建与两套测试，安装包通过 `build_installer.ps1` 在本地构建。
 
 ```bash
 cd server
@@ -624,13 +629,14 @@ VULCAN_API_TOKEN=""
 VULCAN_RATE_LIMIT_PER_MINUTE="60"
 VULCAN_RATE_LIMIT_MAX_KEYS="10000"
 VULCAN_TRUST_PROXY="false"
+VULCAN_ALLOW_CUSTOM_LLM_BASE_URL="true"
 MAX_PROMPT_LENGTH="4000"
 LLM_TIMEOUT="30"
 LOG_LEVEL="INFO"
 LOG_FILE="vulcan_server.log"
 ```
 
-`QINIU_*` 是历史命名：第一次部署使用七牛云。客户端本身兼容 OpenAI 接口，因此这些名称只对 `config.py` 有意义。
+`QINIU_*` 是历史命名：第一次部署使用七牛云。这些名称只对 `config.py` 有意义，提供商类型由 `LLM_PROVIDER` 选择。
 
 | 变量 | 默认值 | 用途 |
 |---|---|---|
@@ -645,6 +651,9 @@ LOG_FILE="vulcan_server.log"
 | `VULCAN_RATE_LIMIT_PER_MINUTE` | `60` | 生成接口的每 IP 每分钟限额；`0` 表示关闭 |
 | `VULCAN_RATE_LIMIT_MAX_KEYS` | `10000` | 限流状态跟踪的客户端数量上限，超出后先淘汰最旧记录 |
 | `VULCAN_TRUST_PROXY` | `false` | 信任一跳反向代理的 `X-Forwarded-For` 与 `X-Forwarded-Proto` |
+| `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL` | `true` | 允许客户端按请求覆盖 `X-LLM-Base-URL`；共享服务端建议设为 `false` |
+| `MAX_LLM_API_KEY_LENGTH` | `512` | 允许的 BYOK 密钥最大长度 |
+| `MAX_LLM_BASE_URL_LENGTH` | `512` | 允许的自定义 Base URL 最大长度 |
 | `MAX_PROMPT_LENGTH` | `4000` | 提示词最大字符数 |
 | `LLM_TIMEOUT` | `30` | 上游请求超时秒数 |
 | `LOG_LEVEL` | `INFO` | 日志级别；INFO 只记录提示词长度 |
@@ -665,7 +674,7 @@ LOG_FILE="vulcan_server.log"
 
 ### 客户端设置
 
-插件在自己的对话框中完成配置：点击 Vulcan 面板右上角的**设置**。
+插件在自己的对话框中完成配置：在任务窗格或 Vulcan AI 标签页点击**设置**。
 
 | 字段 | 用途 |
 |---|---|
@@ -676,7 +685,7 @@ LOG_FILE="vulcan_server.log"
 | LLM Base URL | 提供商的 OpenAI 兼容 Base URL |
 | 模型名称 | 例如 `gpt-4o-mini` |
 
-对话框还提供**测试连接**（健康检查）、**打开日志目录**和**保存**。设置写入 `%APPDATA%\Vulcan\settings.json`，其中 `ServerToken` 和 `LlmApiKey` 使用 Windows DPAPI 按当前用户加密，因此文件不能跨机器或跨账户复制，也不能提交到仓库。
+对话框还提供**测试连接**（健康检查）、**打开日志目录**、**取消**和**保存**。设置写入 `%APPDATA%\Vulcan\settings.json`，其中 `ServerToken` 和 `LlmApiKey` 使用 Windows DPAPI 按当前用户加密，因此文件不能跨机器或跨账户复制，也不能提交到仓库。
 
 服务端地址的优先级为：构造函数显式参数 → 设置对话框 → `VULCAN_SERVER_URL` 环境变量 → `http://127.0.0.1:5000`；Token 遵循同样的顺序。LLM 覆盖项以 `X-LLM-API-Key`、`X-LLM-Base-URL`、`X-LLM-Model` 请求头发送给服务端，留空的字段不会发送，服务端会回退到自己的 `QINIU_*` 配置。
 
@@ -691,7 +700,7 @@ setx VULCAN_API_TOKEN "your-shared-token"
 
 ### 参数调节
 
-- [`llm_client.py`](server/services/llm_client.py) 中的 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048` 控制模型调用。
+- [`providers.py`](server/services/providers.py) 中的 `temperature 0.05`、`top_p 0.95`、`max_tokens 2048` 控制模型调用。
 - [`config.py`](server/config.py) 中的 `LLM_TIMEOUT = 30` 控制服务端请求超时。
 - `ApiClient` 使用 60 秒客户端超时，确保服务端能等完较慢的模型响应。请保持它大于 `LLM_TIMEOUT`。
 
@@ -706,6 +715,11 @@ setx VULCAN_API_TOKEN "your-shared-token"
   "prompt": "前视基准面拉伸200x100x20底座，四角各打一个直径10mm通孔"
 }
 ```
+
+| 字段 | 类型 | 必填 | 说明 |
+|---|---|---|---|
+| `prompt` | string | 是 | 自然语言需求；超过 `MAX_PROMPT_LENGTH` 会被拒绝 |
+| `language` | string | 否 | `zh`、`en` 或 `fr`；省略时从提示词自动识别 |
 
 成功——`200 OK`，返回特征树：
 
@@ -779,16 +793,17 @@ Vulcan/
 ├── SECURITY.md                   # 安全策略与密钥轮换
 ├── pyproject.toml                # Ruff、Black 与 mypy 配置
 ├── client/                       # 当前 C# / WPF 客户端
-│   └── Vulcan.SolidWorksClient/
-│       ├── Core/                 #   SwAddIn——COM 注册与生命周期
-│       ├── Models/               #   ModelData——请求/响应类型
-│       ├── Services/             #   ApiClient、SwModeler、SettingsStore、Logger、校验器
-│       ├── UI/                   #   MainWindow、SettingsWindow、PreviewWindow、Theme.xaml
-│       ├── ReferenceDLL/         #   SolidWorks 互操作程序集
-│       ├── Vulcan Setup/         #   Inno Setup 安装包
-│       └── packaging/            #   install/uninstall 脚本与 build_installer.ps1
-├── client/tests/                 #   无额外依赖的校验器测试程序（CI）
-│   └── Vulcan.Client.Tests/
+│   ├── Vulcan.SolidWorksClient/
+│   │   ├── Core/                 #   SwAddIn——COM 注册与生命周期
+│   │   ├── Models/               #   ModelData——请求/响应类型
+│   │   ├── Services/             #   ApiClient、SwModeler、ModelingEngine、VulcanStatus、校验器
+│   │   ├── UI/                   #   MainWindow、任务窗格、SettingsWindow、PreviewWindow、StatusWindow
+│   │   ├── icons/                #   品牌图标与命令图标条
+│   │   ├── ReferenceDLL/         #   SolidWorks 互操作程序集
+│   │   ├── Vulcan Setup/         #   Inno Setup 安装包
+│   │   ├── packaging/            #   install/uninstall 脚本
+│   │   └── build_installer.ps1   #   暂存 dist 并构建安装包
+│   └── tests/Vulcan.Client.Tests/ #   无额外依赖的校验器测试程序（CI）
 ├── server/                       # 当前 Flask 服务端
 │   ├── app.py                    #   Flask 入口
 │   ├── config.py                 #   环境配置
@@ -806,10 +821,10 @@ Vulcan/
 ├── docs/
 │   └── assets/                   #   三份 README 共用的配图、截图与 GIF
 ├── scripts/                      # 维护脚本
-└── tools/                        # 文档与演示工具
+└── tools/                        # SolidWorksVerify 与演示媒体工具
 ```
 
-**仓库说明。** 当前客户端实际编译 `Core/SwAddIn.cs`。beta 已归档到 `archive/beta/`，不再维护。构建产物、日志、`.env` 和安装包负载都不进入 Git。
+**仓库说明。** 当前客户端位于 `client/Vulcan.SolidWorksClient`，其中 `Core/SwAddIn.cs` 负责 COM 注册与命令绑定。beta 已归档到 `archive/beta/`，不再维护。构建产物、日志、`.env` 和安装包负载都不进入 Git。
 
 ## 兼容性与当前范围
 
@@ -845,6 +860,7 @@ Vulcan/
 | 预览拒绝编辑后的 JSON | 修改后不再符合契约 | 保留 `feature_type`（或 `features`）和 `params` 对象；参见 JSON 契约 |
 | 设置无法保存 | `%APPDATA%\Vulcan` 不可写，或 Windows 账户已切换 | 检查目录权限；密钥按 Windows 用户加密 |
 | 重装后功能区不出现 | 旧注册仍指向之前的 DLL 路径 | 以管理员身份运行 `uninstall.bat` 后重新安装 |
+| 命令图标空白或标签页为空 | DLL 旁缺少图标条，或 SolidWorks 缓存了旧命令组 | 重新运行安装包并确认 `icons\commands\strip_*.png` 存在；重启 SolidWorks |
 | 模型生成但孔位不对 | 基准面或坐标约定与需求不一致 | 检查返回的 JSON；四角孔启发式按前视 X/Y 坐标工作 |
 
 服务端日志写入工作目录下的 `vulcan_server.log`，按 5 MB 轮转，并且不进入 Git。INFO 级别只记录提示词长度；本地调试时可设置 `LOG_LEVEL=DEBUG` 记录完整内容。客户端日志写入桌面上的 `Vulcan_Logs/log_YYYYMMDD.txt`。
@@ -867,6 +883,8 @@ Vulcan/
 - [x] 用任务窗格替代模态面板。
 - [x] 装配体级操作与工程图标注。
 
+路线图中的计划项已全部完成；后续工作通过 GitHub Issues 跟踪。
+
 ## 参与贡献
 
 欢迎提交 Pull Request。重大改动请先开 Issue 讨论方案。
@@ -878,7 +896,7 @@ Vulcan/
 - **测试：** 扩展 Python 测试，并构建可在 CI 中运行的 COM 抽象。
 - **文档：** 完善三份 README，或补充本地化截图与示例。
 
-提交 PR 前，请运行 `pytest` 和 `pip-audit`，至少完整跑通一条提示词，并确保 `.env`、日志和构建产物没有进入提交。项目采用 GPLv3，贡献按同一许可证接受。
+提交 PR 前，请运行 `pytest`、`pip-audit` 和客户端测试程序，至少完整跑通一条提示词，并确保 `.env`、日志和构建产物没有进入提交。项目采用 GPLv3，贡献按同一许可证接受。
 
 ## 许可证
 

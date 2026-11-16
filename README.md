@@ -35,6 +35,8 @@
   <a href="#install-upgrade-and-uninstall">Install</a> ·
   <a href="#operation-walkthrough">Walkthrough</a> ·
   <a href="#testing">Testing</a> ·
+  <a href="#configuration">Configuration</a> ·
+  <a href="#api-reference">API</a> ·
   <a href="#roadmap">Roadmap</a>
 </p>
 
@@ -92,16 +94,17 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 |---|---|
 | Natural-language modeling | One request becomes an ordered feature tree with a base and subsequent features. |
 | Native output | Editable SolidWorks features, not a mesh, a macro, or a generated script. |
-| Structured contract | A JSON envelope with `extrude`, `cut`, `revolve`, `fillet`, and `chamfer` features; millimetres in, metres at the COM boundary. |
+| Structured contract | A JSON envelope carrying extrude, cut, revolve, fillet, chamfer, patterns, mirror, shell, draft, sweep, loft, rib, holes, notes, and assembly inserts; millimetres in, metres at the COM boundary. |
 | Shape library | Circle, rectangle, polygon, ellipse, and slot profiles. |
-| Feature library | Extrude, cut, revolve, fillet, chamfer, and a hole alias. |
-| Hole placement | Explicit `center_x` and `center_y`, `through_all`, and a four-corner heuristic that receives the original prompt in Chinese or English. |
-| Provider freedom | OpenAI, DeepSeek, Qwen, Qiniu Cloud, vLLM, Ollama, or any compatible endpoint. |
+| Feature library | Extrude, cut, revolve, fillet, chamfer, linear and circular patterns, mirror, shell, draft, sweep, loft, rib, counterbore, countersink, hole arrays, drawing notes, and assembly inserts. |
+| Hole placement | Explicit `center_x` and `center_y`, `through_all`, and a four-corner heuristic that reads the original Chinese, English, or French prompt. |
+| Provider freedom | OpenAI, Anthropic, DeepSeek, Qwen, Qiniu Cloud, vLLM, Ollama, or any compatible endpoint. |
 | Portable server | Runs locally, in Docker, or behind a tunnel; only the client needs Windows. |
 | Debuggable pipeline | No `exec()` in the release track; each stage is logged and typed. |
 | API-first execution | Native feature APIs first. Extrusion and cut failures fall back to a keyboard-driven native panel. |
 | Bring your own key | Set the provider key, base URL, and model in the add-in settings dialog. The key is DPAPI-encrypted on your machine and sent only to your Vulcan server, for the duration of a request. |
 | Editable preview | Every response opens in an editable JSON preview. Nothing reaches SolidWorks until you review and confirm the feature tree. |
+| CommandManager tools | Eight commands on the Vulcan AI tab and toolbar (pane, both examples, settings, connection test, status, logs, about), task pane quick actions, and a status window with live health and the last run. |
 | Quiet install and uninstall | The installer self-elevates, registers the x64 add-in with `RegAsm`, and uninstalls cleanly without leaving a stale registration behind. |
 
 ## System architecture
@@ -115,7 +118,7 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 | Client | C# / WPF / .NET Framework 4.8 | `Vulcan AI` CommandManager tab, task pane, status window, DPAPI settings, editable JSON preview, COM execution |
 | Transport | HTTP REST / JSON | `POST /api/v1/generate`, plus SSE streaming at `POST /api/v1/generate/stream` |
 | Server | Python 3.10+ / Flask 3 | Prompt assembly, LLM call, envelope and parameter validation, error mapping |
-| Model | OpenAI-compatible API | JSON feature tree generation |
+| Model | OpenAI-compatible API or Anthropic Messages API | JSON feature tree generation |
 | Deployment | Docker, reverse proxy, or bare metal | Server anywhere; client beside SolidWorks |
 
 The add-in registers a `Vulcan AI` CommandManager tab for parts, assemblies, and drawings, with a toolbar, menu commands, and a docked task pane. Each command has its own icon. The task pane is the primary entry point; if it cannot be created, the add-in falls back to a modal WPF panel.
@@ -125,7 +128,7 @@ The add-in registers a `Vulcan AI` CommandManager tab for parts, assemblies, and
 </p>
 
 <p align="center">
-  <sub>The Vulcan AI tab and command group in SolidWorks 2025. Each command opens the task pane, a dialog, or a status view.</sub>
+  <sub>The Vulcan AI tab and command group in SolidWorks 2025. Each command opens the task pane, a dialog, the log folder, or a status view.</sub>
 </p>
 
 <p align="center">
@@ -153,7 +156,7 @@ The add-in registers a `Vulcan AI` CommandManager tab for parts, assemblies, and
 
 1. **Request.** The add-in sends `{ "prompt": "..." }` to the Flask server.
 2. **Prompt assembly.** The server prepends the versioned SolidWorks domain prompt to the user text.
-3. **Model call.** Any OpenAI-compatible endpoint returns a JSON feature tree. The default request uses `temperature 0.05`, `top_p 0.95`, `max_tokens 2048`, and a 30-second timeout.
+3. **Model call.** Any OpenAI-compatible endpoint returns a JSON feature tree. The default request uses `temperature 0.05`, `top_p 0.95`, `max_tokens 2048`, and a 30-second timeout. The client uses the SSE endpoint and shows streamed progress; if streaming fails, it retries the non-streaming endpoint. The Anthropic adapter sends only `max_tokens`, because current Claude models reject `temperature` and `top_p`.
 4. **Recovery.** The server strips markdown code fences, then extracts the first `{` through the last `}` before parsing.
 5. **Validation.** Flask checks the envelope and validates feature parameters. The C# client deserializes the envelope into typed model classes, then reads parameters from a dictionary and applies modeler defaults.
 6. **Preview and edit.** The add-in opens the feature tree in an editable JSON window; nothing is written until you confirm.
@@ -355,7 +358,7 @@ The prompts live in [`server/prompts/`](server/prompts/) and are versioned with 
 
 1. **Output discipline.** JSON only — no markdown, no prose, no code fences.
 2. **Coordinate rules.** Per-plane axis mappings, with a worked example for a 200 × 100 × 20 base and four holes.
-3. **Feature schema.** Required and optional fields for `extrude`, `cut`, `revolve`, `fillet`, and `chamfer`, plus shape-specific parameters.
+3. **Feature schema.** Required and optional fields for every supported feature type, plus shape-specific parameters.
 4. **Anti-overlap constraint.** Multiple identical features must use distinct coordinates; never stack them at the origin.
 5. **Plane vocabulary.** Each prompt emits the plane names its language resolves on any SolidWorks UI: Chinese `前视基准面` / `上视基准面` / `右视基准面`, English `front` / `top` / `right`, and French `front` / `dessus` / `droite`.
 
@@ -417,17 +420,17 @@ The response is the feature tree itself, not a wrapper. If `VULCAN_API_TOKEN` is
 
 ### 5. Install or build the client
 
-**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. Run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client in the add-in: click **设置** in the top-right corner of the Vulcan panel and enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
+**Option A — prebuilt installer.** Prebuilt installers can be distributed through GitHub Releases, or built locally. From `client\Vulcan.SolidWorksClient`, run `build_installer.ps1` after building `Release | x64`; it stages the payload in `dist/` and produces `Vulcan Setup/Output/Vulcan-Setup-1.2.1.exe`. The installer requests elevation, registers the x64 add-in with `RegAsm` silently, and leaves no console window open. After it finishes, start SolidWorks and configure the client: click **设置** in the task pane or on the Vulcan AI tab, then enter the server URL, an optional shared token, and, if you want to use your own provider key, the LLM API key, base URL, and model. Settings are stored in `%APPDATA%\Vulcan\settings.json` with the secrets encrypted by Windows DPAPI.
 
 **Option B — build from source.**
 
 1. Open `client/Vulcan.SolidWorksClient/Vulcan.SolidWorksClient.sln` in Visual Studio 2022.
 2. Restore NuGet packages (the client uses `Newtonsoft.Json`).
 3. The project references the SolidWorks interop assemblies in `ReferenceDLL/`. Replace those files if your SolidWorks version differs.
-4. Build and register, then open the **设置** dialog and enter your server URL, for example `https://vulcan.example.com`, plus `VULCAN_API_TOKEN` if the server requires one. The equivalent Windows environment variables (`VULCAN_SERVER_URL`, `VULCAN_API_TOKEN`) still work and act as a fallback when the settings dialog is empty.
-5. Build `Release | x64`. SolidWorks is 64-bit; do not ship an x86 build.
-6. Run `build_installer.ps1` to stage the payload, then execute `dist\install.bat` from an elevated command prompt, or run `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase` directly.
-7. Restart SolidWorks and open a Part document. The `Vulcan AI` ribbon tab should appear.
+4. Build `Release | x64`. SolidWorks is 64-bit; do not ship an x86 build.
+5. From `client\Vulcan.SolidWorksClient`, run `build_installer.ps1` to stage the payload, then execute `dist\install.bat` from an elevated command prompt, or run `RegAsm.exe Vulcan.SolidWorksClient.dll /codebase` directly.
+6. Restart SolidWorks and open a Part document. The `Vulcan AI` tab, toolbar, and task pane should appear.
+7. Open **设置** from the task pane or the Vulcan AI tab and enter your server URL, for example `https://vulcan.example.com`, plus `VULCAN_API_TOKEN` if the server requires one. The equivalent Windows environment variables (`VULCAN_SERVER_URL`, `VULCAN_API_TOKEN`) remain as a fallback when the dialog is empty.
 
 ### 6. Generate your first model
 
@@ -462,9 +465,11 @@ This section maps every entity you touch, from the installer to the feature tree
 
 | Entity | Where | What it does |
 |---|---|---|
-| `Vulcan AI` ribbon tab | CommandManager, last tab | Hosts the **打开AI生成窗口** command |
-| `AI生成` toolbar button | Left toolbar | Opens the same modal panel |
-| `Vulcan AI` window | Center of SolidWorks | Resizable 680 × 520 prompt panel with examples and a status banner |
+| `Vulcan AI` tab | CommandManager, last tab | Eight commands: pane, cylinder example, plate example, settings, connection test, status, logs, and about |
+| `Vulcan AI` toolbar | SolidWorks toolbar area | The same eight commands with per-command icons |
+| `Vulcan AI` task pane | Right dock | Primary prompt surface with quick actions, the generate button, and a live status line |
+| Fallback panel | Center of SolidWorks | Modal 680 × 520 panel used only when the task pane cannot be created |
+| Status window | Opened by **状态** | Server health, last action, feature count, and last error |
 
 ### 3. Configure the server
 
@@ -476,6 +481,7 @@ Click the gear button (top-right of the panel). The dialog contains two grouped 
 | 服务端 Token | Matches `VULCAN_API_TOKEN` when the server requires a bearer token |
 | LLM API Key | Your own provider key (BYOK); leave empty to use the server's key |
 | LLM Base URL | OpenAI-compatible base URL for your provider |
+| 服务商 | `openai` or `anthropic`; selects the request shape sent to your provider |
 | 模型名称 | Model name, for example `gpt-4o-mini` |
 
 | Button | Behavior |
@@ -487,7 +493,7 @@ Click the gear button (top-right of the panel). The dialog contains two grouped 
 
 ### 4. Describe the part
 
-Type a request into the white input card, for example `在前视基准面拉伸一个直径40，高度60的圆柱体`. The placeholder disappears on focus. **开始生成** sends `POST /api/v1/generate`; the status dot stays green while idle.
+Type a request into the white input card, for example `在前视基准面拉伸一个直径40，高度60的圆柱体`. The quick-action chips above it fill the cylinder or plate example, test the server, open the status window, or open the log folder. **开始生成** streams `POST /api/v1/generate/stream` and reports progress; if streaming fails, the client falls back to the non-streaming endpoint.
 
 ### 5. Review and edit the JSON
 
@@ -501,7 +507,7 @@ The **检查并编辑建模参数** window shows the original request, a JSON ed
 
 ### 6. Inspect the result
 
-The modeler creates native features (for the example: `凸台-拉伸1` plus its sketch). A **模型生成完成!** dialog confirms success. Client logs are written to `Vulcan_Logs\log_YYYYMMDD.txt`; server logs to `vulcan_server.log`.
+The modeler creates native features (for the example: `凸台-拉伸1` plus its sketch), zooms to fit, and leaves a **模型生成完成。** status in the pane. Client logs are written to `Vulcan_Logs\log_YYYYMMDD.txt`; server logs to `vulcan_server.log`.
 
 ## Unreleased
 
@@ -518,9 +524,9 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 - Added `counterbore`, `countersink`, and `hole_array` hole features, plus `insert_component` for assemblies and `note` for drawing annotations.
 - Added native English and French prompts, an optional `language` field, provider adapters for `openai` and `anthropic`, and an SSE streaming endpoint with client-side progress.
 - Extracted `ModelingEngine` behind an `IFeatureBackend` seam so client CI runs sequencing, seed resolution, and partial-failure checks with a fake backend.
-- Added a task pane panel; the ribbon command opens the pane and falls back to the modal window when the pane is unavailable.
+- Added a task pane panel; the pane command opens the pane and falls back to the modal window when the pane is unavailable.
 - Fixed blind cuts by using bidirectional `FeatureCut4` parameters with an opposite-direction retry.
-- The task pane hosts the WPF panel through `SetParent` and stays interactive; the ribbon command falls back to the modal panel if hosting fails.
+- The task pane hosts the WPF panel through `SetParent` and stays interactive; the pane command falls back to the modal panel if hosting fails.
 - During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
 - Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
 - Refreshed the README media with real SolidWorks 2025 screenshots of the ribbon tab, task pane, and status window, plus command-tour and end-to-end generation GIFs.
@@ -553,7 +559,7 @@ The modeler creates native features (for the example: `凸台-拉伸1` plus its 
 1. Run `Vulcan-Setup-1.2.1.exe` and approve the administrator prompt.
 2. Accept the GPLv3 license and keep the default `{autopf}\Vulcan` folder, or choose another.
 3. The installer copies the add-in, dependencies, and icons, then runs `install.bat /quiet` to register the x64 add-in with `RegAsm`.
-4. Restart SolidWorks; the `Vulcan AI` tab and the `AI生成` toolbar button are available.
+4. Restart SolidWorks; the `Vulcan AI` tab, toolbar, and task pane are available.
 
 Silent install:
 
@@ -585,7 +591,7 @@ Silent uninstall:
 
 ## Testing
 
-The server suite uses Flask's test client and a mocked LLM client. The client has a dependency-free validator test runner, and the build and installer are covered by the GitHub Actions workflows.
+The server suite uses Flask's test client and a mocked LLM client. The client has a dependency-free validator test runner, and the GitHub Actions workflows cover the build and both test suites; the installer is built locally with `build_installer.ps1`.
 
 ```bash
 cd server
@@ -623,13 +629,14 @@ VULCAN_API_TOKEN=""
 VULCAN_RATE_LIMIT_PER_MINUTE="60"
 VULCAN_RATE_LIMIT_MAX_KEYS="10000"
 VULCAN_TRUST_PROXY="false"
+VULCAN_ALLOW_CUSTOM_LLM_BASE_URL="true"
 MAX_PROMPT_LENGTH="4000"
 LLM_TIMEOUT="30"
 LOG_LEVEL="INFO"
 LOG_FILE="vulcan_server.log"
 ```
 
-The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. The client is OpenAI-compatible, so the names only matter to `config.py`.
+The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. They only matter to `config.py`; `LLM_PROVIDER` selects the provider family.
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -644,6 +651,9 @@ The `QINIU_*` names are historical: the first deployment used Qiniu Cloud. The c
 | `VULCAN_RATE_LIMIT_PER_MINUTE` | `60` | Per-IP limit for the generate endpoint; `0` disables it |
 | `VULCAN_RATE_LIMIT_MAX_KEYS` | `10000` | Upper bound on tracked client keys; oldest keys are evicted first |
 | `VULCAN_TRUST_PROXY` | `false` | Trust one reverse-proxy hop for `X-Forwarded-For` and `X-Forwarded-Proto` |
+| `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL` | `true` | Allow per-request `X-LLM-Base-URL` overrides; set `false` on shared servers |
+| `MAX_LLM_API_KEY_LENGTH` | `512` | Maximum accepted BYOK key length |
+| `MAX_LLM_BASE_URL_LENGTH` | `512` | Maximum accepted custom base URL length |
 | `MAX_PROMPT_LENGTH` | `4000` | Maximum prompt length in characters |
 | `LLM_TIMEOUT` | `30` | Upstream request timeout in seconds |
 | `LOG_LEVEL` | `INFO` | Log level; prompts are logged by length only at INFO |
@@ -664,7 +674,7 @@ Use a model with strong instruction-following and reliable JSON output. Weak mod
 
 ### Client settings
 
-The add-in is configured in its own dialog: click **设置** in the top-right corner of the Vulcan panel.
+The add-in is configured in its own dialog: click **设置** in the task pane or on the Vulcan AI tab.
 
 | Field | Purpose |
 |---|---|
@@ -675,7 +685,7 @@ The add-in is configured in its own dialog: click **设置** in the top-right co
 | LLM Provider | `openai` or `anthropic`; selects the request shape sent to your provider |
 | LLM Model | Model name, for example `gpt-4o-mini` |
 
-The dialog also has **测试连接** (health check), **打开日志目录** (open the client log folder), and **保存**. Settings are written to `%APPDATA%\Vulcan\settings.json`; `ServerToken` and `LlmApiKey` are encrypted with Windows DPAPI for the current user, so the file is not portable across machines or accounts and must never be committed.
+The dialog also has **测试连接** (health check), **打开日志目录** (open the client log folder), **取消**, and **保存**. Settings are written to `%APPDATA%\Vulcan\settings.json`; `ServerToken` and `LlmApiKey` are encrypted with Windows DPAPI for the current user, so the file is not portable across machines or accounts and must never be committed.
 
 Resolution order for the server URL is: explicit constructor argument → settings dialog → `VULCAN_SERVER_URL` → `http://127.0.0.1:5000`. The token follows the same order. The LLM overrides are sent to the server as `X-LLM-API-Key`, `X-LLM-Base-URL`, and `X-LLM-Model`; empty fields are omitted, so the server falls back to its own `QINIU_*` configuration.
 
@@ -690,7 +700,7 @@ Non-loopback hosts must use HTTPS unless `VULCAN_ALLOW_INSECURE=true` is set for
 
 ### Tuning
 
-- `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` in [`llm_client.py`](server/services/llm_client.py) control the model call.
+- `temperature 0.05`, `top_p 0.95`, `max_tokens 2048` in [`providers.py`](server/services/providers.py) control the model call.
 - `LLM_TIMEOUT = 30` in [`config.py`](server/config.py) controls the server-side request timeout.
 - `ApiClient` uses a 60-second client timeout so the server can wait out a slow model response. Keep it above `LLM_TIMEOUT`.
 
@@ -705,6 +715,11 @@ Request:
   "prompt": "前视基准面拉伸200x100x20底座，四角各打一个直径10mm通孔"
 }
 ```
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `prompt` | string | yes | Natural-language request; prompts longer than `MAX_PROMPT_LENGTH` are rejected |
+| `language` | string | no | `zh`, `en`, or `fr`; detected from the prompt when omitted |
 
 Success — `200 OK` with the feature tree:
 
@@ -778,16 +793,17 @@ Vulcan/
 ├── SECURITY.md                   # Security policy and key rotation
 ├── pyproject.toml                # Ruff, Black, and mypy configuration
 ├── client/                       # Active C# / WPF client
-│   └── Vulcan.SolidWorksClient/
-│       ├── Core/                 #   SwAddIn — COM registration and lifecycle
-│       ├── Models/               #   ModelData — request/response types
-│       ├── Services/             #   ApiClient, SwModeler, ModelingEngine, validator
-│       ├── UI/                   #   MainWindow, task pane, SettingsWindow, PreviewWindow
-│       ├── ReferenceDLL/         #   SolidWorks interop assemblies
-│       ├── Vulcan Setup/         #   Inno Setup installer
-│       └── packaging/            #   install/uninstall scripts and build_installer.ps1
-├── client/tests/                 #   Dependency-free validator test runner (CI)
-│   └── Vulcan.Client.Tests/
+│   ├── Vulcan.SolidWorksClient/
+│   │   ├── Core/                 #   SwAddIn — COM registration and lifecycle
+│   │   ├── Models/               #   ModelData — request/response types
+│   │   ├── Services/             #   ApiClient, SwModeler, ModelingEngine, VulcanStatus, validator
+│   │   ├── UI/                   #   MainWindow, task pane, SettingsWindow, PreviewWindow, StatusWindow
+│   │   ├── icons/                #   Brand icons and command icon strips
+│   │   ├── ReferenceDLL/         #   SolidWorks interop assemblies
+│   │   ├── Vulcan Setup/         #   Inno Setup installer
+│   │   ├── packaging/            #   install/uninstall scripts
+│   │   └── build_installer.ps1   #   Stages dist and builds the installer
+│   └── tests/Vulcan.Client.Tests/ #   Dependency-free validator test runner (CI)
 ├── server/                       # Active Flask server
 │   ├── app.py                    #   Flask entry point
 │   ├── config.py                 #   Environment configuration
@@ -805,10 +821,10 @@ Vulcan/
 ├── docs/
 │   └── assets/                   # Shared figures, screenshots, and GIFs for the three READMEs
 ├── scripts/                      # Maintenance scripts
-└── tools/                        # Documentation and demo tooling
+└── tools/                        # SolidWorksVerify and demo-media tooling
 ```
 
-**Repository notes.** The maintained client compiles `Core/SwAddIn.cs`. The beta track is archived under `archive/beta/` and is not maintained. Build artifacts, logs, `.env` files, and the installer payload are ignored by git.
+**Repository notes.** The maintained client lives in `client/Vulcan.SolidWorksClient`; `Core/SwAddIn.cs` handles COM registration and command wiring. The beta track is archived under `archive/beta/` and is not maintained. Build artifacts, logs, `.env` files, and the installer payload are ignored by git.
 
 ## Compatibility and current scope
 
@@ -844,6 +860,7 @@ Vulcan/
 | Preview rejects the edited JSON | The edit no longer matches the contract | Keep `feature_type` (or `features`) and a `params` object; see the JSON contract |
 | Settings do not persist | `%APPDATA%\Vulcan` is not writable, or the Windows profile changed | Check folder permissions; the secrets are DPAPI-encrypted per Windows user |
 | Ribbon missing after reinstalling | An old registration still points at the previous DLL path | Run `uninstall.bat` as administrator, then reinstall |
+| Command icons are blank or the tab is empty | Icon strips are missing next to the DLL, or SolidWorks cached an older command group | Rerun the installer and confirm `icons\commands\strip_*.png` exists; restart SolidWorks |
 | Model appears but holes are in the wrong place | The plane or coordinate convention does not match the request | Inspect the returned JSON; the four-corner heuristic assumes front-plane X/Y |
 
 Server logs are written to `vulcan_server.log` in the working directory, rotated at 5 MB, and ignored by git. Prompts are logged by length at INFO level; set `LOG_LEVEL=DEBUG` to include full content locally. Client logs are written to `Vulcan_Logs/log_YYYYMMDD.txt` on the desktop.
@@ -866,6 +883,8 @@ Server logs are written to `vulcan_server.log` in the working directory, rotated
 - [x] A task-pane UI instead of a modal panel.
 - [x] Assembly-level operations and drawing annotations.
 
+All planned roadmap items are complete. New work is tracked in GitHub issues.
+
 ## Contributing
 
 Pull requests are welcome. For significant changes, open an issue first so the approach can be discussed.
@@ -877,7 +896,7 @@ Good places to help:
 - **Testing:** extend the Python tests and build a COM abstraction that can run in CI.
 - **Documentation:** improve the three READMEs or add localized screenshots and examples.
 
-Before opening a pull request, run `pytest` and `pip-audit`, exercise at least one prompt end to end, and keep `.env`, logs, and build artifacts out of the commit. The project is GPLv3; contributions are accepted under the same license.
+Before opening a pull request, run `pytest`, `pip-audit`, and the client test runner, exercise at least one prompt end to end, and keep `.env`, logs, and build artifacts out of the commit. The project is GPLv3; contributions are accepted under the same license.
 
 ## License
 

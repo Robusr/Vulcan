@@ -58,8 +58,8 @@
   </g>
   <text class="ui cardTitle" x="122" y="288">Vulcan add-in</text>
   <text class="ui cardMono" x="82" y="314">C# · WPF · .NET Framework 4.8</text>
-  <text class="ui cardBody" x="82" y="336">Ribbon tab, prompt panel; typed JSON to feature calls.</text>
-  <text class="ui cardBody" x="82" y="356">Editable preview; nothing is written until 执行建模.</text>
+  <text class="ui cardBody" x="82" y="336">Tab, toolbar, task pane, status window.</text>
+  <text class="ui cardBody" x="82" y="356">Typed JSON → native features; preview before build.</text>
   <rect x="82" y="366" width="106" height="14" rx="7" fill="#FEF3C7"/>
   <text class="ui" x="135" y="377" text-anchor="middle" font-size="9.5" font-weight="700" fill="#92400E">WINDOWS ONLY</text>
 
@@ -72,8 +72,8 @@
   <!-- server cards -->
   <rect x="456" y="160" width="288" height="96" rx="12" fill="#FFFFFF" stroke="#DBEAFE" filter="url(#cardShadow)"/>
   <text class="ui cardTitle" x="476" y="188">Flask API</text>
-  <text class="ui cardMono" x="476" y="210">POST /api/v1/generate</text>
-  <text class="ui cardBody" x="476" y="232">Envelope check · rate limit · optional bearer token</text>
+  <text class="ui cardMono" x="476" y="210">POST /api/v1/generate · SSE /stream</text>
+  <text class="ui cardBody" x="476" y="232">Envelope + feature validation · rate limit · SSE</text>
 
   <line x1="600" y1="258" x2="600" y2="280" stroke="#93C5FD" stroke-width="1.4" stroke-dasharray="4 4" marker-end="url(#a)"/>
 
