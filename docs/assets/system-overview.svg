@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="790" viewBox="0 0 1200 790" role="img" aria-labelledby="overview-title overview-desc">
+  <title id="overview-title">Vulcan system overview</title>
+  <desc id="overview-desc">A three-panel system schematic: the client describes a part and reviews editable JSON; the server assembles a versioned domain prompt, calls any OpenAI-compatible provider, and validates the returned feature tree; the client then executes the typed tree through native SolidWorks COM APIs and produces an editable feature tree. Two human gates protect the document.</desc>
+  <defs>
+    <marker id="oa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#8A8A83"/>
+    </marker>
+    <marker id="or" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#C8102E"/>
+    </marker>
+    <style>
+      .ui { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; }
+      .kicker { font-size: 10.5px; font-weight: 700; letter-spacing: 2px; fill: #C8102E; }
+      .h { font-size: 17.5px; font-weight: 700; fill: #171717; }
+      .sub { font-size: 11.5px; fill: #66665F; }
+      .boxTitle { font-size: 13px; font-weight: 700; fill: #171717; }
+      .body { font-size: 11px; fill: #55554F; }
+      .small { font-size: 10.5px; fill: #6E6E67; }
+      .code { font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; font-size: 10.2px; fill: #2E2E2E; }
+      .tag { font-size: 9.5px; font-weight: 700; letter-spacing: 0.6px; }
+      .note { font-size: 10.5px; fill: #6E6E67; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="790" fill="#FFFFFF"/>
+
+  <!-- header -->
+  <text class="ui" x="1152" y="44" text-anchor="end" font-size="10" font-weight="700" letter-spacing="2" fill="#8A8A83">SYSTEM SCHEMATIC</text>
+  <text class="ui" x="48" y="58" font-size="26" font-weight="700" fill="#171717">Vulcan: natural language in, parametric geometry out</text>
+  <text class="ui" x="48" y="86" font-size="14" fill="#66665F">The model fills a typed schema. The server validates it, the client previews it, and the client executes it — the model never touches SolidWorks.</text>
+  <line x1="48" y1="106" x2="1152" y2="106" stroke="#DADAD4" stroke-width="1"/>
+
+  <!-- column rules -->
+  <line x1="408" y1="124" x2="408" y2="646" stroke="#E6E6E0" stroke-width="1"/>
+  <line x1="792" y1="124" x2="792" y2="646" stroke="#E6E6E0" stroke-width="1"/>
+
+  <!-- ============ COLUMN A: DESCRIBE ============ -->
+  <text class="ui kicker" x="48" y="150">01 · DESCRIBE</text>
+  <text class="ui h" x="48" y="178">Client &amp; human review</text>
+  <text class="ui sub" x="48" y="200">SolidWorks 2025 · C# / WPF · .NET Framework 4.8</text>
+
+  <!-- task pane -->
+  <rect x="48" y="220" width="344" height="152" fill="#FAFAF8" stroke="#DADAD4"/>
+  <line x1="48" y1="244" x2="392" y2="244" stroke="#DADAD4"/>
+  <text class="ui" x="62" y="235" font-size="11.5" font-weight="700" fill="#171717">Vulcan AI · task pane</text>
+  <text class="ui small" x="378" y="235" text-anchor="end">prompt</text>
+  <rect x="62" y="256" width="316" height="62" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui" x="76" y="280" font-size="11.2" fill="#171717">在前视基准面拉伸一个直径 40、</text>
+  <text class="ui" x="76" y="298" font-size="11.2" fill="#171717">高度 60 的圆柱体。</text>
+  <rect x="62" y="330" width="104" height="28" fill="#C8102E"/>
+  <text class="ui" x="114" y="348" text-anchor="middle" font-size="11.2" font-weight="700" fill="#FFFFFF">开始生成</text>
+  <text class="ui note" x="180" y="348" font-size="10">streamed over SSE; falls back to POST</text>
+
+  <!-- preview -->
+  <rect x="48" y="388" width="344" height="160" fill="#FAFAF8" stroke="#DADAD4"/>
+  <line x1="48" y1="412" x2="392" y2="412" stroke="#DADAD4"/>
+  <text class="ui" x="62" y="403" font-size="11.5" font-weight="700" fill="#171717">Preview · editable JSON</text>
+  <text class="ui" x="378" y="403" text-anchor="end" font-size="9.5" font-weight="700" fill="#C8102E">GATE 2</text>
+  <rect x="62" y="424" width="204" height="86" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="code" x="74" y="442">{</text>
+  <text class="code" x="74" y="458">  "feature_type": "extrude",</text>
+  <text class="code" x="74" y="474">  "params": { … }</text>
+  <text class="code" x="74" y="490">}</text>
+  <text class="ui small" x="74" y="504" font-size="9.5">live schema validation</text>
+  <rect x="62" y="518" width="88" height="24" fill="#C8102E"/>
+  <text class="ui" x="106" y="534" text-anchor="middle" font-size="10.5" font-weight="700" fill="#FFFFFF">执行建模</text>
+  <rect x="158" y="518" width="60" height="24" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui" x="188" y="534" text-anchor="middle" font-size="10.5" fill="#55554F">取消</text>
+  <text class="ui small" x="280" y="436" font-size="10">edit any field;</text>
+  <text class="ui small" x="280" y="452" font-size="10">cancelling leaves</text>
+  <text class="ui small" x="280" y="468" font-size="10">the document</text>
+  <text class="ui small" x="280" y="484" font-size="10">untouched.</text>
+
+  <text class="mono" x="48" y="578" font-size="10.2" fill="#2E2E2E">%APPDATA%\Vulcan\settings.json</text>
+  <text class="ui note" x="48" y="596" font-size="10.2">Server URL · bearer token · BYOK key, encrypted with DPAPI</text>
+  <rect x="48" y="614" width="8" height="8" fill="#C8102E"/>
+  <text class="ui" x="64" y="622" font-size="10.5" fill="#55554F">Human checkpoint before any COM call</text>
+
+  <!-- ============ COLUMN B: PARAMETERIZE ============ -->
+  <text class="ui kicker" x="432" y="150">02 · PARAMETERIZE</text>
+  <text class="ui h" x="432" y="178">Contract &amp; inference</text>
+  <text class="ui sub" x="432" y="200">Python 3.10+ · Flask 3 · any OpenAI-compatible API</text>
+
+  <rect x="432" y="220" width="344" height="88" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="448" y="244">1 · Prompt assembly</text>
+  <text class="mono" x="760" y="244" text-anchor="end" font-size="9.8" fill="#C8102E">v3.0.0</text>
+  <text class="ui body" x="448" y="266">Native zh / en / fr domain prompts, selected</text>
+  <text class="ui body" x="448" y="284">explicitly or detected from the request text.</text>
+
+  <line x1="604" y1="310" x2="604" y2="328" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+
+  <rect x="432" y="330" width="344" height="96" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="448" y="354">2 · Provider adapter</text>
+  <text class="ui small" x="760" y="354" text-anchor="end" font-size="9.8">30 s timeout</text>
+  <text class="mono" x="448" y="376" font-size="9.8" fill="#2E2E2E">OpenAI-compatible: /chat/completions</text>
+  <text class="mono" x="448" y="393" font-size="9.8" fill="#2E2E2E">Anthropic: /messages</text>
+  <text class="ui body" x="448" y="414">temperature 0.05 · max_tokens 2048 · top_p 0.95</text>
+
+  <line x1="604" y1="428" x2="604" y2="446" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+
+  <rect x="432" y="448" width="344" height="108" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="448" y="472">3 · Recover &amp; validate</text>
+  <text class="ui" x="760" y="472" text-anchor="end" font-size="9.5" font-weight="700" fill="#C8102E">GATE 1</text>
+  <text class="ui body" x="448" y="494">strip fences → first { … } → parse</text>
+  <text class="ui body" x="448" y="512">envelope · feature params · base-block geometry</text>
+  <text class="ui note" x="448" y="534" font-size="10">rejects: 400 invalid · 401 token · 429 rate · 503 provider</text>
+  <line x1="448" y1="542" x2="760" y2="542" stroke="#F0F0EB"/>
+  <text class="ui small" x="448" y="556" font-size="9.8">BYOK headers are forwarded per request and never logged.</text>
+
+  <rect x="432" y="570" width="344" height="58" fill="#FAEEF0" stroke="#E8C9CE"/>
+  <text class="mono" x="448" y="592" font-size="9.8" fill="#7A1230">{ "model_name": "…", "features": [ … ] }</text>
+  <text class="ui" x="448" y="612" font-size="10.2" fill="#7A1230">Data, not code — there is no exec() in the release track.</text>
+
+  <!-- ============ COLUMN C: EXECUTE ============ -->
+  <text class="ui kicker" x="816" y="150">03 · EXECUTE</text>
+  <text class="ui h" x="816" y="178">Deterministic build</text>
+  <text class="ui sub" x="816" y="200">Typed model → ordered features → native COM</text>
+
+  <rect x="816" y="220" width="336" height="62" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="832" y="244">Typed model</text>
+  <text class="mono" x="832" y="264" font-size="9.8" fill="#2E2E2E">ModelData · FeatureItem · Newtonsoft.Json</text>
+
+  <line x1="984" y1="286" x2="984" y2="304" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+
+  <rect x="816" y="306" width="336" height="86" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="832" y="330">ModelingEngine</text>
+  <text class="ui body" x="832" y="352">Runs the tree in order; resolves seed names to</text>
+  <text class="ui body" x="832" y="370">generated feature names; reports partial runs.</text>
+
+  <line x1="984" y1="396" x2="984" y2="414" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+
+  <rect x="816" y="416" width="336" height="92" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="832" y="440">SwModeler · COM</text>
+  <text class="mono" x="832" y="462" font-size="9.6" fill="#2E2E2E">FeatureExtrusion3 · FeatureCut4</text>
+  <text class="mono" x="832" y="478" font-size="9.6" fill="#2E2E2E">FeatureRevolve · FeatureFillet3</text>
+  <text class="mono" x="832" y="494" font-size="9.6" fill="#2E2E2E">InsertFeatureChamfer · patterns · shell</text>
+
+  <line x1="984" y1="512" x2="984" y2="530" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+
+  <rect x="816" y="532" width="336" height="104" fill="#FAFAF8" stroke="#DADAD4"/>
+  <text class="ui boxTitle" x="832" y="554">Native feature tree</text>
+  <g>
+    <rect x="832" y="566" width="72" height="52" rx="3" fill="#FFFFFF" stroke="#8A8A83"/>
+    <circle cx="846" cy="580" r="4" fill="#FFFFFF" stroke="#C8102E"/>
+    <circle cx="890" cy="580" r="4" fill="#FFFFFF" stroke="#C8102E"/>
+    <circle cx="846" cy="604" r="4" fill="#FFFFFF" stroke="#C8102E"/>
+    <circle cx="890" cy="604" r="4" fill="#FFFFFF" stroke="#C8102E"/>
+  </g>
+  <text class="ui" x="920" y="574" font-size="10.2" fill="#171717">凸台-拉伸1</text>
+  <text class="ui" x="920" y="590" font-size="10.2" fill="#55554F">切除-拉伸1 … 4</text>
+  <text class="ui" x="920" y="606" font-size="10.2" fill="#55554F">圆角1</text>
+  <text class="ui" x="920" y="626" font-size="10" font-weight="700" fill="#C8102E">editable · parametric</text>
+
+  <text class="ui note" x="816" y="654" font-size="10">Fallback: native feature panel for extrusions and through cuts.</text>
+
+  <!-- ============ BOTTOM LOOP ============ -->
+  <line x1="48" y1="672" x2="1152" y2="672" stroke="#DADAD4" stroke-width="1"/>
+
+  <rect x="48" y="688" width="244" height="48" fill="#FAFAF8" stroke="#DADAD4"/>
+  <text class="ui" x="64" y="708" font-size="11" font-weight="700" fill="#C8102E">01 · Language</text>
+  <text class="ui note" x="64" y="724" font-size="10">a sentence in zh, en, or fr</text>
+
+  <rect x="328" y="688" width="244" height="48" fill="#FAFAF8" stroke="#DADAD4"/>
+  <text class="ui" x="344" y="708" font-size="11" font-weight="700" fill="#C8102E">02 · JSON contract</text>
+  <text class="ui note" x="344" y="724" font-size="10">typed, ordered, validated</text>
+
+  <rect x="608" y="688" width="244" height="48" fill="#FAFAF8" stroke="#DADAD4"/>
+  <text class="ui" x="624" y="708" font-size="11" font-weight="700" fill="#C8102E">03 · Human review</text>
+  <text class="ui note" x="624" y="724" font-size="10">edit, confirm, or cancel</text>
+
+  <rect x="888" y="688" width="244" height="48" fill="#FAFAF8" stroke="#DADAD4"/>
+  <text class="ui" x="904" y="708" font-size="11" font-weight="700" fill="#C8102E">04 · Native geometry</text>
+  <text class="ui note" x="904" y="724" font-size="10">features you can edit later</text>
+
+  <line x1="294" y1="712" x2="322" y2="712" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+  <line x1="574" y1="712" x2="602" y2="712" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+  <line x1="854" y1="712" x2="882" y2="712" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#oa)"/>
+
+  <text class="ui note" x="48" y="766" font-size="10.5">Two gates keep the model away from the document: schema validation on the server, human confirmation on the client.</text>
+  <text class="ui" x="1152" y="766" text-anchor="end" font-size="9.5" fill="#8A8A83">Conceptual schematic; feature names illustrative.</text>
+</svg>

@@ -1,106 +1,105 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="480" viewBox="0 0 1200 480" role="img" aria-labelledby="app-title app-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="app-title app-desc">
   <title id="app-title">Beta versus Rebuild architecture</title>
-  <desc id="app-desc">The legacy Beta track generated Python code and executed it; the active Rebuild track generates a validated JSON feature tree.</desc>
+  <desc id="app-desc">Two tracks. The archived Beta track generated Python code and executed it client-side with exec(). The active Rebuild track generates a typed JSON feature tree, validates it, previews it, and then executes native COM calls.</desc>
   <defs>
     <marker id="fa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#8E8E93"/>
+      <path d="M0 0L10 5L0 10z" fill="#8A8A83"/>
     </marker>
-    <filter id="as" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="7" flood-color="#0A0A0A" flood-opacity="0.05"/>
-    </filter>
     <style>
-      .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
-      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-      .node { font-size: 12.3px; font-weight: 600; fill: #1C1C1E; }
-      .sub { font-size: 10.5px; fill: #6E6E73; }
-      .tag { font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; }
+      .ui { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; }
+      .tag { font-size: 10px; font-weight: 700; letter-spacing: 1.8px; }
+      .sub { font-size: 10.4px; fill: #6E6E67; }
+      .node { font-size: 12px; font-weight: 700; fill: #171717; }
+      .small { font-size: 9.8px; fill: #55554F; }
+      .noteTitle { font-size: 11px; font-weight: 700; fill: #171717; }
+      .noteBody { font-size: 9.8px; fill: #55554F; }
     </style>
   </defs>
 
-  <rect width="1200" height="480" fill="#FAFAFA"/>
-  <rect x="1" y="1" width="1198" height="478" rx="18" fill="#FFFFFF" stroke="#E5E5EA"/>
-  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0A0A0A">Two generations, one evolution</text>
-  <text class="ui" x="48" y="82" font-size="14" fill="#6E6E73">The Beta track proved the idea. The Rebuild track made it safe to ship.</text>
+  <rect width="1200" height="500" fill="#FFFFFF"/>
+  <text class="ui" x="1152" y="44" text-anchor="end" font-size="10" font-weight="700" letter-spacing="2" fill="#8A8A83">DESIGN EVOLUTION</text>
+  <text class="ui" x="48" y="58" font-size="26" font-weight="700" fill="#171717">Two generations, one evolution</text>
+  <text class="ui" x="48" y="86" font-size="14" fill="#66665F">The Beta track proved the idea. The Rebuild track made it safe to ship.</text>
+  <line x1="48" y1="106" x2="1152" y2="106" stroke="#DADAD4"/>
 
   <!-- beta lane -->
-  <rect x="40" y="112" width="1120" height="132" rx="16" fill="#F2F2F7" stroke="#D1D1D6"/>
-  <text class="ui tag" x="64" y="140" fill="#6E6E73">BETA · LEGACY</text>
-  <text class="ui sub" x="64" y="158">LLM output was executable Python.</text>
+  <rect x="40" y="128" width="1120" height="136" fill="#FAFAF8" stroke="#E6E6E0"/>
+  <text class="ui tag" x="56" y="150" fill="#6E6E67">BETA · ARCHIVED</text>
+  <text class="ui sub" x="56" y="168">LLM output was executable Python.</text>
 
-  <g>
-    <rect x="64" y="172" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#C7C7CC" filter="url(#as)"/>
-    <text class="ui node" x="139" y="195" text-anchor="middle">Natural language</text>
-    <text class="ui sub" x="139" y="212" text-anchor="middle">PyQt5 panel</text>
+  <rect x="56" y="180" width="160" height="64" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui node" x="136" y="204" text-anchor="middle">Natural language</text>
+  <text class="ui small" x="136" y="222" text-anchor="middle">PyQt5 panel</text>
 
-    <rect x="238" y="172" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#C7C7CC" filter="url(#as)"/>
-    <text class="ui node" x="313" y="195" text-anchor="middle">LLM</text>
-    <text class="ui sub" x="313" y="212" text-anchor="middle">FastAPI · AsyncOpenAI</text>
+  <rect x="236" y="180" width="160" height="64" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui node" x="316" y="204" text-anchor="middle">LLM</text>
+  <text class="ui small" x="316" y="222" text-anchor="middle">FastAPI · AsyncOpenAI</text>
 
-    <rect x="412" y="172" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#C7C7CC" filter="url(#as)"/>
-    <text class="ui mono" x="487" y="196" text-anchor="middle" font-size="11.5" fill="#1C1C1E">Python code</text>
-    <text class="ui sub" x="487" y="212" text-anchor="middle">free-form string</text>
+  <rect x="416" y="180" width="160" height="64" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui mono" x="496" y="204" text-anchor="middle" font-size="11.5" fill="#171717">Python code</text>
+  <text class="ui small" x="496" y="222" text-anchor="middle">free-form string</text>
 
-    <rect x="586" y="172" width="150" height="54" rx="10" fill="#FEF2F2" stroke="#FCA5A5" filter="url(#as)"/>
-    <text class="ui mono" x="661" y="196" text-anchor="middle" font-size="12.5" fill="#7F1D1D">exec()</text>
-    <text class="ui sub" x="661" y="212" text-anchor="middle">client-side</text>
+  <rect x="596" y="180" width="160" height="64" fill="#FAEEF0" stroke="#E8C9CE"/>
+  <text class="ui mono" x="676" y="204" text-anchor="middle" font-size="12.5" fill="#7A1230">exec()</text>
+  <text class="ui small" x="676" y="222" text-anchor="middle">client-side execution</text>
 
-    <rect x="760" y="172" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#C7C7CC" filter="url(#as)"/>
-    <text class="ui node" x="835" y="195" text-anchor="middle">COM</text>
-    <text class="ui sub" x="835" y="212" text-anchor="middle">SolidWorks</text>
+  <rect x="776" y="180" width="160" height="64" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui node" x="856" y="204" text-anchor="middle">COM</text>
+  <text class="ui small" x="856" y="222" text-anchor="middle">SolidWorks</text>
+
+  <rect x="960" y="180" width="184" height="64" fill="#FFFFFF" stroke="#DADAD4"/>
+  <text class="ui noteTitle" x="974" y="201">Flexible, but fragile</text>
+  <text class="ui noteBody" x="974" y="218">non-deterministic execution</text>
+  <text class="ui noteBody" x="974" y="233">crash and injection surface</text>
+
+  <g stroke="#8A8A83" stroke-width="1.2">
+    <line x1="216" y1="212" x2="234" y2="212" marker-end="url(#fa)"/>
+    <line x1="396" y1="212" x2="414" y2="212" marker-end="url(#fa)"/>
+    <line x1="576" y1="212" x2="594" y2="212" marker-end="url(#fa)"/>
+    <line x1="756" y1="212" x2="774" y2="212" marker-end="url(#fa)"/>
   </g>
-  <g stroke="#8E8E93" stroke-width="1.3">
-    <line x1="214" y1="199" x2="236" y2="199" marker-end="url(#fa)"/>
-    <line x1="388" y1="199" x2="410" y2="199" marker-end="url(#fa)"/>
-    <line x1="562" y1="199" x2="584" y2="199" marker-end="url(#fa)"/>
-    <line x1="736" y1="199" x2="758" y2="199" marker-end="url(#fa)"/>
-  </g>
-  <rect x="934" y="140" width="202" height="88" rx="10" fill="#FFFFFF" stroke="#D1D1D6"/>
-  <text class="ui" x="950" y="162" font-size="11.5" font-weight="700" fill="#3A3A3C">Flexible, but fragile</text>
-  <text class="ui sub" x="950" y="182">Non-deterministic execution</text>
-  <text class="ui sub" x="950" y="198">Crash and injection surface</text>
-  <text class="ui sub" x="950" y="214">Debugging means reading code</text>
 
   <!-- transition -->
-  <line x1="600" y1="250" x2="600" y2="288" stroke="#8E8E93" stroke-width="1.4" marker-end="url(#fa)"/>
-  <text class="ui" x="614" y="274" font-size="10.5" font-weight="600" fill="#6E6E73">architectural hardening</text>
+  <line x1="600" y1="264" x2="600" y2="306" stroke="#8A8A83" stroke-width="1.2" marker-end="url(#fa)"/>
+  <text class="ui small" x="614" y="288" font-size="10.2" fill="#55554F">architectural hardening · move execution into the client, replace code with data</text>
 
   <!-- rebuild lane -->
-  <rect x="40" y="296" width="1120" height="132" rx="16" fill="#FFF1F2" stroke="#FECDD3"/>
-  <text class="ui tag" x="64" y="324" fill="#B3121F">REBUILD · ACTIVE</text>
-  <text class="ui sub" x="64" y="342">LLM output is a typed parameter tree.</text>
+  <rect x="40" y="314" width="1120" height="136" fill="#FAEEF0" stroke="#E8C9CE"/>
+  <text class="ui tag" x="56" y="336" fill="#C8102E">REBUILD · ACTIVE</text>
+  <text class="ui sub" x="56" y="354">LLM output is a typed parameter tree.</text>
 
-  <g>
-    <rect x="64" y="356" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#FCA5A5" filter="url(#as)"/>
-    <text class="ui node" x="139" y="379" text-anchor="middle">Natural language</text>
-    <text class="ui sub" x="139" y="396" text-anchor="middle">WPF panel</text>
+  <rect x="56" y="366" width="160" height="64" fill="#FFFFFF" stroke="#E8C9CE"/>
+  <text class="ui node" x="136" y="390" text-anchor="middle">Natural language</text>
+  <text class="ui small" x="136" y="408" text-anchor="middle">WPF panel</text>
 
-    <rect x="238" y="356" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#FCA5A5" filter="url(#as)"/>
-    <text class="ui node" x="313" y="379" text-anchor="middle">LLM</text>
-    <text class="ui sub" x="313" y="396" text-anchor="middle">Flask · requests</text>
+  <rect x="236" y="366" width="160" height="64" fill="#FFFFFF" stroke="#E8C9CE"/>
+  <text class="ui node" x="316" y="390" text-anchor="middle">LLM</text>
+  <text class="ui small" x="316" y="408" text-anchor="middle">Flask · requests</text>
 
-    <rect x="412" y="356" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#FCA5A5" filter="url(#as)"/>
-    <text class="ui mono" x="487" y="380" text-anchor="middle" font-size="11.5" fill="#1C1C1E">JSON tree</text>
-    <text class="ui sub" x="487" y="396" text-anchor="middle">schema-constrained</text>
+  <rect x="416" y="366" width="160" height="64" fill="#FFFFFF" stroke="#E8C9CE"/>
+  <text class="ui mono" x="496" y="390" text-anchor="middle" font-size="11.5" fill="#171717">JSON tree</text>
+  <text class="ui small" x="496" y="408" text-anchor="middle">schema-constrained</text>
 
-    <rect x="586" y="356" width="150" height="54" rx="10" fill="#FFF1F2" stroke="#F87171" filter="url(#as)"/>
-    <text class="ui node" x="661" y="379" text-anchor="middle">Typed model</text>
-    <text class="ui sub" x="661" y="396" text-anchor="middle">shape check · preview</text>
+  <rect x="596" y="366" width="160" height="64" fill="#FFFFFF" stroke="#C8102E"/>
+  <text class="ui node" x="676" y="390" text-anchor="middle">Typed model</text>
+  <text class="ui small" x="676" y="408" text-anchor="middle">validate · preview · confirm</text>
 
-    <rect x="760" y="356" width="150" height="54" rx="10" fill="#FFFFFF" stroke="#FCA5A5" filter="url(#as)"/>
-    <text class="ui node" x="835" y="379" text-anchor="middle">COM</text>
-    <text class="ui sub" x="835" y="396" text-anchor="middle">SolidWorks</text>
+  <rect x="776" y="366" width="160" height="64" fill="#FFFFFF" stroke="#E8C9CE"/>
+  <text class="ui node" x="856" y="390" text-anchor="middle">COM</text>
+  <text class="ui small" x="856" y="408" text-anchor="middle">SolidWorks</text>
+
+  <rect x="960" y="366" width="184" height="64" fill="#FFFFFF" stroke="#E8C9CE"/>
+  <text class="ui noteTitle" x="974" y="387">Deterministic, debuggable</text>
+  <text class="ui noteBody" x="974" y="404">no eval, no exec</text>
+  <text class="ui noteBody" x="974" y="419">human gate before execution</text>
+
+  <g stroke="#8A8A83" stroke-width="1.2">
+    <line x1="216" y1="398" x2="234" y2="398" marker-end="url(#fa)"/>
+    <line x1="396" y1="398" x2="414" y2="398" marker-end="url(#fa)"/>
+    <line x1="576" y1="398" x2="594" y2="398" marker-end="url(#fa)"/>
+    <line x1="756" y1="398" x2="774" y2="398" marker-end="url(#fa)"/>
   </g>
-  <g stroke="#8E8E93" stroke-width="1.3">
-    <line x1="214" y1="383" x2="236" y2="383" marker-end="url(#fa)"/>
-    <line x1="388" y1="383" x2="410" y2="383" marker-end="url(#fa)"/>
-    <line x1="562" y1="383" x2="584" y2="383" marker-end="url(#fa)"/>
-    <line x1="736" y1="383" x2="758" y2="383" marker-end="url(#fa)"/>
-  </g>
-  <rect x="934" y="324" width="202" height="88" rx="10" fill="#FFFFFF" stroke="#FCA5A5"/>
-  <text class="ui" x="950" y="346" font-size="11.5" font-weight="700" fill="#B3121F">Deterministic, debuggable</text>
-  <text class="ui sub" x="950" y="366">No eval, no exec</text>
-  <text class="ui sub" x="950" y="382">Editable preview before execution</text>
-  <text class="ui sub" x="950" y="398">UI fallback on COM failure</text>
 
-  <text class="ui" x="48" y="456" font-size="11.5" fill="#8E8E93">Beta is archived under archive/beta/; the maintained client and server live in client/ and server/.</text>
+  <text class="ui small" x="48" y="480" font-size="10.4" fill="#6E6E67">Beta is archived under archive/beta/; the maintained client and server live in client/ and server/.</text>
 </svg>

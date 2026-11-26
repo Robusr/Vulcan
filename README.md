@@ -26,23 +26,37 @@
 </p>
 
 <p align="center">
+  <a href="#system-overview">Overview</a> ·
   <a href="#why-vulcan">Why Vulcan</a> ·
   <a href="#what-it-does">What it does</a> ·
   <a href="#capabilities">Capabilities</a> ·
   <a href="#system-architecture">Architecture</a> ·
   <a href="#the-json-contract">JSON contract</a> ·
   <a href="#quick-start">Quick start</a> ·
-  <a href="#install-upgrade-and-uninstall">Install</a> ·
   <a href="#operation-walkthrough">Walkthrough</a> ·
+  <a href="#install-upgrade-and-uninstall">Install</a> ·
   <a href="#testing">Testing</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#api-reference">API</a> ·
+  <a href="#release-notes">Release notes</a> ·
   <a href="#roadmap">Roadmap</a>
 </p>
 
 <p align="center">
   <img src="docs/assets/banner.svg" alt="Vulcan: natural language in, parametric geometry out" width="100%">
 </p>
+
+## System overview
+
+<p align="center">
+  <img src="docs/assets/system-overview.svg" alt="Vulcan system overview: describe on the client, parameterize on the server, execute deterministically in SolidWorks, with schema validation and human confirmation as the two gates" width="100%">
+</p>
+
+<p align="center">
+  <sub>System overview. The model fills a typed schema; the server and client validate it, the client previews it, and the client executes native features. Two gates keep model output away from the document.</sub>
+</p>
+
+Vulcan is a closed loop with one contract in the middle. A request starts as a sentence in the SolidWorks task pane. The server turns it into a typed feature tree, the add-in shows that tree as editable JSON, and only a confirmed tree reaches the COM modeler. The model never executes code, and the document is never touched without a human confirmation.
 
 ## Why Vulcan
 
@@ -64,7 +78,7 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 </p>
 
 <p align="center">
-  <sub>Illustrative response. The same contract accepts a base extrude followed by an ordered list of cuts.</sub>
+  <sub>Worked example. A sentence becomes an editable JSON tree, then a native feature. The same contract accepts a base extrude followed by an ordered list of cuts.</sub>
 </p>
 
 <p align="center">
@@ -101,7 +115,7 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 | Provider freedom | OpenAI, Anthropic, DeepSeek, Qwen, Qiniu Cloud, vLLM, Ollama, or any compatible endpoint. |
 | Portable server | Runs locally, in Docker, or behind a tunnel; only the client needs Windows. |
 | Debuggable pipeline | No `exec()` in the release track; each stage is logged and typed. |
-| API-first execution | Native feature APIs first. Extrusion and cut failures fall back to a keyboard-driven native panel. |
+| API-first execution | Native feature APIs first. Extrusion and through-cut failures fall back to a keyboard-driven native panel; blind cuts stop instead, so a failed cut cannot silently cut through the part. |
 | Bring your own key | Set the provider key, base URL, and model in the add-in settings dialog. The key is DPAPI-encrypted on your machine and sent only to your Vulcan server, for the duration of a request. |
 | Editable preview | Every response opens in an editable JSON preview. Nothing reaches SolidWorks until you review and confirm the feature tree. |
 | CommandManager tools | Eight commands on the Vulcan AI tab and toolbar (pane, both examples, settings, connection test, status, logs, about), task pane quick actions, and a status window with live health and the last run. |
@@ -109,8 +123,14 @@ This README focuses on `client/` and `server/`. The beta track is archived under
 
 ## System architecture
 
+The [system overview](#system-overview) shows the conceptual loop; this section describes the deployed components.
+
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="Vulcan system architecture: Windows client, Python server, LLM provider" width="100%">
+  <img src="docs/assets/architecture.svg" alt="Vulcan system architecture: Windows client, Python server, LLM provider, joined by one typed contract" width="100%">
+</p>
+
+<p align="center">
+  <sub>Component view. Three processes joined by one typed contract; the client always runs beside SolidWorks.</sub>
 </p>
 
 | Layer | Stack | Responsibility |
@@ -151,7 +171,11 @@ The add-in registers a `Vulcan AI` CommandManager tab for parts, assemblies, and
 ## Request lifecycle
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="Seven-stage request lifecycle with latency and failure handling" width="100%">
+  <img src="docs/assets/pipeline.svg" alt="Seven-stage request lifecycle across client, server, and model lanes, with latency and the confirmation gate" width="100%">
+</p>
+
+<p align="center">
+  <sub>Request lifecycle. Seven stages across three lanes; the model call dominates latency, and confirmation is the last gate before COM.</sub>
 </p>
 
 1. **Request.** The add-in sends `{ "prompt": "..." }` to the Flask server.
@@ -160,14 +184,18 @@ The add-in registers a `Vulcan AI` CommandManager tab for parts, assemblies, and
 4. **Recovery.** The server strips markdown code fences, then extracts the first `{` through the last `}` before parsing.
 5. **Validation.** Flask checks the envelope and validates feature parameters. The C# client deserializes the envelope into typed model classes, then reads parameters from a dictionary and applies modeler defaults.
 6. **Preview and edit.** The add-in opens the feature tree in an editable JSON window; nothing is written until you confirm.
-7. **Execution.** `SwModeler` draws the sketch, selects it, and calls the native feature APIs, including `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, and `InsertFeatureChamfer`. Extrusion and cut failures use a keyboard-driven fallback to the native SolidWorks feature panel.
+7. **Execution.** `SwModeler` draws the sketch, selects it, and calls the native feature APIs, including `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, and `InsertFeatureChamfer`. Extrusion and through-cut failures use a keyboard-driven fallback to the native SolidWorks feature panel. A blind cut that fails at the API stops the run instead of falling back, because a simulated cut could go through the part.
 
 The model call dominates latency. Everything else is local and usually measured in milliseconds.
 
 ## The JSON contract
 
 <p align="center">
-  <img src="docs/assets/contract.svg" alt="Annotated JSON feature tree with envelope, feature types, shape parameters, units, and placement" width="100%">
+  <img src="docs/assets/contract.svg" alt="Annotated JSON feature tree with envelope, feature order, shape parameters, units and placement, and the feature library" width="100%">
+</p>
+
+<p align="center">
+  <sub>Data contract. A nineteen-line response is enough to describe an ordered, parametric feature tree.</sub>
 </p>
 
 ### Envelope
@@ -328,6 +356,10 @@ The release modeler routes sketches to the requested datum plane and resolves fr
   <img src="docs/assets/approach.svg" alt="Beta code-generation track versus the Rebuild JSON-contract track" width="100%">
 </p>
 
+<p align="center">
+  <sub>Design evolution. Beta executed generated code; Rebuild executes validated data.</sub>
+</p>
+
 ### JSON parameters instead of generated code
 
 The Beta track let the LLM emit Python code that the client ran with `exec()`. It was flexible and impressive in a demo, but fragile in practice: a hallucinated API call could crash SolidWorks, error recovery was nearly impossible, and debugging meant reading code nobody wrote.
@@ -348,7 +380,7 @@ Vulcan supplies that context through [`system_prompt.py`](server/prompts/system_
 
 ### API first, UI fallback second
 
-SolidWorks interop is version-sensitive. The modeler calls the native feature APIs directly, including `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, and `InsertFeatureChamfer`. If an extrusion or cut call fails, the fallback activates `RunCommand` and fills the native feature panel with simulated keystrokes.
+SolidWorks interop is version-sensitive. The modeler calls the native feature APIs directly, including `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3`, and `InsertFeatureChamfer`. If an extrusion or through-cut call fails, the fallback activates `RunCommand` and fills the native feature panel with simulated keystrokes. Blind cuts deliberately do not fall back: the run stops with the sketch in place, so a simulated depth cannot cut through the part.
 
 The fallback is pragmatic, not elegant. Keep SolidWorks focused while a model is generated, and treat a fallback that runs often as a signal to update the interop parameters.
 
@@ -508,38 +540,6 @@ The **检查并编辑建模参数** window shows the original request, a JSON ed
 ### 6. Inspect the result
 
 The modeler creates native features (for the example: `凸台-拉伸1` plus its sketch), zooms to fit, and leaves a **模型生成完成。** status in the pane. Client logs are written to `Vulcan_Logs\log_YYYYMMDD.txt`; server logs to `vulcan_server.log`.
-
-## What's new in 1.3.0
-
-- Added native `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` features.
-- Raised the prompt contract to `PROMPT_VERSION = "2.4.0"` and updated the English, Chinese, and French documentation.
-- Refreshed the add-in UI with a shared theme, a resizable prompt panel with examples, a dark JSON editor with live validation, and a grouped settings dialog with masked secrets.
-- Edited JSON is now validated client-side against the same rules as the server before SolidWorks is touched.
-- Fixed draft `propagation`, blind-cut fallback, four-hole coordinate heuristics, part-document checks, shell verification, repeated-run feature naming, and the second direction of linear patterns.
-- The server now rejects responses that mix `feature_type` with `features`, and validates simple geometry against the base block: hole bounds, fillet and chamfer size, shell thickness, and pattern extent.
-- The client reports how many features were created when a run aborts, and Release builds no longer require an elevated COM registration step.
-- Rate-limit state is bounded, an optional trusted-proxy mode fixes client IPs behind a reverse proxy, and CI now runs ruff, Black, mypy, and the client validator tests.
-- Sketches now carry driving dimensions: circle diameter, rectangle length and width, polygon side length, slot radius and center-distance, and line length for rib and sweep paths. Profile position still comes from coordinates, and ellipse profiles stay geometry-only.
-- Verified against SolidWorks 2025 SP0 with an automated COM smoke run (`tools/SolidWorksVerify`): requested sizes appear as dimensions and editing a diameter rebuilds the body.
-- Added `counterbore`, `countersink`, and `hole_array` hole features, plus `insert_component` for assemblies and `note` for drawing annotations.
-- Added native English and French prompts, an optional `language` field, provider adapters for `openai` and `anthropic`, and an SSE streaming endpoint with client-side progress.
-- Extracted `ModelingEngine` behind an `IFeatureBackend` seam so client CI runs sequencing, seed resolution, and partial-failure checks with a fake backend.
-- Added a task pane panel; the pane command opens the pane and falls back to the modal window when the pane is unavailable.
-- Fixed blind cuts by using bidirectional `FeatureCut4` parameters with an opposite-direction retry.
-- The task pane hosts the WPF panel through `SetParent` and stays interactive; the pane command falls back to the modal panel if hosting fails.
-- During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
-- Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
-- The Vulcan AI tab now gives every command its own tab box, keeping all eight commands in one left-to-right row instead of collapsing into a grid; the command glyphs are also about 25% larger inside the fixed 20 px tiles.
-- Refreshed the README media with real SolidWorks 2025 screenshots of the ribbon tab, task pane, and status window, plus command-tour and end-to-end generation GIFs.
-- Unified the brand and UI around a black-and-red minimal system: new V mark, banners, command icons, installer artwork, WPF theme, and refreshed screenshots and GIFs.
-
-## What's new in 1.2.1
-
-- Branded multi-size icons on the ribbon, toolbar, and command buttons.
-- Restyled prompt panel, settings dialog, and editable JSON preview.
-- GPLv3 installer with a license page, modern wizard, silent registration, and uninstall cleanup.
-- Bring-your-own-key settings stored with Windows DPAPI.
-- Captioned install, workflow, and uninstall GIFs in this README.
 
 ## Install, upgrade, and uninstall
 
@@ -708,6 +708,14 @@ Non-loopback hosts must use HTTPS unless `VULCAN_ALLOW_INSECURE=true` is set for
 
 ## API reference
 
+### `GET /health`
+
+Unauthenticated liveness check, used by the add-in's **测试连接** button. It returns the configured model name and never requires the bearer token.
+
+```json
+{"status": "ok", "model": "gpt-oss-120b"}
+```
+
 ### `POST /api/v1/generate`
 
 Request:
@@ -768,8 +776,9 @@ Errors use a small envelope:
 | `X-LLM-API-Key` | Provider key, used for this request only |
 | `X-LLM-Base-URL` | OpenAI-compatible base URL; ignored when `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` |
 | `X-LLM-Model` | Model name |
+| `X-LLM-Provider` | `openai` or `anthropic`; selects the request shape. Falls back to `LLM_PROVIDER` when omitted. |
 
-Omitted headers fall back to `QINIU_*`. Values are length-limited, the base URL must use `http` or `https`, and neither keys nor prompts are written to the server log.
+Omitted headers fall back to `QINIU_*` and `LLM_PROVIDER`. Values are length-limited, the base URL must use `http` or `https`, and neither keys nor prompts are written to the server log.
 
 ### `POST /api/v1/generate/stream`
 
@@ -866,6 +875,42 @@ Vulcan/
 | Model appears but holes are in the wrong place | The plane or coordinate convention does not match the request | Inspect the returned JSON; the four-corner heuristic assumes front-plane X/Y |
 
 Server logs are written to `vulcan_server.log` in the working directory, rotated at 5 MB, and ignored by git. Prompts are logged by length at INFO level; set `LOG_LEVEL=DEBUG` to include full content locally. Client logs are written to `Vulcan_Logs/log_YYYYMMDD.txt` on the desktop.
+
+## Release notes
+
+Release notes are kept in the README so the documented behavior and the shipped code stay in one place.
+
+### 1.3.0
+
+- Added native `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft`, and `rib` features.
+- Raised the prompt contract to `PROMPT_VERSION = "3.0.0"` and updated the English, Chinese, and French documentation.
+- Refreshed the add-in UI with a shared theme, a resizable prompt panel with examples, a dark JSON editor with live validation, and a grouped settings dialog with masked secrets.
+- Edited JSON is now validated client-side against the same rules as the server before SolidWorks is touched.
+- Fixed draft `propagation`, blind-cut fallback, four-hole coordinate heuristics, part-document checks, shell verification, repeated-run feature naming, and the second direction of linear patterns.
+- The server now rejects responses that mix `feature_type` with `features`, and validates simple geometry against the base block: hole bounds, fillet and chamfer size, shell thickness, and pattern extent.
+- The client reports how many features were created when a run aborts, and Release builds no longer require an elevated COM registration step.
+- Rate-limit state is bounded, an optional trusted-proxy mode fixes client IPs behind a reverse proxy, and CI now runs ruff, Black, mypy, and the client validator tests.
+- Sketches now carry driving dimensions: circle diameter, rectangle length and width, polygon side length, slot radius and center-distance, and line length for rib and sweep paths. Profile position still comes from coordinates, and ellipse profiles stay geometry-only.
+- Verified against SolidWorks 2025 SP0 with an automated COM smoke run (`tools/SolidWorksVerify`): requested sizes appear as dimensions and editing a diameter rebuilds the body.
+- Added `counterbore`, `countersink`, and `hole_array` hole features, plus `insert_component` for assemblies and `note` for drawing annotations.
+- Added native English and French prompts, an optional `language` field, provider adapters for `openai` and `anthropic`, and an SSE streaming endpoint with client-side progress.
+- Extracted `ModelingEngine` behind an `IFeatureBackend` seam so client CI runs sequencing, seed resolution, and partial-failure checks with a fake backend.
+- Added a task pane panel; the pane command opens the pane and falls back to the modal window when the pane is unavailable.
+- Fixed blind cuts by using bidirectional `FeatureCut4` parameters with an opposite-direction retry.
+- The task pane hosts the WPF panel through `SetParent` and stays interactive; the pane command falls back to the modal panel if hosting fails.
+- During a modeling run the client temporarily disables SolidWorks’ dimension input dialog and restores the preference afterwards, so sketch dimensions are added without manual confirmation.
+- Added a Vulcan CommandManager toolbar and ribbon tab with per-command icons (pane, examples, settings, connection test, status, logs, about), plus a task pane quick-action bar and a status window showing server health and the last run.
+- The Vulcan AI tab now gives every command its own tab box, keeping all eight commands in one left-to-right row instead of collapsing into a grid; the command glyphs are also about 25% larger inside the fixed 20 px tiles.
+- Refreshed the README media with real SolidWorks 2025 screenshots of the ribbon tab, task pane, and status window, plus command-tour and end-to-end generation GIFs.
+- Unified the brand and UI around a black-and-red minimal system: new V mark, banners, command icons, installer artwork, WPF theme, and refreshed screenshots and GIFs.
+
+### 1.2.1
+
+- Branded multi-size icons on the ribbon, toolbar, and command buttons.
+- Restyled prompt panel, settings dialog, and editable JSON preview.
+- GPLv3 installer with a license page, modern wizard, silent registration, and uninstall cleanup.
+- Bring-your-own-key settings stored with Windows DPAPI.
+- Captioned install, workflow, and uninstall GIFs in this README.
 
 ## Roadmap
 

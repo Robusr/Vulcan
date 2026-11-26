@@ -1,135 +1,98 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="500" viewBox="0 0 1200 500" role="img" aria-labelledby="pipe-title pipe-desc">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="660" viewBox="0 0 1200 660" role="img" aria-labelledby="pipe-title pipe-desc">
   <title id="pipe-title">Vulcan request lifecycle</title>
-  <desc id="pipe-desc">Seven stages from natural language to SolidWorks execution, including an editable JSON preview before anything is written to the document, with typical latency and failure handling.</desc>
+  <desc id="pipe-desc">Seven stages across three lanes. The client sends a natural-language request, the server assembles a versioned prompt, the model returns JSON, the server recovers and validates the tree, and the client shows an editable preview before executing native SolidWorks features. The model call dominates latency; a human confirmation gate sits before execution.</desc>
   <defs>
-    <marker id="pa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
-      <path d="M0 0L10 5L0 10z" fill="#8E8E93"/>
+    <marker id="pp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#8A8A83"/>
     </marker>
-    <filter id="ps" x="-20%" y="-20%" width="140%" height="150%">
-      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#0A0A0A" flood-opacity="0.06"/>
-    </filter>
+    <marker id="pr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#C8102E"/>
+    </marker>
     <style>
-      .ui { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
-      .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-      .t { font-size: 12.5px; font-weight: 700; fill: #0A0A0A; }
-      .d { font-size: 10.3px; fill: #6E6E73; }
-      .m { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9.6px; fill: #3A3A3C; }
-      .n { font-size: 11px; font-weight: 700; fill: #FFFFFF; }
+      .ui { font-family: "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif; }
+      .mono { font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; }
+      .lane { font-size: 10px; font-weight: 700; letter-spacing: 1.8px; fill: #6E6E67; }
+      .n { font-size: 10px; font-weight: 700; fill: #FFFFFF; }
+      .t { font-size: 12.5px; font-weight: 700; fill: #171717; }
+      .d { font-size: 10.2px; fill: #55554F; }
+      .m { font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace; font-size: 9.6px; fill: #2E2E2E; }
+      .note { font-size: 10.4px; fill: #6E6E67; }
     </style>
   </defs>
 
-  <rect width="1200" height="500" fill="#FAFAFA"/>
-  <rect x="1" y="1" width="1198" height="498" rx="18" fill="#FFFFFF" stroke="#E5E5EA"/>
-  <text class="ui" x="48" y="54" font-size="26" font-weight="700" fill="#0A0A0A">Request lifecycle</text>
-  <text class="ui" x="48" y="82" font-size="14" fill="#6E6E73">Seven stages, one round trip, and an editable preview before SolidWorks is touched.</text>
+  <rect width="1200" height="660" fill="#FFFFFF"/>
+  <text class="ui" x="1152" y="44" text-anchor="end" font-size="10" font-weight="700" letter-spacing="2" fill="#8A8A83">PROCESS VIEW</text>
+  <text class="ui" x="48" y="58" font-size="26" font-weight="700" fill="#171717">Request lifecycle</text>
+  <text class="ui" x="48" y="86" font-size="14" fill="#66665F">Seven stages, three lanes, and one human checkpoint before the document is touched.</text>
+  <line x1="48" y1="106" x2="1152" y2="106" stroke="#DADAD4"/>
 
-  <!-- stage cards -->
-  <g>
-    <rect x="40" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
-    <rect x="40" y="128" width="148" height="4" rx="2" fill="#6E6E73"/>
-    <circle cx="60" cy="154" r="10" fill="#6E6E73"/><text class="ui n" x="60" y="158" text-anchor="middle">1</text>
-    <text class="ui t" x="54" y="190">Natural language</text>
-    <text class="ui d" x="54" y="214">Engineer writes the</text>
-    <text class="ui d" x="54" y="232">request in Chinese,</text>
-    <text class="ui d" x="54" y="250">English, or French.</text>
-  </g>
-  <g>
-    <rect x="200" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
-    <rect x="200" y="128" width="148" height="4" rx="2" fill="#3A3A3C"/>
-    <circle cx="220" cy="154" r="10" fill="#3A3A3C"/><text class="ui n" x="220" y="158" text-anchor="middle">2</text>
-    <text class="ui t" x="214" y="190">Prompt assembly</text>
-    <text class="ui d" x="214" y="214">Domain prompt plus</text>
-    <text class="ui d" x="214" y="232">user text; versioned</text>
-    <text class="ui m" x="214" y="252">PROMPT_VERSION 3.0.0</text>
-  </g>
-  <g>
-    <rect x="360" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
-    <rect x="360" y="128" width="148" height="4" rx="2" fill="#0A0A0A"/>
-    <circle cx="380" cy="154" r="10" fill="#0A0A0A"/><text class="ui n" x="380" y="158" text-anchor="middle">3</text>
-    <text class="ui t" x="374" y="190">LLM call</text>
-    <text class="ui d" x="374" y="214">OpenAI-compatible</text>
-    <text class="ui d" x="374" y="232">endpoint, low</text>
-    <text class="ui d" x="374" y="250">temperature, JSON</text>
-    <text class="ui d" x="374" y="268">feature tree.</text>
-  </g>
-  <g>
-    <rect x="520" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
-    <rect x="520" y="128" width="148" height="4" rx="2" fill="#B3121F"/>
-    <circle cx="540" cy="154" r="10" fill="#B3121F"/><text class="ui n" x="540" y="158" text-anchor="middle">4</text>
-    <text class="ui t" x="534" y="190">JSON recovery</text>
-    <text class="ui d" x="534" y="214">Strip code fences,</text>
-    <text class="ui d" x="534" y="232">then take the first</text>
-    <text class="ui m" x="534" y="252">{ ... }</text>
-    <text class="ui d" x="534" y="270">substring and parse.</text>
-  </g>
-  <g>
-    <rect x="680" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
-    <rect x="680" y="128" width="148" height="4" rx="2" fill="#B3121F"/>
-    <circle cx="700" cy="154" r="10" fill="#B3121F"/><text class="ui n" x="700" y="158" text-anchor="middle">5</text>
-    <text class="ui t" x="694" y="190">Schema check</text>
-    <text class="ui d" x="694" y="214">Envelope validation,</text>
-    <text class="ui d" x="694" y="232">typed model classes,</text>
-    <text class="ui d" x="694" y="250">defaults for missing</text>
-    <text class="ui d" x="694" y="268">optional fields.</text>
-  </g>
-  <g>
-    <rect x="840" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#FECDD3" filter="url(#ps)"/>
-    <rect x="840" y="128" width="148" height="4" rx="2" fill="#E11D2E"/>
-    <circle cx="860" cy="154" r="10" fill="#E11D2E"/><text class="ui n" x="860" y="158" text-anchor="middle">6</text>
-    <text class="ui t" x="854" y="190">Preview &amp; edit</text>
-    <text class="ui d" x="854" y="214">Editable JSON window;</text>
-    <text class="ui d" x="854" y="232">confirm or cancel.</text>
-    <text class="ui d" x="854" y="250">SolidWorks stays</text>
-    <text class="ui d" x="854" y="268">untouched until then.</text>
-  </g>
-  <g>
-    <rect x="1000" y="128" width="148" height="152" rx="12" fill="#FFFFFF" stroke="#E5E5EA" filter="url(#ps)"/>
-    <rect x="1000" y="128" width="148" height="4" rx="2" fill="#6E6E73"/>
-    <circle cx="1020" cy="154" r="10" fill="#6E6E73"/><text class="ui n" x="1020" y="158" text-anchor="middle">7</text>
-    <text class="ui t" x="1014" y="190">COM execution</text>
-    <text class="ui d" x="1014" y="214">Sketch, extrude, cut.</text>
-    <text class="ui m" x="1014" y="234">FeatureExtrusion3</text>
-    <text class="ui m" x="1014" y="250">FeatureCut4</text>
-    <text class="ui d" x="1014" y="268">UI fallback if needed.</text>
-  </g>
+  <!-- lanes -->
+  <rect x="40" y="128" width="1120" height="152" fill="#FAFAF8" stroke="#E6E6E0"/>
+  <rect x="40" y="300" width="1120" height="152" fill="#FFFFFF" stroke="#E6E6E0"/>
+  <rect x="40" y="472" width="1120" height="132" fill="#F4F4F0" stroke="#E6E6E0"/>
+  <text class="ui lane" x="56" y="150">CLIENT · WINDOWS / SOLIDWORKS</text>
+  <text class="ui lane" x="56" y="322">SERVER · FLASK</text>
+  <text class="ui lane" x="56" y="494">MODEL PROVIDER</text>
 
-  <!-- stage arrows -->
-  <g stroke="#8E8E93" stroke-width="1.4">
-    <line x1="188" y1="204" x2="198" y2="204" marker-end="url(#pa)"/>
-    <line x1="348" y1="204" x2="358" y2="204" marker-end="url(#pa)"/>
-    <line x1="508" y1="204" x2="518" y2="204" marker-end="url(#pa)"/>
-    <line x1="668" y1="204" x2="678" y2="204" marker-end="url(#pa)"/>
-    <line x1="828" y1="204" x2="838" y2="204" marker-end="url(#pa)"/>
-    <line x1="988" y1="204" x2="998" y2="204" marker-end="url(#pa)"/>
-  </g>
+  <!-- 1 natural language -->
+  <rect x="56" y="168" width="180" height="72" fill="#FFFFFF" stroke="#DADAD4"/>
+  <circle cx="78" cy="190" r="10" fill="#171717"/><text class="ui n" x="78" y="194" text-anchor="middle">1</text>
+  <text class="ui t" x="94" y="194">Natural language</text>
+  <text class="ui d" x="72" y="216">Chinese, English, or French</text>
+  <text class="ui d" x="72" y="232">request in the task pane.</text>
 
-  <!-- latency -->
-  <text class="ui" x="48" y="326" font-size="12" font-weight="700" fill="#3A3A3C">Typical latency</text>
-  <text class="ui" x="48" y="344" font-size="11" fill="#8E8E93">Local steps are milliseconds; the model call dominates, and the preview waits for a human.</text>
-  <rect x="40" y="358" width="1108" height="16" rx="8" fill="#F2F2F7"/>
-  <rect x="40" y="358" width="150" height="16" rx="8" fill="#D1D1D6"/>
-  <rect x="190" y="358" width="560" height="16" fill="#E5E5EA"/>
-  <rect x="750" y="358" width="80" height="16" fill="#FECDD3"/>
-  <rect x="830" y="358" width="130" height="16" fill="#F87171"/>
-  <rect x="960" y="358" width="70" height="16" fill="#FECDD3"/>
-  <rect x="1030" y="358" width="118" height="16" rx="8" fill="#FECDD3"/>
-  <text class="ui" x="115" y="390" text-anchor="middle" font-size="10.5" fill="#3A3A3C">~1 ms</text>
-  <text class="ui" x="470" y="390" text-anchor="middle" font-size="10.5" fill="#B3121F">2–20 s</text>
-  <text class="ui" x="790" y="390" text-anchor="middle" font-size="10.5" fill="#7F1D1D">~1 ms</text>
-  <text class="ui" x="895" y="390" text-anchor="middle" font-size="10.5" fill="#7F1D1D">review</text>
-  <text class="ui" x="995" y="390" text-anchor="middle" font-size="10.5" fill="#B3121F">~1 ms</text>
-  <text class="ui" x="1089" y="390" text-anchor="middle" font-size="10.5" fill="#3A3A3C">0.2–2 s</text>
+  <!-- 2 prompt assembly -->
+  <rect x="260" y="328" width="180" height="72" fill="#FFFFFF" stroke="#DADAD4"/>
+  <circle cx="282" cy="350" r="10" fill="#171717"/><text class="ui n" x="282" y="354" text-anchor="middle">2</text>
+  <text class="ui t" x="298" y="354">Prompt assembly</text>
+  <text class="ui d" x="276" y="376">Native domain prompt plus</text>
+  <text class="ui m" x="276" y="392">PROMPT_VERSION 3.0.0</text>
 
-  <!-- guardrails -->
-  <rect x="40" y="412" width="350" height="58" rx="10" fill="#F2F2F7" stroke="#FECDD3"/>
-  <text class="ui" x="58" y="434" font-size="11.5" font-weight="700" fill="#7F1D1D">Recover</text>
-  <text class="ui" x="58" y="454" font-size="11" fill="#6E6E73">Code fences and prose are stripped before parsing.</text>
+  <!-- 3 LLM call -->
+  <rect x="470" y="508" width="200" height="72" fill="#FFFFFF" stroke="#DADAD4"/>
+  <circle cx="492" cy="530" r="10" fill="#171717"/><text class="ui n" x="492" y="534" text-anchor="middle">3</text>
+  <text class="ui t" x="508" y="534">LLM call</text>
+  <text class="ui d" x="486" y="556">OpenAI-compatible or Anthropic;</text>
+  <text class="ui m" x="486" y="572">temp 0.05 · max_tokens 2048 · 30 s</text>
 
-  <rect x="406" y="412" width="350" height="58" rx="10" fill="#FAFAFA" stroke="#E5E5EA"/>
-  <text class="ui" x="424" y="434" font-size="11.5" font-weight="700" fill="#0A0A0A">Reject</text>
-  <text class="ui" x="424" y="454" font-size="11" fill="#6E6E73">Missing prompt or feature envelope returns HTTP 400.</text>
+  <!-- 4 recovery -->
+  <rect x="520" y="328" width="170" height="72" fill="#FFFFFF" stroke="#DADAD4"/>
+  <circle cx="542" cy="350" r="10" fill="#171717"/><text class="ui n" x="542" y="354" text-anchor="middle">4</text>
+  <text class="ui t" x="558" y="354">JSON recovery</text>
+  <text class="ui d" x="536" y="376">strip fences → first { … }</text>
+  <text class="ui d" x="536" y="392">→ parse.</text>
 
-  <rect x="772" y="412" width="376" height="58" rx="10" fill="#FFF1F2" stroke="#FECDD3"/>
-  <text class="ui" x="790" y="434" font-size="11.5" font-weight="700" fill="#B3121F">Confirm, then execute</text>
-  <text class="ui" x="790" y="454" font-size="11" fill="#6E6E73">Nothing is written until confirmed.</text>
+  <!-- 5 validation -->
+  <rect x="760" y="328" width="170" height="72" fill="#FFFFFF" stroke="#DADAD4"/>
+  <circle cx="782" cy="350" r="10" fill="#171717"/><text class="ui n" x="782" y="354" text-anchor="middle">5</text>
+  <text class="ui t" x="798" y="354">Validate</text>
+  <text class="ui d" x="776" y="376">envelope · params · geometry</text>
+  <text class="ui d" x="776" y="392">HTTP 400 on failure.</text>
+
+  <!-- 6 preview -->
+  <rect x="740" y="168" width="170" height="72" fill="#FAEEF0" stroke="#E8C9CE"/>
+  <circle cx="762" cy="190" r="10" fill="#C8102E"/><text class="ui n" x="762" y="194" text-anchor="middle">6</text>
+  <text class="ui t" x="778" y="194">Preview &amp; edit</text>
+  <text class="ui d" x="756" y="216">Editable JSON, live checks;</text>
+  <text class="ui d" x="756" y="232">confirm or cancel.</text>
+
+  <!-- 7 execute -->
+  <rect x="950" y="168" width="170" height="72" fill="#FFFFFF" stroke="#DADAD4"/>
+  <circle cx="972" cy="190" r="10" fill="#171717"/><text class="ui n" x="972" y="194" text-anchor="middle">7</text>
+  <text class="ui t" x="988" y="194">COM execution</text>
+  <text class="ui m" x="966" y="216">FeatureExtrusion3 · FeatureCut4</text>
+  <text class="ui d" x="966" y="232">sketch → native features.</text>
+
+  <!-- flow -->
+  <path d="M236 204 H248 V364 H260" fill="none" stroke="#8A8A83" stroke-width="1.3" marker-end="url(#pp)"/>
+  <path d="M440 364 H455 V544 H470" fill="none" stroke="#8A8A83" stroke-width="1.3" marker-end="url(#pp)"/>
+  <path d="M570 508 V424 H605 V400" fill="none" stroke="#8A8A83" stroke-width="1.3" marker-end="url(#pp)"/>
+  <line x1="690" y1="364" x2="760" y2="364" stroke="#8A8A83" stroke-width="1.3" marker-end="url(#pp)"/>
+  <line x1="825" y1="328" x2="825" y2="240" stroke="#8A8A83" stroke-width="1.3" marker-end="url(#pp)"/>
+  <line x1="910" y1="204" x2="950" y2="204" stroke="#C8102E" stroke-width="1.5" marker-end="url(#pr)"/>
+
+  <!-- latency strip -->
+  <line x1="48" y1="618" x2="1152" y2="618" stroke="#E6E6E0"/>
+  <text class="ui note" x="48" y="640" font-size="10.4">Typical latency: local stages &lt; 5 ms · model call 2–20 s · human review · COM 0.2–2 s. The model call dominates; everything after the preview is local.</text>
+  <text class="ui" x="1152" y="640" text-anchor="end" font-size="9.5" fill="#8A8A83">Guardrails: recover · reject · confirm</text>
 </svg>

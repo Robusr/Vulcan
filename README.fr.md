@@ -26,23 +26,37 @@
 </p>
 
 <p align="center">
+  <a href="#vue-densemble">Vue d’ensemble</a> ·
   <a href="#origine-du-nom">Origine du nom</a> ·
   <a href="#ce-quil-fait">Ce qu’il fait</a> ·
   <a href="#capacités">Capacités</a> ·
   <a href="#architecture-du-système">Architecture</a> ·
   <a href="#le-contrat-json">Contrat JSON</a> ·
   <a href="#démarrage-rapide">Démarrage rapide</a> ·
-  <a href="#installation-mise-à-niveau-et-désinstallation">Installation</a> ·
   <a href="#parcours-dutilisation">Parcours</a> ·
+  <a href="#installation-mise-à-niveau-et-désinstallation">Installation</a> ·
   <a href="#tests">Tests</a> ·
   <a href="#configuration">Configuration</a> ·
   <a href="#référence-api">API</a> ·
+  <a href="#notes-de-version">Notes de version</a> ·
   <a href="#feuille-de-route">Feuille de route</a>
 </p>
 
 <p align="center">
   <img src="docs/assets/banner.fr.svg" alt="Vulcan : du langage naturel à la géométrie paramétrique" width="100%">
 </p>
+
+## Vue d’ensemble
+
+<p align="center">
+  <img src="docs/assets/system-overview.svg" alt="Vue d’ensemble de Vulcan : décrire côté client, paramétrer côté serveur, exécuter de façon déterministe dans SolidWorks, avec validation du schéma et confirmation humaine comme deux barrières" width="100%">
+</p>
+
+<p align="center">
+  <sub>Vue d’ensemble. Le modèle remplit un schéma typé ; le serveur et le client le valident, le client le prévisualise et exécute les fonctions natives. Deux barrières gardent la sortie du modèle hors du document.</sub>
+</p>
+
+Vulcan est une boucle fermée autour d’un même contrat. Une requête commence par une phrase dans le volet SolidWorks. Le serveur la transforme en arbre de fonctions typé, l’add-in l’affiche en JSON éditable, et seul un arbre confirmé atteint le modeleur COM. Le modèle n’exécute jamais de code, et le document n’est jamais modifié sans confirmation humaine.
 
 ## Origine du nom
 
@@ -64,7 +78,7 @@ Ce README se concentre sur `client/` et `server/` à la racine. La piste beta es
 </p>
 
 <p align="center">
-  <sub>Réponse illustrative. Le même contrat accepte une extrusion de base suivie d’une liste ordonnée de coupes.</sub>
+  <sub>Exemple concret. Une phrase devient un arbre JSON éditable, puis une fonction native ; le même contrat accepte une extrusion de base suivie d’une liste ordonnée de coupes.</sub>
 </p>
 
 <p align="center">
@@ -101,7 +115,7 @@ Ce README se concentre sur `client/` et `server/` à la racine. La piste beta es
 | Liberté de fournisseur | OpenAI, Anthropic, DeepSeek, Qwen, Qiniu Cloud, vLLM, Ollama ou tout point d’accès compatible. |
 | Serveur portable | Fonctionne en local, dans Docker ou derrière un tunnel ; seul le client exige Windows. |
 | Chaîne de traitement débogable | Pas de `exec()` dans la version release ; chaque étape est journalisée et typée. |
-| Exécution API d’abord | API natives prioritaires ; en cas d’échec d’extrusion ou de coupe, repli clavier dans le panneau natif. |
+| Exécution API d’abord | API natives prioritaires ; en cas d’échec d’extrusion ou de coupe traversante, repli clavier dans le panneau natif. Une coupe borgne échouée arrête l’exécution pour ne pas traverser la pièce. |
 | Clé personnelle | Renseignez la clé du fournisseur, l’URL de base et le modèle dans la boîte de dialogue de réglages. La clé est chiffrée par Windows DPAPI sur votre machine et n’est transmise qu’à votre serveur Vulcan, le temps d’une requête. |
 | Aperçu éditable | Chaque réponse s’ouvre dans un aperçu JSON éditable. Rien n’atteint SolidWorks avant votre validation. |
 | Outils CommandManager | Huit commandes dans l’onglet et la barre d’outils Vulcan AI (volet, deux exemples, réglages, test de connexion, état, journaux, à propos), des actions rapides dans le volet et une fenêtre d’état avec la santé en direct et la dernière exécution. |
@@ -109,8 +123,14 @@ Ce README se concentre sur `client/` et `server/` à la racine. La piste beta es
 
 ## Architecture du système
 
+La [vue d’ensemble](#vue-densemble) présente la boucle conceptuelle ; cette section décrit les composants déployés.
+
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="Architecture de Vulcan : client Windows, serveur Python, fournisseur LLM" width="100%">
+  <img src="docs/assets/architecture.svg" alt="Architecture de Vulcan : client Windows, serveur Python, fournisseur LLM, reliés par un même contrat typé" width="100%">
+</p>
+
+<p align="center">
+  <sub>Vue des composants. Trois processus reliés par un même contrat typé ; le client s’exécute toujours à côté de SolidWorks.</sub>
 </p>
 
 | Couche | Pile technique | Responsabilité |
@@ -151,7 +171,11 @@ Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les
 ## Cycle d’une requête
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="Cycle de requête en sept étapes, avec latence et gestion des échecs" width="100%">
+  <img src="docs/assets/pipeline.svg" alt="Cycle de requête en sept étapes réparties entre client, serveur et modèle, avec latence et barrière de confirmation" width="100%">
+</p>
+
+<p align="center">
+  <sub>Cycle de requête. Sept étapes sur trois couloirs ; l’appel au modèle domine la latence et la confirmation est la dernière barrière avant COM.</sub>
 </p>
 
 1. **Requête.** L’add-in envoie `{ "prompt": "..." }` au serveur Flask.
@@ -160,14 +184,18 @@ Le module complémentaire enregistre un onglet `Vulcan AI` pour les pièces, les
 4. **Récupération.** Le serveur retire les balises de code Markdown, puis extrait du premier `{` au dernier `}` avant l’analyse.
 5. **Validation.** Flask vérifie l’enveloppe et valide les paramètres des fonctions. Le client C# désérialise l’enveloppe en classes typées, puis lit les paramètres dans un dictionnaire et applique les valeurs par défaut du modeleur.
 6. **Aperçu et édition.** L’add-in ouvre l’arbre dans une fenêtre JSON éditable ; rien n’est écrit avant confirmation.
-7. **Exécution.** `SwModeler` dessine l’esquisse, la sélectionne et appelle les API natives, notamment `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3` et `InsertFeatureChamfer`. En cas d’échec d’extrusion ou de coupe, un repli clavier ouvre le panneau natif de SolidWorks.
+7. **Exécution.** `SwModeler` dessine l’esquisse, la sélectionne et appelle les API natives, notamment `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3` et `InsertFeatureChamfer`. En cas d’échec d’extrusion ou de coupe traversante, un repli clavier ouvre le panneau natif de SolidWorks ; une coupe borgne échouée arrête l’exécution en conservant l’esquisse.
 
 L’appel au modèle domine la latence. Tout le reste est local et se mesure généralement en millisecondes.
 
 ## Le contrat JSON
 
 <p align="center">
-  <img src="docs/assets/contract.svg" alt="Arbre de fonctions JSON annoté : enveloppe, types, formes, unités et placement" width="100%">
+  <img src="docs/assets/contract.svg" alt="Arbre de fonctions JSON annoté : enveloppe, ordre, formes, unités et placement, et bibliothèque de fonctions" width="100%">
+</p>
+
+<p align="center">
+  <sub>Contrat de données. Dix-neuf lignes suffisent à décrire un arbre de fonctions ordonné et paramétrique.</sub>
 </p>
 
 ### Enveloppe
@@ -328,6 +356,10 @@ Le modeleur de la version release dessine les esquisses sur le plan demandé et 
   <img src="docs/assets/approach.svg" alt="Comparaison de la piste Beta avec génération de code et de la piste Rebuild avec contrat JSON" width="100%">
 </p>
 
+<p align="center">
+  <sub>Évolution de conception. Beta exécutait du code généré ; Rebuild exécute des données validées.</sub>
+</p>
+
 ### Des paramètres JSON plutôt que du code généré
 
 La piste Beta laissait le LLM produire du code Python que le client exécutait avec `exec()`. C’était souple et spectaculaire en démonstration, mais fragile en pratique : un appel d’API halluciné pouvait faire planter SolidWorks, la reprise sur erreur était presque impossible et le débogage consistait à lire un code que personne n’avait écrit.
@@ -348,7 +380,7 @@ Vulcan fournit ce contexte via [`system_prompt.py`](server/prompts/system_prompt
 
 ### API d’abord, interface en repli
 
-L’interopérabilité SolidWorks est sensible aux versions. Le modeleur appelle directement les API natives, notamment `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3` et `InsertFeatureChamfer`. Si un appel d’extrusion ou de coupe échoue, le repli active `RunCommand` et remplit le panneau natif de SolidWorks par des frappes simulées.
+L’interopérabilité SolidWorks est sensible aux versions. Le modeleur appelle directement les API natives, notamment `FeatureExtrusion3`, `FeatureCut4`, `FeatureRevolve`, `FeatureFillet3` et `InsertFeatureChamfer`. Si un appel d’extrusion ou de coupe traversante échoue, le repli active `RunCommand` et remplit le panneau natif de SolidWorks par des frappes simulées. Les coupes borgnes ne recourent délibérément pas au repli : l’exécution s’arrête avec l’esquisse en place, pour qu’une profondeur simulée ne traverse pas la pièce.
 
 Le repli est pragmatique, pas élégant. Gardez SolidWorks au premier plan pendant la génération, et considérez un repli fréquent comme un signal pour mettre à jour les paramètres d’interopérabilité.
 
@@ -509,38 +541,6 @@ La fenêtre **检查并编辑建模参数** affiche la demande, un éditeur JSON
 
 Le modeleur crée des fonctions natives (ici `凸台-拉伸1` et son esquisse), ajuste la vue et laisse l’état **模型生成完成。** dans le volet. Les journaux client vont dans `Vulcan_Logs\log_YYYYMMDD.txt`, ceux du serveur dans `vulcan_server.log`.
 
-## Nouveautés de la 1.3.0
-
-- Ajout des fonctions natives `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib`.
-- Contrat du prompt passé à `PROMPT_VERSION = "2.4.0"` et documentation anglaise, chinoise et française mise à jour.
-- Refonte de l’interface : thème partagé, panneau redimensionnable avec exemples, éditeur JSON sombre avec validation en direct et boîte de réglages groupée avec secrets masqués.
-- Le JSON modifié est validé côté client selon les mêmes règles que le serveur avant d’être appliqué à SolidWorks.
-- Correction de `propagation` pour le dépouille, du repli sur les coupes borgnes, de l’heuristique des quatre trous, du contrôle du document pièce, de la vérification du coque, du mapping des noms de fonctions entre deux exécutions et de la seconde direction des motifs linéaires.
-- Le serveur rejette les réponses mélangeant `feature_type` et `features` et valide la géométrie simple par rapport au bloc de base : limites des trous, taille des congés et chanfreins, épaisseur de coque et étendue des motifs.
-- En cas d’échec, le client indique combien de fonctions ont été créées ; les builds Release ne nécessitent plus d’enregistrement COM élevé.
-- L’état de limitation est borné, un mode proxy de confiance optionnel corrige l’IP client, et la CI exécute désormais ruff, Black, mypy et les tests de validation du client.
-- Les esquisses portent désormais des cotes pilotantes : diamètre de cercle, longueur et largeur de rectangle, côté de polygone, rayon et entraxe de lumière, et longueur de ligne pour les nervures et trajectoires de balayage. La position du profil reste définie par les coordonnées, et les ellipses restent purement géométriques.
-- Vérifié sous SolidWorks 2025 SP0 avec une exécution COM automatisée (`tools/SolidWorksVerify`) : les cotes demandées sont créées et la modification d’un diamètre reconstruit le corps.
-- Ajout des fonctions de trou `counterbore`, `countersink` et `hole_array`, de `insert_component` pour les assemblages et de `note` pour les mises en plan.
-- Prompts natifs anglais et français, champ `language` optionnel, adaptateurs `openai` et `anthropic`, endpoint SSE avec progression côté client.
-- Extraction de `ModelingEngine` derrière l’interface `IFeatureBackend` : la CI client vérifie l’ordre, la résolution des graines et les échecs partiels avec un backend simulé.
-- Ajout d’un volet des tâches ; la commande de volet ouvre le volet et retombe sur la fenêtre modale s’il est indisponible.
-- Correction des coupes borgnes avec les paramètres bidirectionnels de `FeatureCut4` et une nouvelle tentative dans le sens opposé.
-- Le volet des tâches héberge le panneau WPF via `SetParent` et reste interactif ; la commande de volet retombe sur le panneau modal si l’hôte échoue.
-- Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
-- Ajout d’une barre d’outils CommandManager Vulcan et d’un onglet de ruban avec une icône par commande (volet, exemples, réglages, test de connexion, état, journaux, à propos), d’une barre d’actions rapides dans le volet et d’une fenêtre d’état affichant la santé du serveur et la dernière exécution.
-- L’onglet Vulcan AI place désormais chaque commande dans sa propre boîte, ce qui garde les huit commandes sur une seule ligne de gauche à droite au lieu de les replier en grille ; les glyphes des commandes sont également agrandis d’environ 25 % dans les tuiles fixes de 20 px.
-- Mise à jour des médias du README avec de vraies captures SolidWorks 2025 (onglet, volet, fenêtre d’état) et deux GIF : visite des commandes et génération de bout en bout.
-- Unification de la marque et de l’interface autour d’un système minimal noir et rouge : nouveau sigle V, bannières, icônes de commandes, visuels d’installateur, thème WPF et captures/GIF actualisés.
-
-## Nouveautés de la 1.2.1
-
-- Icônes de marque multi-tailles sur le ruban, la barre d’outils et les boutons.
-- Panneau, boîte de réglages et aperçu JSON redessinés.
-- Installateur GPLv3 avec page de licence, assistant moderne, enregistrement silencieux et désinstallation propre.
-- Réglages « apportez votre clé » chiffrés par Windows DPAPI.
-- GIF d’installation, de workflow et de désinstallation avec légendes dans ce README.
-
 ## Installation, mise à niveau et désinstallation
 
 ### Prérequis
@@ -689,7 +689,7 @@ L’add-in se configure dans sa propre boîte de dialogue : cliquez sur **设置
 
 La boîte de dialogue propose aussi **测试连接** (test de santé), **打开日志目录** (ouvrir le dossier des journaux), **取消** (annuler) et **保存** (enregistrer). Les réglages sont écrits dans `%APPDATA%\Vulcan\settings.json` ; `ServerToken` et `LlmApiKey` sont chiffrés par Windows DPAPI pour l’utilisateur courant, donc le fichier n’est pas portable d’une machine ou d’un compte à l’autre et ne doit jamais être versionné.
 
-L’ordre de résolution de l’URL du serveur est : argument explicite du constructeur → boîte de dialogue → `VULCAN_SERVER_URL` → `http://127.0.0.1:5000`. Le jeton suit le même ordre. Les remplacements LLM sont envoyés au serveur via les en-têtes `X-LLM-API-Key`, `X-LLM-Base-URL` et `X-LLM-Model` ; les champs vides sont omis et le serveur retombe sur sa configuration `QINIU_*`.
+L’ordre de résolution de l’URL du serveur est : argument explicite du constructeur → boîte de dialogue → `VULCAN_SERVER_URL` → `http://127.0.0.1:5000`. Le jeton suit le même ordre. Les remplacements LLM sont envoyés au serveur via les en-têtes `X-LLM-API-Key`, `X-LLM-Base-URL`, `X-LLM-Model` et `X-LLM-Provider` ; les champs vides sont omis et le serveur retombe sur sa configuration `QINIU_*` et `LLM_PROVIDER`.
 
 Les variables d’environnement restent utiles pour les déploiements scriptés ou partagés :
 
@@ -707,6 +707,14 @@ Les hôtes non locaux doivent utiliser HTTPS, sauf si `VULCAN_ALLOW_INSECURE=tru
 - `ApiClient` utilise un délai client de 60 secondes pour laisser le serveur attendre une réponse lente du modèle. Gardez-le au-dessus de `LLM_TIMEOUT`.
 
 ## Référence API
+
+### `GET /health`
+
+Contrôle de disponibilité sans authentification, utilisé par le bouton **测试连接** de l’add-in. Il renvoie le nom du modèle configuré et n’exige pas de jeton Bearer.
+
+```json
+{"status": "ok", "model": "gpt-oss-120b"}
+```
 
 ### `POST /api/v1/generate`
 
@@ -768,8 +776,9 @@ Les erreurs utilisent une petite enveloppe :
 | `X-LLM-API-Key` | Clé du fournisseur, utilisée pour cette requête uniquement |
 | `X-LLM-Base-URL` | URL de base compatible OpenAI ; ignorée si `VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` |
 | `X-LLM-Model` | Nom du modèle |
+| `X-LLM-Provider` | `openai` ou `anthropic` ; choisit la forme de requête. Retombe sur `LLM_PROVIDER` si absent. |
 
-Les en-têtes absents retombent sur `QINIU_*`. Les valeurs sont limitées en longueur, l’URL de base doit commencer par `http` ou `https`, et ni les clés ni les prompts ne sont écrits dans le journal du serveur.
+Les en-têtes absents retombent sur `QINIU_*` et `LLM_PROVIDER`. Les valeurs sont limitées en longueur, l’URL de base doit commencer par `http` ou `https`, et ni les clés ni les prompts ne sont écrits dans le journal du serveur.
 
 ### `POST /api/v1/generate/stream`
 
@@ -866,6 +875,42 @@ Vulcan/
 | La pièce apparaît mais les trous sont mal placés | Le plan ou la convention de coordonnées ne correspond pas à la demande | Inspectez le JSON renvoyé ; l’heuristique des quatre coins travaille en X/Y sur le plan de face |
 
 Les journaux serveur sont écrits dans `vulcan_server.log` dans le répertoire de travail, avec rotation à 5 Mo, et ne sont pas suivis par Git. À INFO, les prompts ne sont journalisés qu’en longueur ; définissez `LOG_LEVEL=DEBUG` pour le contenu complet en local. Les journaux client sont écrits dans `Vulcan_Logs/log_YYYYMMDD.txt` sur le bureau.
+
+## Notes de version
+
+Les notes de version restent dans le README pour que le comportement documenté et le code livré restent cohérents.
+
+### 1.3.0
+
+- Ajout des fonctions natives `linear_pattern`, `circular_pattern`, `mirror`, `shell`, `draft`, `sweep`, `loft` et `rib`.
+- Contrat du prompt passé à `PROMPT_VERSION = "3.0.0"` et documentation anglaise, chinoise et française mise à jour.
+- Refonte de l’interface : thème partagé, panneau redimensionnable avec exemples, éditeur JSON sombre avec validation en direct et boîte de réglages groupée avec secrets masqués.
+- Le JSON modifié est validé côté client selon les mêmes règles que le serveur avant d’être appliqué à SolidWorks.
+- Correction de `propagation` pour le dépouille, du repli sur les coupes borgnes, de l’heuristique des quatre trous, du contrôle du document pièce, de la vérification du coque, du mapping des noms de fonctions entre deux exécutions et de la seconde direction des motifs linéaires.
+- Le serveur rejette les réponses mélangeant `feature_type` et `features` et valide la géométrie simple par rapport au bloc de base : limites des trous, taille des congés et chanfreins, épaisseur de coque et étendue des motifs.
+- En cas d’échec, le client indique combien de fonctions ont été créées ; les builds Release ne nécessitent plus d’enregistrement COM élevé.
+- L’état de limitation est borné, un mode proxy de confiance optionnel corrige l’IP client, et la CI exécute désormais ruff, Black, mypy et les tests de validation du client.
+- Les esquisses portent désormais des cotes pilotantes : diamètre de cercle, longueur et largeur de rectangle, côté de polygone, rayon et entraxe de lumière, et longueur de ligne pour les nervures et trajectoires de balayage. La position du profil reste définie par les coordonnées, et les ellipses restent purement géométriques.
+- Vérifié sous SolidWorks 2025 SP0 avec une exécution COM automatisée (`tools/SolidWorksVerify`) : les cotes demandées sont créées et la modification d’un diamètre reconstruit le corps.
+- Ajout des fonctions de trou `counterbore`, `countersink` et `hole_array`, de `insert_component` pour les assemblages et de `note` pour les mises en plan.
+- Prompts natifs anglais et français, champ `language` optionnel, adaptateurs `openai` et `anthropic`, endpoint SSE avec progression côté client.
+- Extraction de `ModelingEngine` derrière l’interface `IFeatureBackend` : la CI client vérifie l’ordre, la résolution des graines et les échecs partiels avec un backend simulé.
+- Ajout d’un volet des tâches ; la commande de volet ouvre le volet et retombe sur la fenêtre modale s’il est indisponible.
+- Correction des coupes borgnes avec les paramètres bidirectionnels de `FeatureCut4` et une nouvelle tentative dans le sens opposé.
+- Le volet des tâches héberge le panneau WPF via `SetParent` et reste interactif ; la commande de volet retombe sur le panneau modal si l’hôte échoue.
+- Pendant une exécution, le client désactive temporairement la boîte de dialogue de saisie de cote de SolidWorks puis restaure le réglage, afin que les cotes soient ajoutées sans confirmation manuelle.
+- Ajout d’une barre d’outils CommandManager Vulcan et d’un onglet de ruban avec une icône par commande (volet, exemples, réglages, test de connexion, état, journaux, à propos), d’une barre d’actions rapides dans le volet et d’une fenêtre d’état affichant la santé du serveur et la dernière exécution.
+- L’onglet Vulcan AI place désormais chaque commande dans sa propre boîte, ce qui garde les huit commandes sur une seule ligne de gauche à droite au lieu de les replier en grille ; les glyphes des commandes sont également agrandis d’environ 25 % dans les tuiles fixes de 20 px.
+- Mise à jour des médias du README avec de vraies captures SolidWorks 2025 (onglet, volet, fenêtre d’état) et deux GIF : visite des commandes et génération de bout en bout.
+- Unification de la marque et de l’interface autour d’un système minimal noir et rouge : nouveau sigle V, bannières, icônes de commandes, visuels d’installateur, thème WPF et captures/GIF actualisés.
+
+### 1.2.1
+
+- Icônes de marque multi-tailles sur le ruban, la barre d’outils et les boutons.
+- Panneau, boîte de réglages et aperçu JSON redessinés.
+- Installateur GPLv3 avec page de licence, assistant moderne, enregistrement silencieux et désinstallation propre.
+- Réglages « apportez votre clé » chiffrés par Windows DPAPI.
+- GIF d’installation, de workflow et de désinstallation avec légendes dans ce README.
 
 ## Feuille de route
 

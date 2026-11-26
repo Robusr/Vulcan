@@ -26,23 +26,37 @@
 </p>
 
 <p align="center">
+  <a href="#系统总览">系统总览</a> ·
   <a href="#名称由来">名称由来</a> ·
   <a href="#它能做什么">它能做什么</a> ·
   <a href="#能力一览">能力一览</a> ·
   <a href="#系统架构">系统架构</a> ·
   <a href="#json-契约">JSON 契约</a> ·
   <a href="#快速开始">快速开始</a> ·
-  <a href="#安装升级与卸载">安装/卸载</a> ·
   <a href="#操作演练">操作演练</a> ·
+  <a href="#安装升级与卸载">安装/卸载</a> ·
   <a href="#测试">测试</a> ·
   <a href="#配置说明">配置</a> ·
   <a href="#api-参考">API</a> ·
+  <a href="#版本说明">版本说明</a> ·
   <a href="#路线图">路线图</a>
 </p>
 
 <p align="center">
   <img src="docs/assets/banner.zh.svg" alt="Vulcan：自然语言输入，参数化几何输出" width="100%">
 </p>
+
+## 系统总览
+
+<p align="center">
+  <img src="docs/assets/system-overview.svg" alt="Vulcan 系统总览：客户端描述需求，服务端参数化，SolidWorks 内确定性执行，并以模式校验与人工确认为两道闸门" width="100%">
+</p>
+
+<p align="center">
+  <sub>系统总览。模型只填充类型化模式；服务端与客户端负责校验，客户端预览并执行。两道闸门把模型输出挡在文档之外。</sub>
+</p>
+
+Vulcan 是一个以同一份契约为中心的闭环：需求从 SolidWorks 任务窗格中的一句话开始，服务端把它变成类型化特征树，插件以可编辑 JSON 展示，只有确认后的特征树才会进入 COM 建模器。模型从不执行代码，未经人工确认也不会改动文档。
 
 ## 名称由来
 
@@ -64,7 +78,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 </p>
 
 <p align="center">
-  <sub>示意图。同一份契约可以承载一个基础拉伸和一组有序切除。</sub>
+  <sub>实例演示。一句话变成可编辑 JSON，再变成原生特征；同一份契约可以承载一个基础拉伸和一组有序切除。</sub>
 </p>
 
 <p align="center">
@@ -101,7 +115,7 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 | 提供商自由 | OpenAI、Anthropic、DeepSeek、通义千问、七牛云、vLLM、Ollama 或任意兼容端点。 |
 | 服务端可移植 | 本地、Docker 或隧道后运行；只有客户端需要 Windows。 |
 | 可调试管线 | release 版本没有 `exec()`；每个阶段都有日志和类型。 |
-| API 优先执行 | 优先调用原生特征 API；拉伸和切除失败时，使用键盘驱动的原生面板兜底。 |
+| API 优先执行 | 优先调用原生特征 API；拉伸和贯穿切除失败时，使用键盘驱动的原生面板兜底；盲切失败则中止本次运行，避免模拟深度切穿零件。 |
 | 自带密钥 | 在插件设置对话框中填写提供商密钥、Base URL 和模型。密钥用 Windows DPAPI 在本机加密，仅在一次请求期间发送到你自己的 Vulcan 服务端。 |
 | 可编辑预览 | 每份响应都会打开可编辑的 JSON 预览，确认之前不会写入 SolidWorks。 |
 | CommandManager 工具 | Vulcan AI 标签页与工具栏提供 8 个命令（面板、两个示例、设置、连接测试、状态、日志、关于），任务窗格提供快捷操作，状态窗口显示实时健康与最近运行。 |
@@ -109,8 +123,14 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 
 ## 系统架构
 
+[系统总览](#系统总览)展示概念闭环；本节描述实际部署的组件。
+
 <p align="center">
-  <img src="docs/assets/architecture.svg" alt="Vulcan 系统架构：Windows 客户端、Python 服务端、大模型提供商" width="100%">
+  <img src="docs/assets/architecture.svg" alt="Vulcan 系统架构：Windows 客户端、Python 服务端、大模型提供商，由同一份类型化契约连接" width="100%">
+</p>
+
+<p align="center">
+  <sub>组件视图。三个进程由同一份类型化契约连接；客户端始终运行在 SolidWorks 旁。</sub>
 </p>
 
 | 层次 | 技术栈 | 职责 |
@@ -151,7 +171,11 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 ## 请求生命周期
 
 <p align="center">
-  <img src="docs/assets/pipeline.svg" alt="七阶段请求生命周期，包含延迟与失败处理" width="100%">
+  <img src="docs/assets/pipeline.svg" alt="跨客户端、服务端与模型三条泳道的七阶段请求生命周期，包含延迟与确认闸门" width="100%">
+</p>
+
+<p align="center">
+  <sub>请求生命周期。七个阶段分布在三条泳道；模型调用占据主要延迟，人工确认是进入 COM 之前的最后一道闸门。</sub>
 </p>
 
 1. **请求。** 插件把 `{ "prompt": "..." }` 发送到 Flask 服务端。
@@ -160,14 +184,18 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
 4. **恢复。** 服务端去除 Markdown 代码围栏，再截取第一个 `{` 到最后一个 `}` 后解析。
 5. **校验。** Flask 检查响应信封并校验特征参数；C# 客户端把信封反序列化为类型化模型类，再从参数字典读取参数并应用建模器默认值。
 6. **预览与编辑。** 插件打开可编辑的 JSON 窗口；确认之前不会写入文档。
-7. **执行。** `SwModeler` 绘制草图、选中草图，并调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。拉伸或切除失败时，键盘驱动的兜底方案会打开 SolidWorks 原生特征面板。
+7. **执行。** `SwModeler` 绘制草图、选中草图，并调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。拉伸或贯穿切除失败时，键盘驱动的兜底方案会打开 SolidWorks 原生特征面板；盲切失败则中止本次运行，保留草图而不写入切除。
 
 模型调用占据绝大部分延迟；其余步骤都在本地，通常在毫秒级。
 
 ## JSON 契约
 
 <p align="center">
-  <img src="docs/assets/contract.svg" alt="带注释的 JSON 特征树：信封、特征类型、形状参数、单位与放置" width="100%">
+  <img src="docs/assets/contract.svg" alt="带注释的 JSON 特征树：信封、特征顺序、形状参数、单位与放置，以及特征库" width="100%">
+</p>
+
+<p align="center">
+  <sub>数据契约。十九行响应足以描述一棵有序、参数化的特征树。</sub>
 </p>
 
 ### 信封
@@ -328,6 +356,10 @@ Vulcan 把这一串操作压缩成一句话。名字来自罗马神话中的火�
   <img src="docs/assets/approach.svg" alt="Beta 代码生成路线与 Rebuild JSON 契约路线的对比" width="100%">
 </p>
 
+<p align="center">
+  <sub>设计演进。Beta 执行生成的代码；Rebuild 执行经过校验的数据。</sub>
+</p>
+
 ### 用 JSON 参数，而不是生成代码
 
 Beta 版本让大模型直接输出 Python 代码，由客户端用 `exec()` 执行。这种方式在演示中很灵活，也很惊艳，但工程上很脆弱：幻觉生成的 API 调用可能让 SolidWorks 崩溃，错误恢复几乎不可能，调试意味着阅读一段没人写过的代码。
@@ -348,7 +380,7 @@ Vulcan 通过 [`system_prompt.py`](server/prompts/system_prompt.py) 提供这些
 
 ### API 优先，UI 兜底
 
-SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。如果拉伸或切除调用失败，兜底方案会激活 `RunCommand`，用模拟按键填写原生特征面板。
+SolidWorks 互操作接口对版本很敏感。建模器直接调用原生特征 API，包括 `FeatureExtrusion3`、`FeatureCut4`、`FeatureRevolve`、`FeatureFillet3` 和 `InsertFeatureChamfer`。如果拉伸或贯穿切除调用失败，兜底方案会激活 `RunCommand`，用模拟按键填写原生特征面板。盲切刻意不兜底：运行会在草图处停止，避免模拟深度切穿零件。
 
 兜底方案是务实的，不是优雅的。生成模型时请保持 SolidWorks 在前台；如果兜底频繁触发，应视为需要更新互操作参数的信号。
 
@@ -508,38 +540,6 @@ Créez une base de 200 x 100 x 20 mm sur le plan de face, avec un trou traversan
 ### 6. 查看结果
 
 建模器创建原生特征（示例为 `凸台-拉伸1` 及其草图）、自动缩放视图，并在任务窗格保留**模型生成完成。**状态。客户端日志写入 `Vulcan_Logs\log_YYYYMMDD.txt`，服务端日志写入 `vulcan_server.log`。
-
-## 1.3.0 更新要点
-
-- 新增原生 `linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib` 特征。
-- 提示词契约升级到 `PROMPT_VERSION = "2.4.0"`，英文、中文、法文文档同步更新。
-- 重做插件界面：共享主题、可缩放的提示面板（含示例与状态提示条）、带实时校验的深色 JSON 编辑器，以及分组显示、密钥默认掩码的设置对话框。
-- 编辑后的 JSON 会在写入 SolidWorks 之前，按与服务端一致的规则在前端校验。
-- 修复拔模 `propagation`、盲切兜底、四角孔坐标启发式、零件文档检查、抽壳结果校验、重复运行的 Feature 名称映射，以及线性阵列第二方向。
-- 服务端拒绝同时包含 `feature_type` 与 `features` 的响应，并基于基体做简单几何校验：孔位范围、圆角与倒角尺寸、抽壳壁厚、阵列范围。
-- 建模中止时客户端会报告已创建的特征数量；Release 构建不再需要管理员权限执行 COM 注册。
-- 限流状态加入数量上限，新增可选可信代理模式修复反向代理下的客户端 IP，CI 加入 ruff、Black、mypy 和客户端校验器测试。
-- 草图现在带驱动尺寸：圆直径、矩形长宽、多边形边长、槽口半径与中心距，以及筋和扫掠路径的线段长度。轮廓位置仍由坐标决定，椭圆轮廓暂只保留几何。
-- 已在 SolidWorks 2025 SP0 上用自动化 COM 冒烟验证（`tools/SolidWorksVerify`）：请求尺寸会写为驱动尺寸，修改直径后重建几何同步更新。
-- 新增 `counterbore`、`countersink`、`hole_array` 孔特征，以及装配体的 `insert_component` 和工程图的 `note`。
-- 新增原生英文/法文提示词、可选 `language` 字段、`openai`/`anthropic` 提供商适配器，以及带客户端进度的 SSE 流式端点。
-- 抽出 `ModelingEngine` 与 `IFeatureBackend` 接口，客户端 CI 可用假后端验证顺序、种子解析和部分失败报告。
-- 新增任务窗格面板；面板命令优先打开窗格，窗格不可用时回退模态窗口。
-- 修复盲切：使用双向 `FeatureCut4` 参数，并在失败时反向重试。
-- 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；面板命令在窗格不可用时回退模态面板。
-- 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
-- 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
-- `Vulcan AI` 标签页改为每个命令独立分组，8 个命令自左向右单行排列，不再被折叠成多行网格；命令图标符号在固定 20px 方格内放大约 25%。
-- README 配图更新为 SolidWorks 2025 实机截图（功能区标签页、任务窗格、状态窗口），并新增命令巡览与端到端生成 GIF。
-- 品牌与界面统一为黑红极简体系：新的 V 标志、横幅、命令图标、安装向导配图与 WPF 主题，并同步更新截图和 GIF。
-
-## 1.2.1 更新要点
-
-- 功能区、工具栏与命令按钮使用品牌多尺寸图标。
-- 重绘提示面板、设置对话框与可编辑 JSON 预览。
-- 安装包加入 GPLv3 许可页、现代向导、静默注册与卸载清理。
-- 自带密钥（BYOK）设置使用 Windows DPAPI 加密保存。
-- README 内嵌带说明条的安装、工作流与卸载 GIF。
 
 ## 安装、升级与卸载
 
@@ -708,6 +708,14 @@ setx VULCAN_API_TOKEN "your-shared-token"
 
 ## API 参考
 
+### `GET /health`
+
+无需鉴权的存活检查，插件中的**测试连接**按钮会调用它。响应返回当前配置的模型名称，且不要求 Bearer Token。
+
+```json
+{"status": "ok", "model": "gpt-oss-120b"}
+```
+
 ### `POST /api/v1/generate`
 
 请求：
@@ -768,8 +776,9 @@ setx VULCAN_API_TOKEN "your-shared-token"
 | `X-LLM-API-Key` | 提供商密钥，仅用于本次请求 |
 | `X-LLM-Base-URL` | OpenAI 兼容 Base URL；`VULCAN_ALLOW_CUSTOM_LLM_BASE_URL=false` 时忽略 |
 | `X-LLM-Model` | 模型名称 |
+| `X-LLM-Provider` | `openai` 或 `anthropic`，选择请求体格式；省略时回退到 `LLM_PROVIDER` |
 
-未提供的请求头回退到 `QINIU_*`。取值有长度上限，Base URL 必须以 `http` 或 `https` 开头，密钥和提示词都不会写入服务端日志。
+未提供的请求头回退到 `QINIU_*` 与 `LLM_PROVIDER`。取值有长度上限，Base URL 必须以 `http` 或 `https` 开头，密钥和提示词都不会写入服务端日志。
 
 ### `POST /api/v1/generate/stream`
 
@@ -866,6 +875,42 @@ Vulcan/
 | 模型生成但孔位不对 | 基准面或坐标约定与需求不一致 | 检查返回的 JSON；四角孔启发式按前视 X/Y 坐标工作 |
 
 服务端日志写入工作目录下的 `vulcan_server.log`，按 5 MB 轮转，并且不进入 Git。INFO 级别只记录提示词长度；本地调试时可设置 `LOG_LEVEL=DEBUG` 记录完整内容。客户端日志写入桌面上的 `Vulcan_Logs/log_YYYYMMDD.txt`。
+
+## 版本说明
+
+README 保留版本说明，让文档描述与已发布代码保持一致。
+
+### 1.3.0
+
+- 新增原生 `linear_pattern`、`circular_pattern`、`mirror`、`shell`、`draft`、`sweep`、`loft`、`rib` 特征。
+- 提示词契约升级到 `PROMPT_VERSION = "3.0.0"`，英文、中文、法文文档同步更新。
+- 重做插件界面：共享主题、可缩放的提示面板（含示例与状态提示条）、带实时校验的深色 JSON 编辑器，以及分组显示、密钥默认掩码的设置对话框。
+- 编辑后的 JSON 会在写入 SolidWorks 之前，按与服务端一致的规则在前端校验。
+- 修复拔模 `propagation`、盲切兜底、四角孔坐标启发式、零件文档检查、抽壳结果校验、重复运行的 Feature 名称映射，以及线性阵列第二方向。
+- 服务端拒绝同时包含 `feature_type` 与 `features` 的响应，并基于基体做简单几何校验：孔位范围、圆角与倒角尺寸、抽壳壁厚、阵列范围。
+- 建模中止时客户端会报告已创建的特征数量；Release 构建不再需要管理员权限执行 COM 注册。
+- 限流状态加入数量上限，新增可选可信代理模式修复反向代理下的客户端 IP，CI 加入 ruff、Black、mypy 和客户端校验器测试。
+- 草图现在带驱动尺寸：圆直径、矩形长宽、多边形边长、槽口半径与中心距，以及筋和扫掠路径的线段长度。轮廓位置仍由坐标决定，椭圆轮廓暂只保留几何。
+- 已在 SolidWorks 2025 SP0 上用自动化 COM 冒烟验证（`tools/SolidWorksVerify`）：请求尺寸会写为驱动尺寸，修改直径后重建几何同步更新。
+- 新增 `counterbore`、`countersink`、`hole_array` 孔特征，以及装配体的 `insert_component` 和工程图的 `note`。
+- 新增原生英文/法文提示词、可选 `language` 字段、`openai`/`anthropic` 提供商适配器，以及带客户端进度的 SSE 流式端点。
+- 抽出 `ModelingEngine` 与 `IFeatureBackend` 接口，客户端 CI 可用假后端验证顺序、种子解析和部分失败报告。
+- 新增任务窗格面板；面板命令优先打开窗格，窗格不可用时回退模态窗口。
+- 修复盲切：使用双向 `FeatureCut4` 参数，并在失败时反向重试。
+- 任务窗格通过 `SetParent` 承载 WPF 面板并可交互；面板命令在窗格不可用时回退模态面板。
+- 建模期间客户端临时关闭 SolidWorks 的尺寸输入对话框，结束后恢复设置，草图尺寸无需手动确认。
+- 新增 Vulcan CommandManager 工具栏与功能区标签页，为面板、示例、设置、连接测试、运行状态、日志、关于等命令提供独立图标，并在任务窗格加入快捷操作栏和显示服务端健康与最近运行的状态窗口。
+- `Vulcan AI` 标签页改为每个命令独立分组，8 个命令自左向右单行排列，不再被折叠成多行网格；命令图标符号在固定 20px 方格内放大约 25%。
+- README 配图更新为 SolidWorks 2025 实机截图（功能区标签页、任务窗格、状态窗口），并新增命令巡览与端到端生成 GIF。
+- 品牌与界面统一为黑红极简体系：新的 V 标志、横幅、命令图标、安装向导配图与 WPF 主题，并同步更新截图和 GIF。
+
+### 1.2.1
+
+- 功能区、工具栏与命令按钮使用品牌多尺寸图标。
+- 重绘提示面板、设置对话框与可编辑 JSON 预览。
+- 安装包加入 GPLv3 许可页、现代向导、静默注册与卸载清理。
+- 自带密钥（BYOK）设置使用 Windows DPAPI 加密保存。
+- README 内嵌带说明条的安装、工作流与卸载 GIF。
 
 ## 路线图
 
